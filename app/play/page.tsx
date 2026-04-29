@@ -1,0 +1,1061 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
+import { ArrowLeft, Check, X, ArrowUpRight, ArrowDownRight, ShieldCheck, Lightbulb, Calculator } from 'lucide-react';
+import { useGameState } from '@/hooks/useGameState';
+import { getTodayLesson, normalizeLesson, getCurrentStep, getCurrentPhase, advancePhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile } from '@/lib/lessonPlanner';
+import { getVisual } from '@/data/visualItems';
+import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/types';
+import type { Question, KeywordItem } from '@/lib/types';
+import AppButton from '@/components/ui/AppButton';
+import AppCard from '@/components/ui/AppCard';
+import PageContainer from '@/components/layout/PageContainer';
+import BottomActionBar from '@/components/layout/BottomActionBar';
+import DetectiveMascot from '@/components/DetectiveMascot';
+import AnimatedItems from '@/components/AnimatedItems';
+import Confetti from '@/components/Confetti';
+import FeedbackOverlay from '@/components/FeedbackOverlay';
+import ProgressBar from '@/components/ProgressBar';
+import StarDisplay from '@/components/StarDisplay';
+import TomorrowPreviewCard from '@/components/TomorrowPreviewCard';
+
+const STEP_ORDER: LessonStepType[] = ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'];
+
+export default function PlayPage() {
+  const router = useRouter();
+  const { state, completeQuestion } = useGameState();
+
+  const [lesson, setLesson] = useState<TodayLesson | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [feedback, setFeedback] = useState<{ show: boolean; type: 'success' | 'hint' | 'info'; message: string }>({ show: false, type: 'info', message: '' });
+
+  useEffect(() => {
+    setMounted(true);
+    const raw = getTodayLesson();
+    const normalized = normalizeLesson(raw);
+    setLesson(normalized);
+  }, []);
+
+  const handleRegenerateLesson = useCallback(() => {
+    clearTodayLesson();
+    const fresh = getTodayLesson();
+    const normalized = normalizeLesson(fresh);
+    setLesson(normalized);
+    setFeedback({ show: false, type: 'info', message: '' });
+  }, []);
+
+  const currentStep = lesson ? getCurrentStep(lesson) : null;
+  const currentPhase = lesson ? getCurrentPhase(lesson) : null;
+  const question: Question | null = currentStep
+    ? (getQuestionForLesson(lesson!) || null)
+    : null;
+  const visual = question ? getVisual(question.visualKey) : null;
+
+  // Phase advancement (does NOT complete the step)
+  const handlePhaseAdvance = useCallback(() => {
+    if (!lesson) return;
+    const updated = advancePhase(lesson);
+    saveTodayLesson(updated);
+    setLesson(updated);
+  }, [lesson]);
+
+  // Step completion (only called after correct answer)
+  const handleStepComplete = useCallback((correct: boolean) => {
+    if (!lesson || !currentStep || !question) return;
+
+    completeQuestion(question.id, correct, correct ? undefined : {
+      questionId: question.id,
+      questionText: question.text,
+      myAnswer: '未正确完成',
+      correctAnswer: question.answer,
+      errorType: `关卡"${currentStep.title}"未通过`,
+      retriedCorrect: false,
+    });
+
+    // advancePhase already completed the step internally; now check if lesson is done
+    const updated = advancePhase(lesson);
+    // After advancePhase completes the last phase, it calls completeCurrentStep internally
+    // Actually, let's re-read: advancePhase moves to next phase; if at last phase, it calls completeCurrentStep
+    // But wait - my advancePhase already calls completeCurrentStep when phases are done.
+    // So after advancePhase, if all phases in this step are done, the step completes.
+    // Let me re-check the logic...
+
+    // Actually the flow is: advancePhase → if more phases, advance; else completeCurrentStep
+    // So we need to call advancePhase once more IF the answer phase isn't the last phase.
+    // Actually, answer is the second-to-last phase usually. Let me restructure:
+
+    // After correct answer, we force-complete the step
+    const afterAdvance = advancePhase(lesson); // may advance phase OR complete step
+    saveTodayLesson(afterAdvance);
+    setLesson(afterAdvance);
+
+    if (afterAdvance.completed) {
+      setShowConfetti(true);
+      setFeedback({
+        show: true,
+        type: 'success',
+        message: getCompletionMessage(4, 5),
+      });
+    } else if (afterAdvance.currentStepIndex !== lesson.currentStepIndex) {
+      // Step changed (completed a step)
+      setFeedback({
+        show: true,
+        type: 'success',
+        message: getCompletionMessage(afterAdvance.currentStepIndex - 1, 5),
+      });
+    }
+  }, [lesson, currentStep, question, completeQuestion]);
+
+  if (!mounted) {
+    return (
+      <PageContainer>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="text-4xl mb-3 animate-bounce-gentle">🔍</div>
+            <p className="text-gray-500">小侦探正在准备...</p>
+          </div>
+        </div>
+      </PageContainer>
+    );
+  }
+
+  if (!lesson) {
+    return (
+      <PageContainer>
+        <div className="flex items-center gap-3 mb-2">
+          <Link href="/" className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 transition-colors flex-shrink-0">
+            <ArrowLeft size={20} className="text-amber-700" />
+          </Link>
+          <h1 className="text-lg font-extrabold text-amber-800">任务加载失败</h1>
+        </div>
+        <AppCard variant="amber">
+          <div className="text-center py-6">
+            <div className="text-4xl mb-3">🔧</div>
+            <h3 className="font-extrabold text-amber-800 text-lg mb-2">无法加载今日任务</h3>
+            <p className="text-sm text-gray-600 mb-4">请刷新页面或重新生成任务。</p>
+            <AppButton variant="primary" size="lg" onClick={handleRegenerateLesson}>
+              重新生成今日任务
+            </AppButton>
+          </div>
+        </AppCard>
+      </PageContainer>
+    );
+  }
+
+  // Complete screen
+  if (lesson.completed) {
+    const profile = getLearningProfile();
+    const tomorrowPreview = getTomorrowLessonPreview(profile, state);
+    const totalQuestions = state.correctCount + state.wrongCount;
+    const todayAccuracy = totalQuestions > 0 ? Math.round((state.correctCount / totalQuestions) * 100) : 100;
+    const starsEarned = state.level >= 5 ? 15 : state.level >= 3 ? 10 : 5;
+
+    return (
+      <PageContainer>
+        <div className="flex items-center gap-3 mb-2">
+          <Link href="/" className="p-2 rounded-xl bg-green-100 hover:bg-green-200 transition-colors">
+            <ArrowLeft size={20} className="text-green-700" />
+          </Link>
+          <h1 className="text-lg font-extrabold text-green-800">今日任务完成</h1>
+        </div>
+
+        {/* Congratulations */}
+        <AppCard variant="green">
+          <div className="text-center py-4">
+            <div className="text-6xl mb-4">🏆</div>
+            <h2 className="text-xl font-extrabold text-green-700">今天的侦探任务全部完成！</h2>
+            <p className="text-sm text-green-600 mt-2">
+              你通过了全部 {lesson.steps.length} 个关卡，获得了今日宝箱！
+            </p>
+            <StarDisplay count={starsEarned} size="lg" animate />
+          </div>
+        </AppCard>
+
+        {/* Today Performance */}
+        <AppCard variant="blue">
+          <h3 className="font-extrabold text-blue-800 mb-3">📊 今日学习表现</h3>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div>
+              <div className="text-2xl font-extrabold text-blue-600">{lesson.steps.length}/{lesson.steps.length}</div>
+              <div className="text-xs text-gray-500">完成关卡</div>
+            </div>
+            <div>
+              <div className="text-2xl font-extrabold text-green-600">{todayAccuracy}%</div>
+              <div className="text-xs text-gray-500">总正确率</div>
+            </div>
+            <div>
+              <div className="text-2xl font-extrabold text-amber-600">{state.streak}天</div>
+              <div className="text-xs text-gray-500">连续打卡</div>
+            </div>
+          </div>
+          {profile.weakSkills.length > 0 && (
+            <p className="text-xs text-blue-600 mt-3 text-center">
+              💡 还可以继续练习：{profile.weakSkills.slice(0, 2).map(s => s === 'remove_noise' ? '擦掉没用的信息' : s === 'find_numbers' ? '找数字线索' : s === 'find_keywords' ? '找动作词' : s).join('、')}
+            </p>
+          )}
+        </AppCard>
+
+        {/* Steps completed */}
+        <AppCard variant="default">
+          <h3 className="font-extrabold text-gray-700 mb-2">✅ 已通关卡</h3>
+          <div className="space-y-2">
+            {lesson.steps.map((step, i) => (
+              <div key={step.id} className="flex items-center gap-2 text-sm text-green-700 bg-green-50 rounded-lg p-2">
+                <Check size={16} className="text-green-500 flex-shrink-0" />
+                <span>第 {i + 1} 关：{step.title}</span>
+              </div>
+            ))}
+          </div>
+        </AppCard>
+
+        {/* Tomorrow preview */}
+        <TomorrowPreviewCard preview={tomorrowPreview} variant="full" />
+
+        {/* Action buttons */}
+        <div className="space-y-3">
+          <AppButton variant="primary" size="lg" fullWidth onClick={() => router.push('/')}>
+            返回首页
+          </AppButton>
+          <AppButton variant="ghost" size="lg" fullWidth onClick={() => router.push('/rewards')}>
+            🎁 去奖励中心看看
+          </AppButton>
+        </div>
+
+        <Confetti show={showConfetti} />
+      </PageContainer>
+    );
+  }
+
+  // No current step — show appropriate recovery
+  if (!currentStep || !question || !visual || !currentPhase) {
+    // Lesson exists but phase/step data is corrupted → show recovery UI
+    if (lesson && !lesson.completed) {
+      return (
+        <PageContainer>
+          <div className="flex items-center gap-3 mb-2">
+            <Link href="/" className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 transition-colors flex-shrink-0">
+              <ArrowLeft size={20} className="text-amber-700" />
+            </Link>
+            <h1 className="text-lg font-extrabold text-amber-800">任务数据需要刷新</h1>
+          </div>
+
+          <AppCard variant="amber">
+            <div className="text-center py-6">
+              <div className="text-4xl mb-3">🔧</div>
+              <h3 className="font-extrabold text-amber-800 text-lg mb-2">今天的任务数据需要刷新一下</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                任务进度数据格式可能已更新，点下方按钮重新生成今日任务。
+              </p>
+              <AppButton variant="primary" size="lg" onClick={handleRegenerateLesson}>
+                重新生成今日任务
+              </AppButton>
+            </div>
+          </AppCard>
+        </PageContainer>
+      );
+    }
+
+    // Initial load — still waiting or no lesson at all
+    return (
+      <PageContainer>
+        <AppCard>
+          <div className="text-center py-8">
+            <p className="text-gray-500">正在准备今天的任务...</p>
+          </div>
+        </AppCard>
+      </PageContainer>
+    );
+  }
+
+  return (
+    <PageContainer bottomPadding={false}>
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <Link href="/" className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 transition-colors flex-shrink-0">
+          <ArrowLeft size={20} className="text-amber-700" />
+        </Link>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-lg font-extrabold text-amber-800 truncate">
+            {getStepLabel(currentStep)}
+          </h1>
+          <div className="flex items-center gap-2 mt-1">
+            <ProgressBar
+              value={lesson.currentStepIndex}
+              max={lesson.steps.length}
+              color="bg-gradient-to-r from-amber-400 to-orange-400"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Detective */}
+      <div className="flex justify-center">
+        <DetectiveMascot mood="thinking" size="sm" />
+      </div>
+
+      {/* Phase-aware step content */}
+      <AnimatePresence mode="wait">
+        <PhaseAwareStep
+          key={`${currentStep.id}-${currentStep.currentPhaseIndex}`}
+          step={currentStep}
+          phase={currentPhase}
+          question={question}
+          visual={visual}
+          onPhaseAdvance={handlePhaseAdvance}
+          onStepComplete={handleStepComplete}
+        />
+      </AnimatePresence>
+
+      <FeedbackOverlay
+        show={feedback.show}
+        type={feedback.type}
+        message={feedback.message}
+        onClose={() => setFeedback((f) => ({ ...f, show: false }))}
+      />
+      <Confetti show={showConfetti} />
+    </PageContainer>
+  );
+}
+
+// ========== Phase-Aware Step Router ==========
+
+function PhaseAwareStep({
+  step, phase, question, visual,
+  onPhaseAdvance, onStepComplete,
+}: {
+  step: LessonStep;
+  phase: StepPhase | null;
+  question: Question;
+  visual: ReturnType<typeof getVisual>;
+  onPhaseAdvance: () => void;
+  onStepComplete: (correct: boolean) => void;
+}) {
+  if (!phase) return null;
+
+  switch (step.type) {
+    case 'find_numbers':
+      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+    case 'find_action_words':
+      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+    case 'simulation':
+      return <SimulationPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+    case 'remove_noise':
+      return <RemoveNoisePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+    case 'full_solve':
+      return <FullSolvePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+    default:
+      return null;
+  }
+}
+
+// ========== Shared: Equation + Answer Phase ==========
+
+function EquationAnswerPhase({ question, visual, onCorrect }: { question: Question; visual: ReturnType<typeof getVisual>; onCorrect: () => void }) {
+  const [userAnswer, setUserAnswer] = useState('');
+  const [shakeInput, setShakeInput] = useState(false);
+  const [answered, setAnswered] = useState(false);
+
+  function handleSubmit() {
+    const input = userAnswer.trim();
+    if (!input) return;
+
+    // Compare as string or number
+    const correctStr = String(question.answer);
+    const isCorrect = input === correctStr || parseFloat(input) === question.answer;
+
+    if (isCorrect) {
+      setAnswered(true);
+      onCorrect();
+    } else {
+      setShakeInput(true);
+      setTimeout(() => setShakeInput(false), 500);
+    }
+  }
+
+  if (answered) {
+    return (
+      <AppCard variant="green">
+        <div className="text-center py-4">
+          <div className="text-4xl mb-2">✅</div>
+          <h3 className="font-extrabold text-green-700 text-lg">回答正确！</h3>
+          <div className="mt-3 p-3 bg-white rounded-xl text-lg font-extrabold text-amber-600">
+            {question.equation.replace('?', String(question.answer))}
+          </div>
+          <p className="text-sm text-gray-600 mt-2">{question.answerSentence}</p>
+        </div>
+      </AppCard>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <AppCard variant="amber">
+        <div className="text-center">
+          <Calculator size={32} className="mx-auto mb-2 text-amber-600" />
+          <h3 className="font-extrabold text-amber-800 text-lg mb-2">🧮 列算式，算答案！</h3>
+          <p className="text-sm text-gray-600 mb-3">
+            根据找到的线索，列出算式并算出{visual.itemName}的{question.correctMeaning.replace('问', '')}
+          </p>
+          <div className="text-2xl font-extrabold text-gray-700 mb-4 p-3 bg-amber-50 rounded-xl">
+            {question.equation.replace('?', '___')}
+          </div>
+        </div>
+      </AppCard>
+
+      <AppCard>
+        <div className={`text-center ${shakeInput ? 'animate-shake' : ''}`}>
+          <label className="text-sm font-bold text-gray-500 mb-2 block">✏️ 输入你的答案：</label>
+          <input
+            type="text"
+            inputMode="decimal"
+            value={userAnswer}
+            onChange={(e) => setUserAnswer(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+            className="w-32 h-16 text-center text-2xl font-extrabold border-2 border-amber-300 rounded-xl focus:border-amber-500 focus:outline-none bg-amber-50"
+            placeholder="?"
+            autoFocus
+          />
+        </div>
+      </AppCard>
+
+      <BottomActionBar>
+        <AppButton variant="success" size="lg" fullWidth disabled={!userAnswer.trim()} onClick={handleSubmit}>
+          提交答案
+        </AppButton>
+      </BottomActionBar>
+    </div>
+  );
+}
+
+// ========== Step 1: Find Numbers (Phased) ==========
+// Phases: read → find_numbers → [equation+answer] → completed
+
+function FindNumbersPhased({
+  phase, question, visual, onPhaseAdvance, onStepComplete,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  const [found, setFound] = useState<Set<number>>(new Set());
+  const allFound = found.size === question.numbers.length;
+
+  if (phase === 'read') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="blue">
+          <h3 className="font-extrabold text-blue-800 mb-2">📖 仔细读题</h3>
+          <p className="text-sm text-gray-600">仔细阅读题目，准备寻找数字线索！</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+            读完了，开始找数字 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'find_numbers') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="blue">
+          <h3 className="font-extrabold text-blue-800 mb-2">🧭 任务：找到所有数字</h3>
+          <p className="text-sm text-gray-600">题目中提到了哪些数字？点击你找到的数字！</p>
+        </AppCard>
+
+        <AppCard>
+          <p className="text-sm text-gray-700 mb-3">{question.text}</p>
+        </AppCard>
+
+        <div className="grid grid-cols-4 gap-3">
+          {question.numbers.map((n, i) => (
+            <motion.button
+              key={i}
+              className={`py-5 rounded-2xl font-extrabold text-2xl border-2 transition-all min-h-[64px] ${
+                found.has(i)
+                  ? 'bg-green-100 border-green-400 text-green-700'
+                  : 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
+              }`}
+              onClick={() => {
+                const next = new Set(found);
+                next.has(i) ? next.delete(i) : next.add(i);
+                setFound(next);
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {n}
+            </motion.button>
+          ))}
+          {/* Distractors */}
+          {Array.from({ length: Math.max(0, 4 - question.numbers.length) }).map((_, i) => (
+            <div key={`fake-${i}`} className="py-5 rounded-2xl font-extrabold text-2xl border-2 border-gray-200 bg-gray-50 text-gray-300 flex items-center justify-center min-h-[64px]">
+              —
+            </div>
+          ))}
+        </div>
+
+        {found.size > 0 && !allFound && (
+          <p className="text-sm text-amber-600 text-center">还有数字没找到哦，再仔细看看题目～</p>
+        )}
+
+        {allFound && (
+          <AppCard variant="green">
+            <div className="text-center">
+              <p className="font-extrabold text-green-700 mb-1">✅ 找到了所有数字！</p>
+              <p className="text-sm text-gray-600">
+                这 {question.numbers.length} 个数字代表了{visual.itemEmoji} {visual.itemName}的数量信息
+              </p>
+            </div>
+          </AppCard>
+        )}
+
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth disabled={!allFound} onClick={onPhaseAdvance}>
+            数字找齐了，去列算式算答案 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  // phases after find_numbers → equation + answer
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+}
+
+// ========== Step 2: Find Action Words (Phased) ==========
+// Phases: read → find_keywords → choose_operation → [equation+answer] → completed
+
+function FindActionWordsPhased({
+  phase, question, visual, onPhaseAdvance, onStepComplete,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  const [found, setFound] = useState<Set<number>>(new Set());
+  const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
+  const allFound = found.size === question.keywords.length;
+  const correctOp = question.operation === 'addition' ? 'add' : question.operation === 'subtraction' ? 'subtract' : null;
+
+  if (phase === 'read') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="blue">
+          <h3 className="font-extrabold text-blue-800 mb-2">📖 仔细读题</h3>
+          <p className="text-sm text-gray-600">认真读题，注意里面的动作词（关键词）！</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+            读完了，开始找关键词 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'find_keywords') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="blue">
+          <h3 className="font-extrabold text-blue-800 mb-2">🔑 任务：找出关键词/动作词</h3>
+          <p className="text-sm text-gray-600">点击题目中包含的动作词！</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-sm text-gray-700 mb-3">{question.text}</p>
+        </AppCard>
+        <div className="flex flex-wrap gap-2">
+          {question.keywords.map((kw, i) => (
+            <motion.button
+              key={i}
+              className={`px-4 py-3 rounded-xl font-bold text-lg border-2 transition-all ${
+                found.has(i)
+                  ? 'bg-green-100 border-green-400 text-green-700'
+                  : 'bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100'
+              }`}
+              onClick={() => {
+                const next = new Set(found);
+                next.has(i) ? next.delete(i) : next.add(i);
+                setFound(next);
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              &ldquo;{kw.word}&rdquo;
+              {found.has(i) && <Check size={16} className="inline ml-1" />}
+            </motion.button>
+          ))}
+        </div>
+        {allFound && (
+          <AppCard variant="green">
+            <p className="text-center font-extrabold text-green-700">✅ 找到了所有关键词！</p>
+          </AppCard>
+        )}
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth disabled={!allFound} onClick={onPhaseAdvance}>
+            关键词找到了，判断运算 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'choose_operation') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="amber">
+          <h3 className="font-extrabold text-amber-800 mb-3 text-center">
+            🤔 这些关键词让{visual.itemName}变多还是变少？
+          </h3>
+          <p className="text-sm text-gray-600 text-center mb-3">
+            关键词：{question.keywords.map(k => `"${k.word}"`).join('、')}
+          </p>
+        </AppCard>
+        <div className="grid grid-cols-2 gap-3">
+          <motion.button
+            className={`py-5 rounded-2xl font-extrabold text-lg border-2 flex flex-col items-center gap-2 ${
+              opChoice === 'add'
+                ? opChoice === correctOp
+                  ? 'bg-green-100 border-green-400 text-green-700'
+                  : 'bg-red-100 border-red-400 text-red-700'
+                : 'bg-white border-gray-200 text-gray-700 hover:border-green-300'
+            }`}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setOpChoice('add')}
+          >
+            <ArrowUpRight size={32} />
+            <span>变多了（加法 ➕）</span>
+          </motion.button>
+          <motion.button
+            className={`py-5 rounded-2xl font-extrabold text-lg border-2 flex flex-col items-center gap-2 ${
+              opChoice === 'subtract'
+                ? opChoice === correctOp
+                  ? 'bg-green-100 border-green-400 text-green-700'
+                  : 'bg-red-100 border-red-400 text-red-700'
+                : 'bg-white border-gray-200 text-gray-700 hover:border-red-300'
+            }`}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setOpChoice('subtract')}
+          >
+            <ArrowDownRight size={32} />
+            <span>变少了（减法 ➖）</span>
+          </motion.button>
+        </div>
+        {opChoice && opChoice !== correctOp && (
+          <AppCard variant="amber">
+            <p className="text-center text-amber-700">
+              💡 再想想：{question.keywords.map(k => k.word).join('、')} 意味着什么变化？
+            </p>
+          </AppCard>
+        )}
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth disabled={!opChoice} onClick={onPhaseAdvance}>
+            判断完毕，去列算式算答案 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  // Final phase: equation + answer
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+}
+
+// ========== Step 3: Simulation (Phased) ==========
+// Phases: read → simulation → choose_operation → answer → completed
+
+function SimulationPhased({
+  phase, question, visual, onPhaseAdvance, onStepComplete,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  const [animationShown, setAnimationShown] = useState(false);
+  const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
+  const correctOp = question.operation === 'addition' ? 'add' : question.operation === 'subtraction' ? 'subtract' : null;
+
+  if (phase === 'read') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="blue">
+          <h3 className="font-extrabold text-blue-800 mb-2">📖 仔细读题</h3>
+          <p className="text-sm text-gray-600">读题，想想{visual.itemName}发生了什么变化</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+            读完了，看动画 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'simulation') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="blue">
+          <h3 className="font-extrabold text-blue-800 mb-2">🎬 观察变化</h3>
+          <p className="text-sm text-gray-600">点击按钮播放动画，看看{visual.itemName}怎么变化！</p>
+        </AppCard>
+        {!animationShown ? (
+          <div className="text-center">
+            <AppButton variant="primary" size="lg" onClick={() => setAnimationShown(true)}>
+              🎬 播放动画
+            </AppButton>
+          </div>
+        ) : (
+          <AppCard variant="amber">
+            <AnimatedItems
+              visual={visual}
+              initialCount={question.numbers[0]}
+              changeCount={question.numbers[1] || 0}
+              operation={question.operation === 'addition' ? 'addition' : question.operation === 'subtraction' ? 'subtraction' : 'addition'}
+              showResult={false}
+            />
+          </AppCard>
+        )}
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth disabled={!animationShown} onClick={onPhaseAdvance}>
+            看完动画，判断运算 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'choose_operation') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="amber">
+          <h3 className="font-extrabold text-amber-800 mb-3 text-center">
+            🤔 {visual.itemName}变多了还是变少了？
+          </h3>
+        </AppCard>
+        <div className="grid grid-cols-2 gap-3">
+          <motion.button
+            className={`py-5 rounded-2xl font-extrabold text-lg border-2 flex flex-col items-center gap-2 ${
+              opChoice === 'add'
+                ? opChoice === correctOp ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700'
+                : 'bg-white border-gray-200 text-gray-700 hover:border-green-300'
+            }`}
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={() => setOpChoice('add')}
+          >
+            <ArrowUpRight size={32} /><span>变多了（➕）</span>
+          </motion.button>
+          <motion.button
+            className={`py-5 rounded-2xl font-extrabold text-lg border-2 flex flex-col items-center gap-2 ${
+              opChoice === 'subtract'
+                ? opChoice === correctOp ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700'
+                : 'bg-white border-gray-200 text-gray-700 hover:border-red-300'
+            }`}
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={() => setOpChoice('subtract')}
+          >
+            <ArrowDownRight size={32} /><span>变少了（➖）</span>
+          </motion.button>
+        </div>
+        {opChoice && opChoice !== correctOp && (
+          <AppCard variant="amber"><p className="text-center text-amber-700">💡 再观察一下动画中的变化！</p></AppCard>
+        )}
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth disabled={!opChoice} onClick={onPhaseAdvance}>
+            判断完毕，去算答案 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  // answer phase
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+}
+
+// ========== Step 4: Remove Noise (Phased) ==========
+// Phases: read → remove_noise → build_equation → answer → completed
+
+function RemoveNoisePhased({
+  phase, question, visual, onPhaseAdvance, onStepComplete,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  const [erased, setErased] = useState<Set<number>>(new Set());
+  const [noiseDone, setNoiseDone] = useState(false);
+
+  const segments = question.text.split(/(?<=[，。！？、])/).filter((s) => s.trim());
+  const noiseIdx = new Set<number>();
+  segments.forEach((seg, i) => {
+    if (question.noisePhrases.some((np) => seg.includes(np))) noiseIdx.add(i);
+  });
+  const hasNoise = noiseIdx.size > 0;
+
+  function handleErase(idx: number) {
+    if (noiseDone) return;
+    const next = new Set(erased);
+    next.has(idx) ? next.delete(idx) : next.add(idx);
+    setErased(next);
+
+    const allNoiseGone = Array.from(noiseIdx).every((i) => next.has(i));
+    const noUsefulErased = !segments.some((_s, i) => !noiseIdx.has(i) && next.has(i));
+    if (allNoiseGone && noUsefulErased) {
+      setNoiseDone(true);
+    }
+  }
+
+  if (phase === 'read') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="pink">
+          <h3 className="font-extrabold text-pink-800 mb-2">📖 仔细读题</h3>
+          <p className="text-sm text-gray-600">有些句子可能和数学无关哦，读的时候留意一下</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+            读完了，开始擦废话 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'remove_noise') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="pink">
+          <h3 className="font-extrabold text-pink-800 mb-2">🧹 任务：擦掉和数学无关的废话</h3>
+          <p className="text-sm text-gray-600">
+            点击包含废话的句子把它擦掉（保留真正有用的数学信息）
+          </p>
+        </AppCard>
+        <AppCard>
+          <h3 className="text-sm font-bold text-gray-500 mb-3">📋 题目（点击擦掉无关信息）：</h3>
+          <div className="flex flex-wrap gap-1">
+            {segments.map((seg, i) => {
+              const isNoise = noiseIdx.has(i);
+              const isErased = erased.has(i);
+              return (
+                <motion.span
+                  key={i}
+                  className={`inline-block px-2 py-1 rounded-lg cursor-pointer text-sm border transition-all ${
+                    isErased
+                      ? isNoise ? 'bg-green-50 border-green-200 text-green-400 line-through opacity-40' : 'bg-red-50 border-red-200 text-red-300 line-through opacity-50'
+                      : isNoise ? 'bg-red-50 border-red-200 border-dashed hover:bg-red-100' : 'bg-green-50 border-green-200 hover:bg-green-100'
+                  }`}
+                  onClick={() => handleErase(i)}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                >
+                  {isErased && <span className="mr-1">{isNoise ? '🧹' : '❓'}</span>}
+                  {seg}
+                </motion.span>
+              );
+            })}
+          </div>
+        </AppCard>
+        {noiseDone && (
+          <AppCard variant="green">
+            <div className="text-center">
+              <div className="text-3xl mb-2">🔍</div>
+              <h3 className="font-extrabold text-green-700">找到真正有用的线索了！</h3>
+              <div className="mt-2 p-3 bg-white rounded-xl text-left text-sm">
+                <span className="font-bold text-gray-600">有用信息：</span>
+                <span className="text-gray-700">{question.usefulPhrases.join('；')}</span>
+              </div>
+            </div>
+          </AppCard>
+        )}
+        {!hasNoise && (
+          <AppCard variant="green">
+            <p className="text-center text-green-700">这道题没有废话，所有句子都有用！</p>
+          </AppCard>
+        )}
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth disabled={hasNoise && !noiseDone} onClick={onPhaseAdvance}>
+            废话擦干净了，去列算式算答案 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  // Final phases: build_equation → answer
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+}
+
+// ========== Step 5: Full Solve (Phased) ==========
+// Phases: read → find_numbers → find_keywords → choose_operation → build_equation → answer → explain → completed
+
+function FullSolvePhased({
+  phase, question, visual, onPhaseAdvance, onStepComplete,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
+
+  if (phase === 'read') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="purple">
+          <h3 className="font-extrabold text-purple-800 mb-2">📖 仔细读题</h3>
+          <p className="text-sm text-gray-600">完整破解一道题，按步骤来！</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+            读完了，开始破案 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'find_numbers') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="purple">
+          <h3 className="font-extrabold text-purple-800 mb-2">🧭 第1步：找出题目中的数字</h3>
+        </AppCard>
+        <AppCard>
+          <p className="text-sm text-gray-700 mb-3">{question.text}</p>
+          <div className="flex flex-wrap gap-3">
+            {question.numbers.map((n, i) => (
+              <div key={i} className="px-6 py-4 bg-amber-50 rounded-2xl font-extrabold text-2xl border-2 border-amber-300 text-amber-700">{n}</div>
+            ))}
+          </div>
+          <p className="text-sm text-gray-600 mt-3">数量分别是 {question.numbers.join(' 和 ')}，代表{visual.itemEmoji} {visual.itemName}</p>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth onClick={onPhaseAdvance}>
+            找到数字 ✓ 下一步 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'find_keywords') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="purple">
+          <h3 className="font-extrabold text-purple-800 mb-2">🔑 第2步：找到关键词/动作词</h3>
+        </AppCard>
+        <AppCard>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {question.keywords.length > 0
+              ? question.keywords.map((kw, i) => (
+                  <span key={i} className="px-4 py-3 bg-blue-100 rounded-xl font-bold text-blue-700 text-lg border-2 border-blue-300">
+                    &ldquo;{kw.word}&rdquo;
+                  </span>
+                ))
+              : <p className="text-gray-500 text-sm">这道题没有明显的动作关键词，需要理解题意来判断</p>
+            }
+          </div>
+          {question.keywords.length > 0 && (
+            <p className="text-sm text-gray-600">这些词提示了{visual.itemName}的数量变化方向</p>
+          )}
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth onClick={onPhaseAdvance}>
+            找到关键词 ✓ 下一步 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'choose_operation') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="purple">
+          <h3 className="font-extrabold text-purple-800 mb-2">🤔 第3步：题目在问什么？</h3>
+        </AppCard>
+        <div className="space-y-2">
+          {question.questionMeaningOptions.map((opt, i) => (
+            <motion.button
+              key={i}
+              className={`w-full py-4 rounded-xl font-bold border-2 transition-all ${
+                selectedMeaning === opt
+                  ? opt === question.correctMeaning ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700'
+                  : 'bg-white border-gray-200 text-gray-700 hover:border-purple-300'
+              }`}
+              onClick={() => setSelectedMeaning(opt)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {opt}
+            </motion.button>
+          ))}
+        </div>
+        {selectedMeaning && selectedMeaning !== question.correctMeaning && (
+          <AppCard variant="amber"><p className="text-center text-amber-700">💡 再读读题目，看看它到底在问什么？</p></AppCard>
+        )}
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth disabled={!selectedMeaning} onClick={onPhaseAdvance}>
+            理解题意 ✓ 下一步 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'build_equation') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="purple">
+          <h3 className="font-extrabold text-purple-800 mb-2">🧮 第4步：列出算式</h3>
+          <p className="text-sm text-gray-600">根据前面的线索，这道题的算式是：</p>
+        </AppCard>
+        <AppCard variant="amber">
+          <div className="text-center py-4">
+            <Lightbulb size={32} className="mx-auto mb-2 text-amber-500" />
+            <div className="text-2xl font-extrabold text-gray-700">
+              {question.equation.replace('?', '___')}
+            </div>
+            <p className="text-sm text-gray-500 mt-2">用 {question.operation} 运算</p>
+          </div>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth onClick={onPhaseAdvance}>
+            算式确认 ✓ 去算答案 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'answer') {
+    return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+  }
+
+  // explain phase
+  if (phase === 'explain') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="green">
+          <div className="text-center py-4">
+            <div className="text-5xl mb-3">🏆</div>
+            <h3 className="text-xl font-extrabold text-green-700">案件完美侦破！</h3>
+            <p className="text-gray-600 mt-2">{question.explanation}</p>
+            <div className="mt-3 p-3 bg-white rounded-xl text-lg font-extrabold text-amber-600">
+              {question.equation.replace('?', String(question.answer))}
+            </div>
+            <p className="text-sm text-green-600 mt-2">{question.answerSentence}</p>
+          </div>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="primary" size="lg" fullWidth onClick={() => onStepComplete(true)}>
+            完成，进入下一关 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  return null;
+}

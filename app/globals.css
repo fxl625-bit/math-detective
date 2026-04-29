@@ -1,26 +1,115 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: #fffdf7;
+  --color-foreground: #3d2c0a;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #fffdf7;
+  color: #3d2c0a;
+  font-family: var(--font-sans), 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #fef3c7;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb {
+  background: #f59e0b;
+  border-radius: 3px;
+}
+
+/* Safe area for mobile bottom nav */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ========== Legacy card styles (keep for backward compat) ========== */
+.card-detective {
+  background: white;
+  border: 2px solid #fde68a;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 6px -1px rgba(251, 191, 36, 0.1), 0 2px 4px -2px rgba(251, 191, 36, 0.1);
+  transition: all 0.2s ease;
+}
+.card-detective:hover {
+  box-shadow: 0 10px 15px -3px rgba(251, 191, 36, 0.2), 0 4px 6px -4px rgba(251, 191, 36, 0.2);
+  transform: translateY(-2px);
+}
+
+/* ========== Animations ========== */
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+.animate-wiggle {
+  animation: wiggle 0.3s ease-in-out;
+}
+
+/* ========== Text block styles (for noise reduction game) ========== */
+.text-block {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  margin: 0.125rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+.text-block.noise {
+  background: #fef2f2;
+  border: 1px dashed #fca5a5;
+}
+.text-block.useful {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+}
+.text-block.erased {
+  background: #f1f5f9;
+  color: #cbd5e1;
+  text-decoration: line-through;
+  border: 1px dashed #e2e8f0;
+}
+
+/* ========== Responsive helpers ========== */
+
+/* Ensure inputs have reasonable sizing on mobile */
+@media (max-width: 640px) {
+  input, button {
+    font-size: 16px; /* Prevents iOS zoom on input focus */
+  }
 }

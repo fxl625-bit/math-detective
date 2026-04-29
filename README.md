@@ -1,36 +1,232 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 傅星扬的数学侦探
 
-## Getting Started
+小学低年级数学应用题阅读理解小游戏。
 
-First, run the development server:
+**核心目标：** 帮助孩子解决"读不懂数学应用题"的问题，训练找数字、找关键词、删除无关信息、理解题意、判断运算等核心阅读技能。
+
+## 技术栈
+
+- Next.js 16 (App Router) + React 19
+- TypeScript
+- Tailwind CSS v4
+- Framer Motion (动画)
+- Lucide React (图标)
+- localStorage (数据持久化)
+
+## 本地运行
 
 ```bash
+# 安装依赖
+npm install
+
+# 启动开发服务器
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# 浏览器打开 http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 构建
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm run lint    # ESLint 检查
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 部署到 Vercel
 
-## Learn More
+1. 将项目推送到 GitHub 仓库
+2. 在 [Vercel](https://vercel.com) 导入该仓库
+3. Vercel 会自动识别 Next.js 项目，无需额外配置
+4. 点击 Deploy 即可
+5. 无需环境变量（纯前端项目，数据存 localStorage）
 
-To learn more about Next.js, take a look at the following resources:
+## GitHub 仓库
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+https://github.com/fxl625-bit/math-detective
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 线上访问地址
 
-## Deploy on Vercel
+待部署
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 项目结构
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+math-detective/
+├── app/
+│   ├── layout.tsx              # 根布局（含底部导航）
+│   ├── page.tsx                # 首页 Dashboard
+│   ├── globals.css             # 全局样式
+│   ├── play/
+│   │   ├── page.tsx            # 今日任务关卡列表
+│   │   ├── clues/page.tsx      # 找数字
+│   │   ├── actions/page.tsx    # 找动作词
+│   │   ├── noise/page.tsx      # 擦掉废话
+│   │   └── solve/page.tsx      # 完整破案
+│   ├── rewards/page.tsx        # 奖励中心（虚拟奖励 + 家长奖励 + 家长模式）
+│   ├── mistakes/page.tsx       # 错题本
+│   └── parent-report/page.tsx  # 家长报告
+├── components/
+│   ├── BottomNav.tsx           # 底部导航栏
+│   ├── Confetti.tsx            # 撒花效果
+│   ├── DetectiveMascot.tsx     # 侦探助手角色
+│   ├── AnimatedItems.tsx       # 题目物品动画
+│   ├── FeedbackOverlay.tsx     # 答题反馈弹窗
+│   ├── LevelBadge.tsx          # 等级徽章
+│   ├── ProgressBar.tsx         # 进度条
+│   ├── StarDisplay.tsx         # 星星显示
+│   ├── StreakDisplay.tsx       # 持续打卡显示
+│   ├── TomorrowPreviewCard.tsx # 明日预告卡片
+│   ├── ParentRewardForm.tsx    # 家长奖励表单弹窗
+│   ├── RedeemConfirmModal.tsx  # 兑换确认弹窗
+│   ├── layout/
+│   │   ├── BottomActionBar.tsx # 底部操作栏
+│   │   └── PageContainer.tsx   # 页面容器
+│   └── ui/
+│       ├── AppButton.tsx       # 通用按钮
+│       └── AppCard.tsx         # 通用卡片
+├── data/
+│   ├── questions/              # 题库（按年级分文件）
+│   │   ├── index.ts            # 题库入口
+│   │   ├── g1.ts ~ g6.ts       # G1-G6 各 25 题
+│   │   └── olympiadIntro.ts    # 奥数启蒙题
+│   ├── badges.ts               # 徽章定义
+│   ├── rewards.ts              # 虚拟奖励定义
+│   ├── levels.ts               # 等级配置
+│   └── visualItems.ts          # 物品图标绑定
+├── hooks/
+│   └── useGameState.ts         # 全局游戏状态管理
+├── lib/
+│   ├── types.ts                # TypeScript 类型定义
+│   ├── storage.ts              # localStorage 存储逻辑
+│   ├── lessonPlanner.ts        # 每日课程编排 + 选题逻辑
+│   ├── migrations.ts           # 数据结构迁移 (version 3)
+│   └── validateQuestions.ts    # 题库自检
+└── package.json
+```
+
+## 如何新增题目
+
+编辑 `data/questions/g<年级>.ts`，按照已有格式添加新题：
+
+```typescript
+{
+  id: 'g1_26',
+  gradeBand: 'G1',
+  domain: 'addition_subtraction',
+  cognitiveSkills: ['find_numbers', 'choose_operation'],
+  text: '完整的题目文本...',
+  numbers: [8, 3],
+  keywords: [
+    { word: '又跑来', type: 'add' },
+  ],
+  noisePhrases: ['今天天气很好'],
+  usefulPhrases: ['草地上有8只小白兔', '又跑来了3只'],
+  questionMeaningOptions: ['问总数', '问还剩多少'],
+  correctMeaning: '问总数',
+  operation: 'addition',
+  equation: '8 + 3 = ?',
+  answer: 11,
+  answerSentence: '一共有11只。',
+  explanation: '解释文本...',
+  solutionSteps: ['步骤1...', '步骤2...'],
+  hints: ['提示1...'],
+  difficulty: 1,
+  category: 'addition',
+  visualKey: 'rabbit',
+  requiresAnswer: true,
+  stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+},
+```
+
+关键规则：
+- `visualKey` 必须与题目物品一致（写蜡笔 → visualKey: 'crayon'）
+- `stepCompatibility` 标注该题适合哪些关卡类型
+- remove_noise 题必须有 `noisePhrases`（至少 1 条）
+- simulation 题必须 `operation` 为 addition/subtraction 且有 `visualKey`
+- 新增题后运行 `npx ts-node lib/validateQuestions.ts` 自检
+
+## 如何修改家长奖励
+
+家长奖励是 localStorage 中的数据，由家长在奖励中心的家长模式中管理：
+1. 进入奖励中心 → 家长模式
+2. 通过数学题验证
+3. 在「管理奖励」中添加/编辑/删除奖励
+4. 可设启用/停用状态
+
+## 如何重置测试数据
+
+在奖励中心 → 家长模式 → 重置工具中提供 4 种重置：
+- **重置今日任务** — 清空今日进度，可重新开始
+- **清空学习进度** — 保留家长设置和奖励，只清空学习数据
+- **恢复默认奖励** — 恢复 3 个默认家长奖励
+- **完全重置** — 恢复所有数据到初始状态
+
+或手动清除：浏览器 DevTools → Application → Local Storage → 删除 `math-detective-state` 和 `math-detective-today-lesson`
+
+## 常见问题
+
+**Q: 页面崩溃显示 "phases undefined"？**
+A: 旧版本 localStorage 数据不兼容。清除 `math-detective-state` 和 `math-detective-today-lesson` 后刷新。
+
+**Q: 所有关卡显示同一道题？**
+A: v1.0 已修复。每个关卡通过 `selectQuestionForStep()` 独立选题。
+
+**Q: 擦掉废话关卡的题没有废话？**
+A: v1.0 已修复。remove_noise 关卡绝不回退到无 noisePhrases 的题。
+
+**Q: Hydration warning？**
+A: 这是 React 18+ 的已知问题，不影响功能。所有页面已使用 mounted guard 处理。
+
+**Q: Vercel 构建失败？**
+A: 确保本地 `npm run build` 通过后再推送。Next.js 16 使用了 Turbopack。
+
+## 设计理念
+
+- **不是刷题工具**：核心是训练阅读理解能力，而非单纯计算
+- **正向激励**：答对有撒花和鼓励语，答错只有温和提示
+- **无惩罚设计**：没有大红叉、没有扣分、没有倒计时压力
+- **游戏化学习**：侦探主题、星星奖励、等级系统、徽章收集
+- **家长友好**：内置报告页面，了解孩子学习情况
+
+## 适配说明
+
+- 针对平板和手机触摸操作优化
+- 大按钮、圆角、间距适合儿童手指
+- 支持 iOS Safari 和 Android Chrome
+- 底部安全区域适配
+
+## 后续接入 Supabase
+
+项目已为接入 Supabase 做好准备：
+
+1. **安装 Supabase 客户端**
+   ```bash
+   npm install @supabase/supabase-js
+   ```
+
+2. **创建 Supabase 客户端** (`lib/supabase.ts`)
+   ```typescript
+   import { createClient } from '@supabase/supabase-js'
+   export const supabase = createClient(
+     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+   )
+   ```
+
+3. **替换 `lib/storage.ts` 中的 localStorage 调用**
+   - 将 `loadState()` 改为从 Supabase 读取
+   - 将 `saveState()` 改为写入 Supabase
+   - 添加用户认证后，按 `user_id` 存储数据
+
+4. **数据库表结构建议**
+   - `profiles` — 用户基本信息和游戏状态
+   - `completed_questions` — 已完成题目记录
+   - `mistakes` — 错题记录
+   - `badges` — 获得的徽章
+   - `rewards` — 兑换记录
+
+5. **环境变量** (`.env.local`)
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your-project-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   ```
