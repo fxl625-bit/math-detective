@@ -46,7 +46,7 @@ https://github.com/fxl625-bit/math-detective
 
 ## 线上访问地址
 
-待部署
+https://math-detective.vercel.app
 
 ## 项目结构
 

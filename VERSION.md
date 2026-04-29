@@ -9,8 +9,8 @@
 | **技术栈** | Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + localStorage |
 | **部署方式** | Vercel |
 | **GitHub 仓库** | https://github.com/fxl625-bit/math-detective |
-| **Vercel 部署地址** | 待部署 |
-| **当前状态** | ✅ 可用封版，本地构建通过 |
+| **Vercel 部署地址** | https://math-detective.vercel.app |
+| **当前状态** | ✅ 文字侦探 v1.0 可用封版，已部署 Vercel |
 
 ## 封版说明
 

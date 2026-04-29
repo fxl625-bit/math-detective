@@ -105,7 +105,7 @@ https://github.com/fxl625-bit/math-detective
 
 ## Vercel 部署地址
 
-待部署
+https://math-detective.vercel.app
 
 ## AI 开发注意事项
 
