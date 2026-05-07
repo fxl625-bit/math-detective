@@ -81,7 +81,7 @@ export function useGameState() {
     });
   }, []);
 
-  const setParentSettings = useCallback((settings: { dailyGoal?: number; gradeBand?: import('@/lib/types').GradeBand; olympiadEnabled?: boolean }) => {
+  const setParentSettings = useCallback((settings: { dailyGoal?: number; gradeBand?: import('@/lib/types').GradeBand; easyMode?: boolean }) => {
     update((s) => ({
       ...s,
       parentSettings: { ...s.parentSettings, ...settings },

@@ -14,12 +14,13 @@ import AppButton from '@/components/ui/AppButton';
 import AppCard from '@/components/ui/AppCard';
 import PageContainer from '@/components/layout/PageContainer';
 import { getLevelInfo, getStreakMood } from '@/lib/storage';
-import { getTodayLesson, getCurrentStep, getTomorrowLessonPreview, getLearningProfile } from '@/lib/lessonPlanner';
+import { getTodayLesson, getCurrentStep, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson } from '@/lib/lessonPlanner';
 import TomorrowPreviewCard from '@/components/TomorrowPreviewCard';
 
 export default function DashboardPage() {
   const { state } = useGameState();
   const [mounted, setMounted] = useState(false);
+  const [storyIntroShown, setStoryIntroShown] = useState(false);
   useEffect(() => setMounted(true), []);
 
   if (!mounted) return <div className="min-h-screen" />;
@@ -32,6 +33,8 @@ export default function DashboardPage() {
   const isLessonDone = lesson.completed;
   const profile = getLearningProfile();
   const tomorrowPreview = getTomorrowLessonPreview(profile, state);
+  const caseStory = !isLessonDone ? getCaseStoryForLesson(lesson) : undefined;
+  const hasStory = !!caseStory && !storyIntroShown;
 
   return (
     <PageContainer>
@@ -50,7 +53,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* 侦探助手 */}
+      {/* 侦探助手 & 统计 */}
       <AppCard variant="amber">
         <div className="flex items-center gap-4">
           <DetectiveMascot mood={isLessonDone ? 'excited' : 'happy'} />
@@ -69,6 +72,26 @@ export default function DashboardPage() {
           </div>
         </div>
       </AppCard>
+
+      {/* 案件故事开场白 */}
+      {hasStory && (
+        <AppCard variant="blue">
+          <div className="flex flex-col items-center gap-3">
+            <DetectiveMascot
+              mood="thinking"
+              message={caseStory.introText}
+            />
+            <h3 className="font-extrabold text-blue-800 text-lg text-center">
+              📋 {caseStory.title}
+            </h3>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <span className="text-xs px-2 py-1 bg-blue-100 rounded-full text-blue-600 border border-blue-200">
+                {caseStory.theme}
+              </span>
+            </div>
+          </div>
+        </AppCard>
+      )}
 
       {/* 快捷信息卡片 */}
       <div className="grid grid-cols-3 gap-3">

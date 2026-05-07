@@ -86,12 +86,12 @@ export function checkWeeklyCard(state: GameState): GameState {
 
 export function getLevelInfo(level: number) {
   const levels = [
-    { level: 1, name: '见习侦探', minStars: 0, icon: '🔍' },
-    { level: 2, name: '初级侦探', minStars: 20, icon: '⭐' },
-    { level: 3, name: '中级侦探', minStars: 50, icon: '🌟' },
-    { level: 4, name: '高级侦探', minStars: 100, icon: '💫' },
-    { level: 5, name: '王牌侦探', minStars: 200, icon: '👑' },
-    { level: 6, name: '传奇侦探', minStars: 400, icon: '🏆' },
+    { level: 1, name: '见习侦探', minStars: 0, icon: '🔍', title: '见习侦探' },
+    { level: 2, name: '探员', minStars: 20, icon: '⭐', title: '探员' },
+    { level: 3, name: '高级探员', minStars: 50, icon: '🌟', title: '高级探员' },
+    { level: 4, name: '侦探', minStars: 100, icon: '💫', title: '侦探' },
+    { level: 5, name: '名侦探', minStars: 200, icon: '👑', title: '名侦探' },
+    { level: 6, name: '传奇侦探', minStars: 400, icon: '🏆', title: '传奇侦探' },
   ];
   return levels.find((l) => l.level === level) || levels[0];
 }
@@ -154,6 +154,18 @@ export function completeQuestion(
   correct: boolean
 ): GameState {
   const alreadyDone = state.completedQuestions.includes(questionId);
+  const newStars = correct ? getStarReward(state.level) : 0;
+
+  // Update skill level based on performance
+  let newSkillLevel = state.skillLevel || 1;
+  if (correct && state.correctCount % 5 === 0 && newSkillLevel < 10) {
+    newSkillLevel += 1;
+  }
+
+  // Record weekly snapshot
+  let newSnapshots = state.weeklySnapshots || [];
+  newSnapshots = recordWeeklySnapshot(newSnapshots, state, correct);
+
   return {
     ...state,
     completedQuestions: alreadyDone
@@ -162,15 +174,50 @@ export function completeQuestion(
     completedToday: alreadyDone ? state.completedToday : state.completedToday + 1,
     totalCompleted: alreadyDone ? state.totalCompleted : state.totalCompleted + 1,
     correctCount: correct ? state.correctCount + 1 : state.correctCount,
-    stars: correct ? state.stars + getStarReward(state.level) : state.stars,
+    stars: state.stars + newStars,
+    skillLevel: newSkillLevel,
+    weeklySnapshots: newSnapshots,
   };
 }
 
 function getStarReward(level: number): number {
-  // 等级越高，奖励越多
   if (level >= 5) return 3;
   if (level >= 3) return 2;
   return 1;
+}
+
+// ========== 每周快照 ==========
+
+function getWeekStart(date?: Date): string {
+  const d = date || new Date();
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  const mon = new Date(d.setDate(diff));
+  return `${mon.getFullYear()}-${String(mon.getMonth() + 1).padStart(2, '0')}-${String(mon.getDate()).padStart(2, '0')}`;
+}
+
+function recordWeeklySnapshot(
+  snapshots: import('./types').WeeklySnapshot[],
+  state: GameState,
+  justCorrect: boolean
+): import('./types').WeeklySnapshot[] {
+  const weekStart = getWeekStart();
+  const existing = snapshots.find(s => s.weekStart === weekStart);
+
+  if (existing) {
+    existing.totalCorrect += justCorrect ? 1 : 0;
+    existing.totalWrong += justCorrect ? 0 : 1;
+    return [...snapshots.filter(s => s.weekStart !== weekStart), existing];
+  }
+
+  const newSnapshot: import('./types').WeeklySnapshot = {
+    weekStart,
+    skills: {},
+    totalCorrect: justCorrect ? 1 : 0,
+    totalWrong: justCorrect ? 0 : 1,
+  };
+
+  return [...snapshots.slice(-11), newSnapshot];
 }
 
 // ========== 工具函数 ==========

@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Check, X, ArrowUpRight, ArrowDownRight, ShieldCheck, Lightbulb, Calculator } from 'lucide-react';
 import { useGameState } from '@/hooks/useGameState';
-import { getTodayLesson, normalizeLesson, getCurrentStep, getCurrentPhase, advancePhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile } from '@/lib/lessonPlanner';
+import { getTodayLesson, normalizeLesson, getCurrentStep, getCurrentPhase, advancePhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson } from '@/lib/lessonPlanner';
+import { getStepNarrative } from '@/lib/storySystem';
 import { getVisual } from '@/data/visualItems';
 import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/types';
 import type { Question, KeywordItem } from '@/lib/types';
@@ -22,7 +23,7 @@ import ProgressBar from '@/components/ProgressBar';
 import StarDisplay from '@/components/StarDisplay';
 import TomorrowPreviewCard from '@/components/TomorrowPreviewCard';
 
-const STEP_ORDER: LessonStepType[] = ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'];
+const STEP_ORDER: LessonStepType[] = ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve', 'find_compare_numbers', 'spot_extra_info', 'spot_missing_info'];
 
 export default function PlayPage() {
   const router = useRouter();
@@ -153,6 +154,7 @@ export default function PlayPage() {
     const totalQuestions = state.correctCount + state.wrongCount;
     const todayAccuracy = totalQuestions > 0 ? Math.round((state.correctCount / totalQuestions) * 100) : 100;
     const starsEarned = state.level >= 5 ? 15 : state.level >= 3 ? 10 : 5;
+    const completeCaseStory = getCaseStoryForLesson(lesson);
 
     return (
       <PageContainer>
@@ -174,6 +176,16 @@ export default function PlayPage() {
             <StarDisplay count={starsEarned} size="lg" animate />
           </div>
         </AppCard>
+
+        {/* Case story completion */}
+        {completeCaseStory && (
+          <AppCard variant="blue">
+            <div className="text-center py-3">
+              <DetectiveMascot mood="excited" size="md" message={completeCaseStory.completeText} />
+              <p className="text-xs text-blue-600 mt-2">{completeCaseStory.rewardHint}</p>
+            </div>
+          </AppCard>
+        )}
 
         {/* Today Performance */}
         <AppCard variant="blue">
@@ -271,9 +283,19 @@ export default function PlayPage() {
     );
   }
 
+    const caseStory = getCaseStoryForLesson(lesson!);
+    const stepNarrative = getStepNarrative(caseStory, currentStep.type);
+
   return (
     <PageContainer bottomPadding={false}>
-      {/* Header */}
+      {/* Header with story context */}
+      {caseStory && (
+        <div className="text-center mb-1">
+          <span className="text-xs px-2 py-1 bg-blue-100 rounded-full text-blue-600 border border-blue-200">
+            📋 {caseStory.title}
+          </span>
+        </div>
+      )}
       <div className="flex items-center gap-3">
         <Link href="/" className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 transition-colors flex-shrink-0">
           <ArrowLeft size={20} className="text-amber-700" />
@@ -282,6 +304,7 @@ export default function PlayPage() {
           <h1 className="text-lg font-extrabold text-amber-800 truncate">
             {getStepLabel(currentStep)}
           </h1>
+          <p className="text-xs text-amber-600 truncate">{stepNarrative.description}</p>
           <div className="flex items-center gap-2 mt-1">
             <ProgressBar
               value={lesson.currentStepIndex}
@@ -292,9 +315,9 @@ export default function PlayPage() {
         </div>
       </div>
 
-      {/* Detective */}
+      {/* Detective with step instruction */}
       <div className="flex justify-center">
-        <DetectiveMascot mood="thinking" size="sm" />
+        <DetectiveMascot mood="thinking" size="sm" message={stepNarrative.instruction} />
       </div>
 
       {/* Phase-aware step content */}
@@ -347,6 +370,12 @@ function PhaseAwareStep({
       return <RemoveNoisePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
     case 'full_solve':
       return <FullSolvePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+    case 'find_compare_numbers':
+      return <CompareNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+    case 'spot_extra_info':
+      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+    case 'spot_missing_info':
+      return <SpotMissingInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
     default:
       return null;
   }
@@ -1058,4 +1087,230 @@ function FullSolvePhased({
   }
 
   return null;
+}
+
+// ========== Step 6: Find Compare Numbers (Phased) ==========
+
+function CompareNumbersPhased({
+  phase, question, visual, onPhaseAdvance, onStepComplete,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+
+  if (phase === 'read') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="blue">
+          <h3 className="font-extrabold text-blue-800 mb-2">📖 仔细读题</h3>
+          <p className="text-sm text-gray-600">仔细读题，注意数字之间的关系</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+            读完了，开始分析 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'find_numbers' || phase === 'find_compare_numbers') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="blue">
+          <h3 className="font-extrabold text-blue-800 mb-2">🔢 找出数字之间的关系</h3>
+          <p className="text-sm text-gray-600">题目中的数字是什么关系？谁大？谁小？</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-sm text-gray-700 mb-3">{question.text}</p>
+          <div className="flex flex-wrap gap-3 justify-center">
+            {question.numbers.map((n, i) => (
+              <div key={i} className="px-6 py-4 bg-amber-50 rounded-2xl font-extrabold text-2xl border-2 border-amber-300 text-amber-700">{n}</div>
+            ))}
+          </div>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth onClick={onPhaseAdvance}>
+            找到数字关系 ✓ 下一步 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+}
+
+// ========== Step 7: Spot Extra Info (Phased) ==========
+
+function SpotExtraInfoPhased({
+  phase, question, visual, onPhaseAdvance, onStepComplete,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  const [foundExtra, setFoundExtra] = useState<Set<number>>(new Set());
+  const extraNumbers = question.extraNumbers ?? [];
+  const allExtraFound = extraNumbers.length > 0 && foundExtra.size === extraNumbers.length;
+
+  if (phase === 'read') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="blue">
+          <h3 className="font-extrabold text-blue-800 mb-2">📖 仔细读题</h3>
+          <p className="text-sm text-gray-600">题目里可能有多余的数字，和问题没关系！</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+            读完了，开始找多余数字 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'find_numbers' || phase === 'spot_extra_info') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="amber">
+          <h3 className="font-extrabold text-amber-800 mb-2">🔍 找出和问题无关的数字</h3>
+          <p className="text-sm text-gray-600">哪些数字是多余的？它们和题目问题没有关系！</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-sm text-gray-700 mb-3">{question.text}</p>
+        </AppCard>
+        <div className="grid grid-cols-4 gap-3">
+          {question.numbers.map((n, i) => (
+            <motion.button
+              key={i}
+              className={`py-5 rounded-2xl font-extrabold text-2xl border-2 transition-all min-h-[64px] ${
+                foundExtra.has(i)
+                  ? extraNumbers.includes(n) ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700'
+                  : 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100'
+              }`}
+              onClick={() => {
+                const next = new Set(foundExtra);
+                next.has(i) ? next.delete(i) : next.add(i);
+                setFoundExtra(next);
+              }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {n}
+              {foundExtra.has(i) && <span className="block text-xs mt-1">{extraNumbers.includes(n) ? '✓多余' : '✗有用'}</span>}
+            </motion.button>
+          ))}
+        </div>
+        {allExtraFound && (
+          <AppCard variant="green">
+            <p className="text-center font-extrabold text-green-700">✅ 找到了多余的数字！真正的有用数字是：{question.numbers.filter(n => !extraNumbers.includes(n)).join(' 和 ')}</p>
+          </AppCard>
+        )}
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth disabled={!allExtraFound} onClick={onPhaseAdvance}>
+            找出多余数字 ✓ 去算答案 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+}
+
+// ========== Step 8: Spot Missing Info (Phased) ==========
+
+function SpotMissingInfoPhased({
+  phase, question, visual, onPhaseAdvance, onStepComplete,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  const [choice, setChoice] = useState<boolean | null>(null);
+  const isInsufficient = question.isInsufficient === true;
+
+  if (phase === 'read') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="blue">
+          <h3 className="font-extrabold text-blue-800 mb-2">📖 仔细读题</h3>
+          <p className="text-sm text-gray-600">有些题目可能缺少信息，根本无法计算！</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+            读完了，判断题目 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  if (phase === 'find_numbers' || phase === 'spot_missing_info') {
+    return (
+      <div className="space-y-4">
+        <AppCard variant="amber">
+          <h3 className="font-extrabold text-amber-800 mb-2">🤔 这道题能算出来吗？</h3>
+          <p className="text-sm text-gray-600">仔细看看题目中给出的信息够不够做出计算？</p>
+        </AppCard>
+        <AppCard>
+          <p className="text-sm text-gray-700 mb-3">{question.text}</p>
+        </AppCard>
+        <div className="grid grid-cols-2 gap-3">
+          <motion.button
+            className={`py-5 rounded-2xl font-extrabold text-lg border-2 ${
+              choice === true
+                ? isInsufficient ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700'
+                : 'bg-white border-gray-200 text-gray-700 hover:border-green-300'
+            }`}
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={() => setChoice(true)}
+          >
+            ❓ 信息不足，无法计算
+          </motion.button>
+          <motion.button
+            className={`py-5 rounded-2xl font-extrabold text-lg border-2 ${
+              choice === false
+                ? !isInsufficient ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700'
+                : 'bg-white border-gray-200 text-gray-700 hover:border-blue-300'
+            }`}
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            onClick={() => setChoice(false)}
+          >
+            ✅ 信息足够，可以计算
+          </motion.button>
+        </div>
+        {choice !== null && (
+          choice === isInsufficient
+            ? <AppCard variant="green"><p className="text-center font-extrabold text-green-700">✅ 判断正确！</p></AppCard>
+            : <AppCard variant="amber"><p className="text-center text-amber-700">💡 再仔细看看题目给出数字间的关系</p></AppCard>
+        )}
+        <BottomActionBar>
+          <AppButton variant="success" size="lg" fullWidth disabled={choice === null} onClick={onPhaseAdvance}>
+            判断完毕 ✓ 下一步 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+
+  // If insufficient, skip equation answer
+  if (isInsufficient) {
+    return (
+      <AppCard variant="green">
+        <div className="text-center py-4">
+          <div className="text-4xl mb-2">🧠</div>
+          <h3 className="font-extrabold text-green-700 text-lg">你的判断很准确！</h3>
+          <p className="text-sm text-gray-600 mt-2">这道题确实缺少必要信息，无法直接计算。</p>
+          <p className="text-sm text-gray-500 mt-1">{question.explanation}</p>
+          <div className="mt-4">
+            <AppButton variant="primary" size="lg" onClick={() => onStepComplete(true)}>
+              完成，进入下一关 →
+            </AppButton>
+          </div>
+        </div>
+      </AppCard>
+    );
+  }
+
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
 }

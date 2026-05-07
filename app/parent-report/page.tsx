@@ -29,6 +29,9 @@ const SKILL_LABELS: Record<CognitiveSkill, string> = {
   remove_noise: '排除干扰',
   understand_question: '理解题意',
   choose_operation: '选择运算',
+  find_compare_numbers: '比较关系',
+  spot_extra_info: '识别多余信息',
+  spot_missing_info: '判断信息缺失',
   build_model: '建立模型',
   multi_step_reasoning: '多步推理',
   estimate: '估算',
@@ -43,7 +46,7 @@ export default function ParentReportPage() {
   // Settings form state
   const [formDailyGoal, setFormDailyGoal] = useState(state.parentSettings.dailyGoal);
   const [formGrade, setFormGrade] = useState<GradeBand>(state.parentSettings.gradeBand);
-  const [formOlympiad, setFormOlympiad] = useState(state.parentSettings.olympiadEnabled);
+  const [formEasyMode, setFormEasyMode] = useState(state.parentSettings.easyMode);
 
   useEffect(() => setMounted(true), []);
 
@@ -92,7 +95,7 @@ export default function ParentReportPage() {
     setParentSettings({
       dailyGoal: formDailyGoal,
       gradeBand: formGrade,
-      olympiadEnabled: formOlympiad,
+      easyMode: formEasyMode,
     });
     setShowSettings(false);
   }
@@ -146,19 +149,19 @@ export default function ParentReportPage() {
             </div>
           </div>
 
-          {/* Olympiad toggle */}
+          {/* Easy mode toggle */}
           <div>
             <label className="text-sm font-bold text-gray-600 mb-2 flex items-center gap-2">
-              <Shield size={16} /> 奥数启蒙
+              <Shield size={16} /> 降低难度
             </label>
             <button
               className={`px-4 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
-                formOlympiad ? 'bg-purple-400 text-white' : 'bg-gray-100 text-gray-500'
+                formEasyMode ? 'bg-amber-400 text-white' : 'bg-gray-100 text-gray-500'
               }`}
-              onClick={() => setFormOlympiad(!formOlympiad)}
+              onClick={() => setFormEasyMode(!formEasyMode)}
             >
-              <span>{formOlympiad ? '✅' : '⬜'}</span>
-              {formOlympiad ? '奥数题目已开启' : '开启奥数启蒙题目（推荐学有余力的孩子）'}
+              <span>{formEasyMode ? '✅' : '⬜'}</span>
+              {formEasyMode ? '降低难度模式已开启' : '开启降低难度模式（减少拓展题，优先出简单题）'}
             </button>
           </div>
 
@@ -174,7 +177,7 @@ export default function ParentReportPage() {
           <GraduationCap size={20} className="text-purple-600" />
           <span className="text-sm font-bold text-purple-800">
             当前年级：{GRADE_OPTIONS.find(g => g.value === state.parentSettings.gradeBand)?.label || '未设置'}
-            {state.parentSettings.olympiadEnabled && ' · 奥数已开启'}
+            {state.parentSettings.easyMode && ' · 降低难度模式'}
           </span>
         </div>
       </AppCard>
@@ -239,6 +242,50 @@ export default function ParentReportPage() {
         )}
       </AppCard>
 
+      {/* Skill Radar Chart */}
+      <AppCard variant="purple">
+        <h2 className="font-extrabold text-gray-800 flex items-center gap-2 mb-4">
+          <Brain size={20} className="text-purple-500" />技能分布图
+        </h2>
+        <SkillRadarChart skillMistakes={skillMistakes} totalCompleted={total} />
+        <p className="text-xs text-gray-400 text-center mt-2">越靠近中心表示该技能越弱（错误次数越多）</p>
+      </AppCard>
+
+      {/* Weekly Trend */}
+      {state.weeklySnapshots && state.weeklySnapshots.length > 0 && (
+        <AppCard variant="blue">
+          <h2 className="font-extrabold text-gray-800 flex items-center gap-2 mb-4">
+            <TrendingUp size={20} className="text-blue-600" />每周趋势
+          </h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 text-gray-500">周</th>
+                  <th className="text-center py-2 text-gray-500">正确</th>
+                  <th className="text-center py-2 text-gray-500">错误</th>
+                  <th className="text-center py-2 text-gray-500">正确率</th>
+                </tr>
+              </thead>
+              <tbody>
+                {state.weeklySnapshots.map((ws, i) => {
+                  const weekTotal = ws.totalCorrect + ws.totalWrong;
+                  const rate = weekTotal > 0 ? Math.round((ws.totalCorrect / weekTotal) * 100) : 0;
+                  return (
+                    <tr key={i} className="border-b border-gray-100">
+                      <td className="py-2 text-gray-600">{ws.weekStart}</td>
+                      <td className="text-center text-green-600 font-bold">{ws.totalCorrect}</td>
+                      <td className="text-center text-red-400 font-bold">{ws.totalWrong}</td>
+                      <td className="text-center font-bold" style={{ color: rate >= 80 ? '#16a34a' : rate >= 50 ? '#d97706' : '#dc2626' }}>{rate}%</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </AppCard>
+      )}
+
       {/* Skill tracking */}
       <AppCard variant="blue">
         <h2 className="font-extrabold text-gray-800 flex items-center gap-2 mb-4">
@@ -275,6 +322,69 @@ export default function ParentReportPage() {
         数据保存在本地浏览器中，不会上传到服务器
       </div>
     </PageContainer>
+  );
+}
+
+// ========== Skill Radar Chart (SVG) ==========
+
+function SkillRadarChart({ skillMistakes, totalCompleted }: { skillMistakes: Record<string, number>; totalCompleted: number }) {
+  const skills: { key: string; label: string; mistakes: number }[] = [
+    { key: 'find_numbers', label: '找数字', mistakes: skillMistakes.find_numbers || 0 },
+    { key: 'find_keywords', label: '找关键词', mistakes: skillMistakes.find_keywords || 0 },
+    { key: 'remove_noise', label: '排除干扰', mistakes: skillMistakes.remove_noise || 0 },
+    { key: 'understand_question', label: '理解题意', mistakes: skillMistakes.understand_question || 0 },
+    { key: 'choose_operation', label: '选择运算', mistakes: skillMistakes.choose_operation || 0 },
+  ];
+
+  const cx = 140, cy = 100, maxR = 70, levels = 5;
+  const angle = (2 * Math.PI) / skills.length;
+
+  const points = skills.map((skill, i) => {
+    // Higher mistakes = closer to center (more "damage")
+    const ratio = Math.min(skill.mistakes / Math.max(1, 5), 1);
+    const r = maxR * (1 - ratio * 0.7); // 0 mistakes = max radius, many mistakes = smaller
+    return {
+      label: skill.label,
+      mistakes: skill.mistakes,
+      x: cx + r * Math.cos(angle * i - Math.PI / 2),
+      y: cy + r * Math.sin(angle * i - Math.PI / 2),
+      outerX: cx + maxR * Math.cos(angle * i - Math.PI / 2),
+      outerY: cy + maxR * Math.sin(angle * i - Math.PI / 2),
+    };
+  });
+
+  const dataPolygon = points.map(p => `${p.x},${p.y}`).join(' ');
+
+  return (
+    <svg viewBox="0 0 280 200" className="w-full max-w-xs mx-auto">
+      {/* Grid circles */}
+      {Array.from({ length: levels }).map((_, lvl) => {
+        const r = (maxR / levels) * (lvl + 1);
+        return (
+          <circle key={lvl} cx={cx} cy={cy} r={r}
+            fill="none" stroke="#e5e7eb" strokeWidth="0.5" />
+        );
+      })}
+      {/* Axes */}
+      {points.map((p, i) => (
+        <line key={i} x1={cx} y1={cy} x2={p.outerX} y2={p.outerY}
+          stroke="#e5e7eb" strokeWidth="0.5" />
+      ))}
+      {/* Data polygon */}
+      <polygon points={dataPolygon} fill="rgba(168,85,247,0.2)" stroke="#a855f7" strokeWidth="2" />
+      {/* Data points */}
+      {points.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r="4" fill="#a855f7" />
+      ))}
+      {/* Labels */}
+      {points.map((p, i) => (
+        <text key={i} x={p.outerX} y={p.outerY}
+          textAnchor="middle" dominantBaseline={(p.outerY < cy ? 'hanging' : 'auto') as React.SVGAttributes<SVGTextElement>['dominantBaseline']}
+          fontSize="9" fill="#6b7280">
+          {p.label}
+        </text>
+      ))}
+    </svg>
   );
 }
 

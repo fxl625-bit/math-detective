@@ -1,6 +1,8 @@
 import { Question, MistakeRecord, GradeBand, CognitiveSkill, LessonStepType, StepPhase, LessonStep, TodayLesson, LearningProfile, TomorrowLessonPreview, VirtualReward } from './types';
 import { getQuestionById, allQuestions, questionsByGrade, getQuestionsByFilter } from '@/data/questions';
 import { loadState } from './storage';
+import { allStories } from '@/data/stories';
+import { getCaseStoryForDate, getRecentStoryIds, saveRecentStoryId } from './storySystem';
 
 // ========== 关卡配置 ==========
 
@@ -10,6 +12,9 @@ const STEP_TITLES: Record<LessonStepType, string> = {
   simulation: '看看发生了什么',
   remove_noise: '擦掉没用的信息',
   full_solve: '完整破案',
+  find_compare_numbers: '找出比较关系',
+  spot_extra_info: '识别多余信息',
+  spot_missing_info: '判断信息够不够',
 };
 
 const STEP_DESCRIPTIONS: Record<LessonStepType, string> = {
@@ -18,6 +23,9 @@ const STEP_DESCRIPTIONS: Record<LessonStepType, string> = {
   simulation: '观察物品的增减变化，判断运算符号并算出答案',
   remove_noise: '擦掉和数学无关的废话，然后列式算出答案',
   full_solve: '完整破解一道数学题：找数字→找关键词→明白问什么→列算式→算答案',
+  find_compare_numbers: '找出题目中的比较关系，判断谁是谁的几倍',
+  spot_extra_info: '找出题目中和计算无关的多余数字',
+  spot_missing_info: '判断题目中是否缺少必要信息，能否计算',
 };
 
 // ========== 默认阶段映射 ==========
@@ -33,15 +41,13 @@ export function getDefaultPhasesForStepType(type: LessonStepType): StepPhase[] {
     case 'remove_noise':
       return ['read', 'remove_noise', 'build_equation', 'answer'];
     case 'full_solve':
-      return [
-        'read',
-        'find_numbers',
-        'find_keywords',
-        'choose_operation',
-        'build_equation',
-        'answer',
-        'explain',
-      ];
+      return ['read', 'find_numbers', 'find_keywords', 'choose_operation', 'build_equation', 'answer', 'explain'];
+    case 'find_compare_numbers':
+      return ['read', 'find_numbers', 'find_compare_numbers', 'choose_operation', 'answer'];
+    case 'spot_extra_info':
+      return ['read', 'find_numbers', 'spot_extra_info', 'answer'];
+    case 'spot_missing_info':
+      return ['read', 'find_numbers', 'spot_missing_info', 'answer'];
     default:
       return ['read', 'answer'];
   }
@@ -81,9 +87,7 @@ export function normalizeStep(step: Partial<LessonStep>): LessonStep {
     requiresAnswer:
       typeof step.requiresAnswer === 'boolean'
         ? step.requiresAnswer
-        : type === 'simulation' ||
-          type === 'remove_noise' ||
-          type === 'full_solve',
+        : ['simulation', 'remove_noise', 'full_solve', 'find_compare_numbers'].includes(type),
   };
 }
 
@@ -104,6 +108,7 @@ export function normalizeLesson(lesson: TodayLesson | null): TodayLesson | null 
     steps,
     currentStepIndex,
     completed: Boolean(lesson.completed),
+    caseStoryId: lesson.caseStoryId,
   };
 }
 
@@ -133,8 +138,9 @@ export function getLearningProfile(): LearningProfile {
     streakDays: state.streak,
     recentAccuracy,
     weakSkills,
-    unlockedOlympiad: state.parentSettings.olympiadEnabled,
+    easyMode: state.parentSettings.easyMode,
     dailyQuestionCount: state.completedToday,
+    skillLevel: state.skillLevel || 1,
   };
 }
 
@@ -149,17 +155,10 @@ export function getTomorrowLessonPreview(
   tomorrow.setDate(tomorrow.getDate() + 1);
   const dateStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 
-  const maxDifficulty = profile.unlockedOlympiad ? 5 : Math.min(3, 1 + Math.floor(profile.streakDays / 5));
+  const maxDifficulty = getEffectiveMaxDifficulty(profile);
 
-  const stepTypes: LessonStepType[] = [
-    'find_numbers',
-    'find_action_words',
-    'simulation',
-    'remove_noise',
-    'full_solve',
-  ];
+  const stepTypes = getStepTypesForGrade(profile.gradeBand);
 
-  // Preview one question from the pool
   const gradePool = questionsByGrade[profile.gradeBand] || allQuestions;
   const previewQ = gradePool.find(q => q.difficulty >= 1 && q.difficulty <= maxDifficulty);
 
@@ -177,6 +176,43 @@ export function getTomorrowLessonPreview(
 }
 
 /**
+ * 根据年级获取关卡类型列表
+ */
+export function getStepTypesForGrade(grade: GradeBand): LessonStepType[] {
+  const base: LessonStepType[] = [
+    'find_numbers',
+    'find_action_words',
+  ];
+
+  // G3+ 增加比较关系和多余信息题型
+  if (grade !== 'G1' && grade !== 'G2') {
+    const advanced: LessonStepType[] = ['find_compare_numbers', 'remove_noise', 'spot_extra_info', 'full_solve'];
+    // 随机选择其中 3 个 + 基础 2 个 = 5 关
+    shuffleArray(advanced);
+    base.push(...advanced.slice(0, 3));
+  } else {
+    base.push('simulation', 'remove_noise', 'full_solve');
+  }
+
+  return base;
+}
+
+function shuffleArray<T>(arr: T[]): void {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+/**
+ * 计算有效难度上限（考虑 easyMode 和 skillLevel）
+ */
+function getEffectiveMaxDifficulty(profile: LearningProfile): number {
+  if (profile.easyMode) return Math.min(2, 1 + Math.floor(profile.skillLevel / 2));
+  return Math.min(5, 1 + Math.floor(profile.skillLevel));
+}
+
+/**
  * 根据学习画像和今日进度自动编排课程
  */
 export function getTodayLesson(): TodayLesson {
@@ -188,7 +224,6 @@ export function getTodayLesson(): TodayLesson {
       const saved = localStorage.getItem('math-detective-today-lesson');
       if (saved) {
         const parsed: TodayLesson = JSON.parse(saved);
-        // 日期匹配 + 数据完整性校验
         if (parsed.date === today) {
           const normalized = normalizeLesson(parsed);
           if (normalized && normalized.steps.length > 0) {
@@ -215,15 +250,10 @@ const STEP_TYPE_REQUIREMENTS: Record<LessonStepType, (q: Question) => boolean> =
   simulation: (q) => (q.operation === 'addition' || q.operation === 'subtraction') && !!q.visualKey,
   remove_noise: (q) => Array.isArray(q.noisePhrases) && q.noisePhrases.length > 0,
   full_solve: () => true,
+  find_compare_numbers: (q) => q.operation === 'multiplication' || q.operation === 'division' || q.operation === 'comparison',
+  spot_extra_info: (q) => Array.isArray(q.extraNumbers) && q.extraNumbers.length > 0,
+  spot_missing_info: (q) => q.isInsufficient === true,
 };
-
-const STEP_COMPAT_ORDER: LessonStepType[] = [
-  'find_numbers',
-  'find_action_words',
-  'simulation',
-  'remove_noise',
-  'full_solve',
-];
 
 export function selectQuestionForStep(params: {
   stepType: LessonStepType;
@@ -232,36 +262,39 @@ export function selectQuestionForStep(params: {
   targetDifficulty?: number;
 }): Question | null {
   const { stepType, profile, usedQuestionIds } = params;
-  const maxDifficulty = params.targetDifficulty ?? Math.min(5, 1 + Math.floor(profile.streakDays / 5));
+  const maxDifficulty = params.targetDifficulty ?? getEffectiveMaxDifficulty(profile);
   const grade = profile.gradeBand;
   const usedSet = new Set(usedQuestionIds);
 
   const isCompatible = STEP_TYPE_REQUIREMENTS[stepType];
 
-  // Strategy 1: Try stepCompatibility field first, then field-based check
   const tryPool = (pool: Question[], allowDegrade: boolean): Question | null => {
-    // Prefer questions with stepCompatibility that includes this stepType
-    const explicitMatch = pool.filter(q =>
+    const compatible = pool.filter(q =>
       !usedSet.has(q.id) &&
       q.difficulty <= maxDifficulty &&
       (q.stepCompatibility?.includes(stepType) || (!q.stepCompatibility && isCompatible(q)))
     );
-    if (explicitMatch.length > 0) {
-      // Shuffle and pick
-      for (let i = explicitMatch.length - 1; i > 0; i--) {
+
+    // easyMode: 屏蔽拓展题
+    const filtered = profile.easyMode
+      ? compatible.filter(q => !q.isExtendedThinking)
+      : compatible;
+
+    if (filtered.length > 0) {
+      for (let i = filtered.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [explicitMatch[i], explicitMatch[j]] = [explicitMatch[j], explicitMatch[i]];
+        [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
       }
-      return explicitMatch[0];
+      return filtered[0];
     }
 
     if (!allowDegrade) return null;
 
-    // Fallback: any question matching field requirements
     const fieldMatch = pool.filter(q =>
       !usedSet.has(q.id) &&
       q.difficulty <= maxDifficulty &&
-      isCompatible(q)
+      isCompatible(q) &&
+      (!profile.easyMode || !q.isExtendedThinking)
     );
     if (fieldMatch.length > 0) {
       for (let i = fieldMatch.length - 1; i > 0; i--) {
@@ -275,13 +308,13 @@ export function selectQuestionForStep(params: {
   };
 
   // Try grade-specific pool
-  let pool = questionsByGrade[grade] || allQuestions;
+  const pool = questionsByGrade[grade] || allQuestions;
   let result = tryPool(pool, stepType !== 'remove_noise');
 
   // Degrade: lower difficulty
   if (!result && stepType !== 'remove_noise') {
     for (let diff = maxDifficulty - 1; diff >= 1; diff--) {
-      const lowered = pool.filter(q => !usedSet.has(q.id) && q.difficulty <= diff && isCompatible(q));
+      const lowered = pool.filter(q => !usedSet.has(q.id) && q.difficulty <= diff && isCompatible(q) && (!profile.easyMode || !q.isExtendedThinking));
       if (lowered.length > 0) {
         for (let i = lowered.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -307,9 +340,15 @@ export function selectQuestionForStep(params: {
     }
   }
 
-  // remove_noise: NEVER fallback to a question without noisePhrases
+  // remove_noise: NEVER fallback
   if (!result && stepType === 'remove_noise') {
     console.warn(`[selectQuestionForStep] No remove_noise question available for grade=${grade}, step will be substituted`);
+    return null;
+  }
+
+  // spot_extra_info / spot_missing_info: no fallback to generic questions
+  if (!result && (stepType === 'spot_extra_info' || stepType === 'spot_missing_info')) {
+    console.warn(`[selectQuestionForStep] No ${stepType} question available for grade=${grade}`);
     return null;
   }
 
@@ -324,19 +363,21 @@ function buildDailyLesson(
   mistakes: MistakeRecord[]
 ): TodayLesson {
   const today = getDateStr();
-  const maxDifficulty = profile.unlockedOlympiad ? 5 : Math.min(3, 1 + Math.floor(profile.streakDays / 5));
+  const maxDifficulty = getEffectiveMaxDifficulty(profile);
 
-  const stepTypes: LessonStepType[] = [
-    'find_numbers',
-    'find_action_words',
-    'simulation',
-    'remove_noise',
-    'full_solve',
-  ];
+  const stepTypes = getStepTypesForGrade(profile.gradeBand);
+
+  // 选择案件故事
+  const recentStoryIds = getRecentStoryIds(3);
+  const caseStory = getCaseStoryForDate(allStories, profile.gradeBand, today, recentStoryIds);
+  let caseStoryId: string | undefined;
+  if (caseStory) {
+    caseStoryId = caseStory.id;
+    saveRecentStoryId(caseStory.id);
+  }
 
   const usedQuestionIds: string[] = [];
   const steps: LessonStep[] = [];
-  const warnings: string[] = [];
 
   for (let i = 0; i < stepTypes.length; i++) {
     const st = stepTypes[i];
@@ -347,10 +388,9 @@ function buildDailyLesson(
       targetDifficulty: maxDifficulty,
     });
 
-    // remove_noise with no match: substitute step type
     if (!question) {
       if (st === 'remove_noise') {
-        console.warn(`[buildDailyLesson] No remove_noise question for grade=${profile.gradeBand}, substituting with find_action_words`);
+        console.warn(`[buildDailyLesson] No remove_noise question, substituting with find_action_words`);
         const subQ = selectQuestionForStep({
           stepType: 'find_action_words',
           profile,
@@ -374,7 +414,7 @@ function buildDailyLesson(
         }
         continue;
       }
-      // For other types, try full_solve as last resort
+      // Try full_solve as fallback
       const lastQ = selectQuestionForStep({
         stepType: 'full_solve',
         profile,
@@ -415,15 +455,12 @@ function buildDailyLesson(
     });
   }
 
-  if (warnings.length > 0) {
-    console.warn(`[buildDailyLesson] Warnings for ${today}:`, warnings);
-  }
-
   return {
     date: today,
     steps,
     currentStepIndex: 0,
     completed: false,
+    caseStoryId,
   };
 }
 
@@ -463,7 +500,6 @@ export function advancePhase(lesson: TodayLesson): TodayLesson {
     return { ...normalized, steps, currentStepIndex: idx };
   }
 
-  // 当前步骤所有阶段完成 → 完成步骤
   return completeCurrentStep({ ...normalized, steps, currentStepIndex: idx });
 }
 
@@ -559,7 +595,7 @@ export function clearTodayLesson(): void {
 }
 
 export function getStepLabel(step: LessonStep): string {
-  const stepOrder: LessonStepType[] = ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'];
+  const stepOrder: LessonStepType[] = ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve', 'find_compare_numbers', 'spot_extra_info', 'spot_missing_info'];
   const stepNum = stepOrder.indexOf(step.type) + 1;
   const total = 5;
   return `第 ${stepNum} 关 / 共 ${total} 关：${step.title}`;
@@ -576,6 +612,13 @@ export function getQuestionForLesson(lesson: TodayLesson): Question | null {
   const step = getCurrentStep(lesson);
   if (!step) return null;
   return getQuestionById(step.questionId) || null;
+}
+
+// ========== 案件故事辅助 ==========
+
+export function getCaseStoryForLesson(lesson: TodayLesson) {
+  if (!lesson.caseStoryId) return undefined;
+  return allStories.find(s => s.id === lesson.caseStoryId);
 }
 
 // ========== 虚拟奖励 ==========

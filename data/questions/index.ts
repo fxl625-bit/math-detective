@@ -6,6 +6,9 @@ import { g4Questions } from './g4';
 import { g5Questions } from './g5';
 import { g6Questions } from './g6';
 import { olympiadIntroQuestions } from './olympiadIntro';
+import { g3MultiplicationQuestions } from './g3-multiplication';
+import { extraInfoQuestions } from './extra-info';
+import { missingInfoQuestions } from './missing-info';
 
 // ========== 全部题库 ==========
 
@@ -16,6 +19,9 @@ export const allQuestions: Question[] = [
   ...g4Questions,
   ...g5Questions,
   ...g6Questions,
+  ...g3MultiplicationQuestions,
+  ...extraInfoQuestions,
+  ...missingInfoQuestions,
   ...olympiadIntroQuestions,
 ];
 
@@ -24,11 +30,11 @@ export const allQuestions: Question[] = [
 export const questionsByGrade: Record<GradeBand, Question[]> = {
   'G1': g1Questions,
   'G2': g2Questions,
-  'G3': g3Questions,
-  'G4': g4Questions,
-  'G5': g5Questions,
-  'G6': g6Questions,
-  'OlympiadIntro': olympiadIntroQuestions,
+  'G3': [...g3Questions, ...g3MultiplicationQuestions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G3'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G3'), ...olympiadIntroQuestions.filter(q => q.difficulty <= 2)],
+  'G4': [...g4Questions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G4'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G4'), ...olympiadIntroQuestions.filter(q => q.difficulty === 2 || q.difficulty === 3)],
+  'G5': [...g5Questions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G5'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G5'), ...olympiadIntroQuestions.filter(q => q.difficulty >= 2 && q.difficulty <= 4)],
+  'G6': [...g6Questions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G6'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G6'), ...olympiadIntroQuestions.filter(q => q.difficulty >= 3)],
+  'OlympiadIntro': olympiadIntroQuestions.map(q => ({ ...q, isExtendedThinking: true })),
 };
 
 // ========== 按年级和领域筛选 ==========

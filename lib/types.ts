@@ -25,6 +25,9 @@ export type CognitiveSkill =
   | 'remove_noise'
   | 'understand_question'
   | 'choose_operation'
+  | 'find_compare_numbers'
+  | 'spot_extra_info'
+  | 'spot_missing_info'
   | 'build_model'
   | 'multi_step_reasoning'
   | 'estimate'
@@ -40,7 +43,8 @@ export type OperationType =
   | 'fraction'
   | 'decimal'
   | 'geometry'
-  | 'logic';
+  | 'logic'
+  | 'ratio';
 
 // ========== 错误类型 ==========
 
@@ -94,6 +98,9 @@ export interface Question {
   visualKey: string;
   requiresAnswer: boolean;
   stepCompatibility?: LessonStepType[];
+  isExtendedThinking?: boolean;
+  extraNumbers?: number[];
+  isInsufficient?: boolean;
 }
 
 // ========== 关卡阶段 ==========
@@ -108,6 +115,9 @@ export type StepPhase =
   | 'build_equation'
   | 'answer'
   | 'explain'
+  | 'find_compare_numbers'
+  | 'spot_extra_info'
+  | 'spot_missing_info'
   | 'completed';
 
 export type LessonStepType =
@@ -115,7 +125,10 @@ export type LessonStepType =
   | 'find_action_words'
   | 'simulation'
   | 'remove_noise'
-  | 'full_solve';
+  | 'full_solve'
+  | 'find_compare_numbers'
+  | 'spot_extra_info'
+  | 'spot_missing_info';
 
 export const STEP_DEFAULT_PHASES: Record<LessonStepType, StepPhase[]> = {
   find_numbers: ['read', 'find_numbers', 'completed'],
@@ -123,6 +136,9 @@ export const STEP_DEFAULT_PHASES: Record<LessonStepType, StepPhase[]> = {
   simulation: ['read', 'simulation', 'choose_operation', 'answer', 'completed'],
   remove_noise: ['read', 'remove_noise', 'build_equation', 'answer', 'completed'],
   full_solve: ['read', 'find_numbers', 'find_keywords', 'choose_operation', 'build_equation', 'answer', 'explain', 'completed'],
+  find_compare_numbers: ['read', 'find_numbers', 'find_compare_numbers', 'choose_operation', 'answer', 'completed'],
+  spot_extra_info: ['read', 'find_numbers', 'spot_extra_info', 'answer', 'completed'],
+  spot_missing_info: ['read', 'find_numbers', 'spot_missing_info', 'answer', 'completed'],
 };
 
 export interface LessonStep {
@@ -142,6 +158,7 @@ export interface TodayLesson {
   steps: LessonStep[];
   currentStepIndex: number;
   completed: boolean;
+  caseStoryId?: string;
 }
 
 // ========== 错题记录 ==========
@@ -262,19 +279,27 @@ export interface TomorrowLessonPreview {
 export interface ParentSettings {
   gradeBand: GradeBand;
   dailyGoal: number;
-  olympiadEnabled: boolean;
+  easyMode: boolean;
   maxDifficulty: number;
 }
 
 // ========== 学习画像 ==========
+
+export interface WeeklySnapshot {
+  weekStart: string;
+  skills: Record<string, { correct: number; total: number }>;
+  totalCorrect: number;
+  totalWrong: number;
+}
 
 export interface LearningProfile {
   gradeBand: GradeBand;
   streakDays: number;
   recentAccuracy: number;
   weakSkills: CognitiveSkill[];
-  unlockedOlympiad: boolean;
+  easyMode: boolean;
   dailyQuestionCount: number;
+  skillLevel: number;
 }
 
 // ========== 全局状态 ==========
@@ -298,6 +323,9 @@ export interface GameState {
   parentRewards: ParentReward[];
   rewardRedemptions: RewardRedemption[];
   parentGateAttempts: ParentGateAttempt[];
+  weeklySnapshots: WeeklySnapshot[];
+  skillLevel: number;
+  decorations: string[];
 }
 
 export const DEFAULT_GAME_STATE: GameState = {
@@ -316,7 +344,7 @@ export const DEFAULT_GAME_STATE: GameState = {
   parentSettings: {
     gradeBand: 'G1',
     dailyGoal: 5,
-    olympiadEnabled: false,
+    easyMode: false,
     maxDifficulty: 2,
   },
   lastStreakCheckDate: '',
@@ -324,4 +352,7 @@ export const DEFAULT_GAME_STATE: GameState = {
   parentRewards: [],
   rewardRedemptions: [],
   parentGateAttempts: [],
+  weeklySnapshots: [],
+  skillLevel: 1,
+  decorations: [],
 };

@@ -1,4 +1,4 @@
-# 文字侦探 v1.0 — 项目归档
+# 文字侦探 v2.0 — 项目归档
 
 ## 项目定位
 
@@ -106,6 +106,34 @@ https://github.com/fxl625-bit/math-detective
 ## Vercel 部署地址
 
 https://math-detective.vercel.app
+
+## v2.0 升级 (2026-04-30)
+
+### 新增文件
+| 文件 | 用途 |
+|------|------|
+| lib/storySystem.ts | 案件故事系统 |
+| data/stories.ts | 12个侦探破案故事 |
+| data/questions/g3-multiplication.ts | 乘除法题库 |
+| data/questions/extra-info.ts | 条件多余信息题型 |
+| data/questions/missing-info.ts | 信息缺失题型 |
+| lib/mistakeReinforce.ts | 错题同知识点再练 |
+
+### 类型变更 (v4 migration)
+- `operation` 增加 `'ratio'`
+- `cognitiveSkills` 增加 `find_compare_numbers`, `spot_extra_info`, `spot_missing_info`
+- `lessonStepType` 增加 `find_compare_numbers`, `spot_extra_info`, `spot_missing_info`
+- `stepPhase` 增加对应三种新 phase
+- `Question` 增加 `isExtendedThinking`, `extraNumbers`, `isInsufficient`
+- `TodayLesson` 增加 `caseStoryId`
+- `ParentSettings` 替换 `olympiadEnabled` → `easyMode`
+- `GameState` 增加 `weeklySnapshots`, `skillLevel`, `decorations`
+- 数据版本升至 4
+
+### 产品原则调整
+- 奥数题不再作为独立开关控制，按难度融入各年级题库
+- 家长设置改为"降低难度"模式（easyMode）
+- 中国大陆网络访问：Vercel + Supabase 海外架构，建议 VPN；暂不迁移国内
 
 ## AI 开发注意事项
 

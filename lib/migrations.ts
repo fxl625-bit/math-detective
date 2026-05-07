@@ -1,7 +1,7 @@
 import { GameState, DEFAULT_GAME_STATE, TodayLesson, LessonStepType } from './types';
 import { normalizeLesson, normalizeStep, getDefaultPhasesForStepType } from './lessonPlanner';
 
-export const LEARNING_STATE_VERSION = 3;
+export const LEARNING_STATE_VERSION = 4;
 
 // ========== 扩展状态类型（带 version） ==========
 
@@ -21,7 +21,9 @@ export function migrateGameState(raw: unknown): VersionedState {
 
   // 已经是当前版本，直接返回
   if (existingVersion === LEARNING_STATE_VERSION) {
-    return { ...DEFAULT_GAME_STATE, ...obj, version: LEARNING_STATE_VERSION } as VersionedState;
+    const base = { ...DEFAULT_GAME_STATE, ...obj, version: LEARNING_STATE_VERSION } as VersionedState;
+    ensureArrays(base);
+    return base;
   }
 
   // 合并默认值
@@ -31,48 +33,78 @@ export function migrateGameState(raw: unknown): VersionedState {
     version: LEARNING_STATE_VERSION,
   };
 
+  // v4 migration: 移除 olympiadEnabled
+  migrateParentSettingsV4(base, obj);
+
   // 修复 parentSettings 缺失字段
   base.parentSettings = {
     ...DEFAULT_GAME_STATE.parentSettings,
     ...(base.parentSettings || {}),
   };
 
-  // 修复 skillMistakes
-  if (!base.skillMistakes || typeof base.skillMistakes !== 'object') {
-    base.skillMistakes = {};
+  // 确保版本4新增字段存在
+  if (!Array.isArray(base.weeklySnapshots)) {
+    base.weeklySnapshots = [];
+  }
+  if (typeof base.skillLevel !== 'number' || base.skillLevel < 1) {
+    base.skillLevel = 1;
+  }
+  if (!Array.isArray(base.decorations)) {
+    base.decorations = [];
   }
 
-  // 修复 mistakes 数组
+  ensureArrays(base);
+
+  return base;
+}
+
+function migrateParentSettingsV4(base: VersionedState, obj: Record<string, unknown>): void {
+  const oldSettings = obj.parentSettings as Record<string, unknown> | undefined;
+
+  // 如果已有 easyMode，保留它
+  if (typeof base.parentSettings?.easyMode === 'boolean') {
+    return;
+  }
+
+  // 从旧的 olympiadEnabled 迁移到 easyMode（取反不成立：奥数开 = easyMode关）
+  const olympiadEnabled = oldSettings?.olympiadEnabled;
+  base.parentSettings = {
+    ...base.parentSettings,
+    easyMode: false,
+  };
+}
+
+function ensureArrays(base: VersionedState): void {
+  if (!Array.isArray(base.skillMistakes) && typeof base.skillMistakes !== 'object') {
+    base.skillMistakes = {};
+  }
   if (!Array.isArray(base.mistakes)) {
     base.mistakes = [];
   }
-
-  // 修复 completedQuestions 数组
   if (!Array.isArray(base.completedQuestions)) {
     base.completedQuestions = [];
   }
-
-  // 修复 badges 数组
   if (!Array.isArray(base.badges)) {
     base.badges = [];
   }
-
-  // 修复 parentRewards 数组
   if (!Array.isArray(base.parentRewards)) {
     base.parentRewards = [];
   }
-
-  // 修复 rewardRedemptions 数组
   if (!Array.isArray(base.rewardRedemptions)) {
     base.rewardRedemptions = [];
   }
-
-  // 修复 parentGateAttempts 数组
   if (!Array.isArray(base.parentGateAttempts)) {
     base.parentGateAttempts = [];
   }
-
-  return base;
+  if (!Array.isArray(base.weeklySnapshots)) {
+    base.weeklySnapshots = [];
+  }
+  if (!Array.isArray(base.decorations)) {
+    base.decorations = [];
+  }
+  if (typeof base.skillLevel !== 'number' || base.skillLevel < 1) {
+    base.skillLevel = 1;
+  }
 }
 
 // ========== TodayLesson 迁移 ==========
@@ -89,7 +121,6 @@ export function migrateTodayLesson(raw: unknown): TodayLesson | null {
   for (let i = 0; i < lesson.steps.length; i++) {
     const step = lesson.steps[i];
     if (!step.questionId || typeof step.questionId !== 'string') {
-      // 无法修复，整个 lesson 作废
       return null;
     }
   }
