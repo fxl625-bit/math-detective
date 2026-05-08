@@ -34,6 +34,27 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.__compatErrors = [];
+            window.onerror = function(msg, url, line, col, error) {
+              window.__compatErrors.push({msg: String(msg), url: String(url||''), line, col, time: Date.now()});
+              var el = document.getElementById('__compat-error-display');
+              if (!el) {
+                el = document.createElement('div');
+                el.id = '__compat-error-display';
+                el.style.cssText = 'position:fixed;top:0;left:0;right:0;max-height:50vh;overflow:auto;background:#ff4444;color:white;padding:12px;z-index:99999;font-size:12px;white-space:pre-wrap;font-family:monospace;';
+                document.body.appendChild(el);
+              }
+              el.textContent += '\\n' + msg + ' (line ' + line + ')';
+            };
+            window.addEventListener('unhandledrejection', function(e) {
+              window.__compatErrors.push({msg: 'Promise: ' + String(e.reason), time: Date.now()});
+            });
+          `,
+        }} />
+      </head>
       <body
         suppressHydrationWarning
         className="min-h-full flex flex-col bg-[#fffdf7]"
