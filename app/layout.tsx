@@ -37,6 +37,18 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{
           __html: `
+            // Polyfill globalThis for Chrome < 71 (Android 8.0 WebView)
+            (function() {
+              if (typeof globalThis === 'undefined') {
+                Object.defineProperty(Object.prototype, '__globalThisPolyfill__', {
+                  get: function() { return this; },
+                  configurable: true
+                });
+                var gt = (function() { return this; }).__globalThisPolyfill__;
+                delete Object.prototype.__globalThisPolyfill__;
+                gt.globalThis = gt;
+              }
+            })();
             window.__compatErrors = [];
             window.onerror = function(msg, url, line, col, error) {
               window.__compatErrors.push({msg: String(msg), url: String(url||''), line, col, time: Date.now()});
