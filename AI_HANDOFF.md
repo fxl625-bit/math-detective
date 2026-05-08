@@ -1,4 +1,4 @@
-# 文字侦探 v2.1 — AI 接手须知
+# 文字侦探 v2.2 — AI 接手须知
 
 ## 接手前必须阅读（按优先级）
 
@@ -40,6 +40,12 @@ Tailwind v4 把工具类包在 `@layer utilities { ... }` 中。低版本 Androi
 
 ### 不要删除 PolyfillScript 组件
 它是 `app/layout.tsx` 中 `<body>` 的第一个子元素。如果删除，Android 8.0 设备上 React 19 的 `Object.hasOwn` 调用会崩溃。
+
+### 不要改回 Turbopack 生产构建
+`package.json` 的 build 脚本必须保持 `next build --webpack`。Turbopack 生产构建会产生空 chunk 和 `empty-resource` 误报。Webpack 虽然慢（~15s vs ~8s），但输出稳定可预测。
+
+### 不要删除 --webpack 标志
+即使未来 Turbopack 稳定版发布，也应在充分验证后再考虑切回。当前 v2.2 验证通过的是 Webpack 构建管线。
 
 ---
 

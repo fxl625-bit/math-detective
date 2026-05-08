@@ -157,6 +157,22 @@ https://math-detective.vercel.app
 - Next.js `<head>` 中的脚本无法排在 async bundle 之前
 - `Script strategy="beforeInteractive"` 仍然依赖 Next.js Runtime 解析，形成循环依赖
 
+## v2.2 Webpack 构建切换 (2026-05-08)
+
+### 问题
+Turbopack 生产构建在 Vercel 上生成含 `turbopack` 命名的空 JS chunk，`performance.getEntriesByType('resource')` 检测到 transferSize=0 的资源，触发红色错误条误报。
+
+### 修复（2 文件）
+| 文件 | 变更 |
+|------|------|
+| `package.json` build | `next build` → `next build --webpack` |
+| `components/PolyfillScript.tsx` | 资源检测过滤：排除非 script initiator、source map、turbopack 条目 |
+
+### 关键教训
+- Turbopack 在生产模式下仍会生成 preload hint 和空引用 chunk
+- `performance.getEntriesByType('resource')` 包含所有资源类型，不筛选类型会导致大量误报
+- Webpack 构建比 Turbopack 慢约 2 倍（15s vs 8s），但 chunk 命名和行为更可预测
+
 ## AI 开发注意事项
 
 见 `AI_HANDOFF.md`。

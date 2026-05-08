@@ -1,30 +1,25 @@
-# 文字侦探 v2.1 — 版本信息
+# 文字侦探 v2.2 — 版本信息
 
 | 项目 | 内容 |
 |------|------|
 | **项目名称** | 文字侦探（Math Detective） |
-| **当前版本** | v2.1 |
-| **版本历史** | v1.0: 2026-04-29 / v2.0: 2026-04-30 / v2.1: 2026-05-08 |
+| **当前版本** | v2.2 |
+| **版本历史** | v1.0: 2026-04-29 / v2.0: 2026-04-30 / v2.1: 2026-05-08 / v2.2: 2026-05-08 |
 | **项目定位** | 小学低年级数学应用题阅读理解小游戏 |
-| **技术栈** | Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + localStorage |
+| **技术栈** | Next.js 16 (webpack) + React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + localStorage |
 | **部署方式** | Vercel（海外架构，大陆建议 VPN） |
 | **GitHub** | https://github.com/fxl625-bit/math-detective |
 | **Vercel** | https://math-detective.vercel.app |
-| **当前状态** | ✅ v2.1 封版，Android 8.0+ 兼容 |
+| **当前状态** | ✅ v2.2 封版，Webpack 生产构建，Android 8.0+ 兼容 |
 
-## v2.0 升级内容 (2026-04-30)
+## v2.2 修复 (2026-05-08)
 
-| 阶段 | 内容 | 状态 |
+| 修复 | 文件 | 说明 |
 |------|------|------|
-| Phase 1.1 | 案件故事系统 — 12个侦探破案故事 | ✅ |
-| Phase 1.2 | 侦探长文字泡对话 — 打字效果、多消息队列 | ✅ |
-| Phase 2.1 | 乘除法题库 — 10道乘除题 (G3+) | ✅ |
-| Phase 2.2 | 条件多余/信息缺失题型 — 16道专项题 | ✅ |
-| Phase 2.3 | 奥数思维题融入年级库 — 移除 olympiadEnabled | ✅ |
-| Phase 3.1 | 侦探社晋升体系 — 见习→探员→高级探员→侦探→名侦探 | ✅ |
-| Phase 3.3 | 错题同知识点再练 — 3道同类题挑战 | ✅ |
-| Phase 4 | 家长报告增强 — 技能雷达图(SVG)、每周趋势表、easyMode | ✅ |
-| 数据迁移 | v4 — easyMode/weeklySnapshots/skillLevel/decorations | ✅ |
+| Turbopack → Webpack | `package.json` | 生产构建强制 webpack（`next build --webpack`），解决 Vercel 上 empty-resource 误报 |
+| 资源检测优化 | `components/PolyfillScript.tsx` | 排除 preload link/source map/turbopack 条目，只检测真实 script 标签失败 |
+
+**背景**：v2.1 部署 Vercel 后，`performance.getEntriesByType('resource')` 检测到大量 transferSize=0 的 turbopack 命名 JS chunk，触发红色错误条。根因是 Turbopack 生产构建生成了 preload hint 和空 chunk，误报为资源加载失败。切换 Webpack 后 chunk 命名和加载行为回归正常。
 
 ## v2.1 Android 兼容性修复 (2026-05-08)
 
@@ -37,10 +32,19 @@
 | 缩放限制移除 | `app/layout.tsx` | maximumScale=1 触发 Android 渲染异常 |
 | 备用注入 | `middleware.ts` | 预留 HTML 注入方案 |
 
+## v2.0 功能升级 (2026-04-30)
+
+| 阶段 | 内容 |
+|------|------|
+| Phase 1 | 12 个侦探破案故事 + 侦探长文字泡对话 |
+| Phase 2 | 乘除法题库 + 多余/缺失题型 + 奥数融入年级库 |
+| Phase 3 | 侦探社晋升体系 + 错题同知识点再练 |
+| Phase 4 | 家长报告增强（雷达图+周趋势）+ easyMode |
+| 数据 | v4 migration |
+
 ## 检查命令
 
 | 命令 | 结果 |
 |------|------|
-| `npm run build` | ✅ 通过（含 postbuild-css.js） |
+| `npm run build` | ✅ Webpack + postbuild-css 通过 |
 | `npm run lint` | ⚠️ 警告均为已有代码模式 |
-| 生产模式本地测试 | ✅ Android 8.0 模拟器正常 |
