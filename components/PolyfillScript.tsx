@@ -29,13 +29,20 @@ export function PolyfillScript() {
     window.__earlyErrors.push({type:'promise',reason:String(e.reason)});
   });
 
-  // resource check after 5s
+  // resource check after 5s — only flag actual script failures, not preloads
   setTimeout(function() {
     try {
       var res = performance.getEntriesByType('resource');
       for (var i = 0; i < res.length; i++) {
-        if (res[i].transferSize === 0 && res[i].name.indexOf('.js') > -1) {
-          window.__earlyErrors.push({type:'empty-resource',name:res[i].name});
+        var r = res[i];
+        // Only check actual script resources (skip preload links, source maps, HMR stubs)
+        if (r.name.indexOf('.js') === -1) continue;
+        if (r.name.indexOf('.js.map') > -1) continue;
+        if (r.name.indexOf('turbopack') > -1) continue;
+        if (r.initiatorType !== 'script') continue;
+        // Flag if transferSize is 0 AND the script was actually fetched (responseEnd > 0)
+        if (r.transferSize === 0 && r.responseEnd > 0 && r.duration > 0) {
+          window.__earlyErrors.push({type:'empty-resource',name:r.name,initiator:r.initiatorType,transfer:r.transferSize});
         }
       }
     } catch(_) {}
