@@ -1,114 +1,79 @@
-# 文字侦探 v1.0 — AI 接手须知
+# 文字侦探 v2.1 — AI 接手须知
 
 ## 接手前必须阅读（按优先级）
 
 1. README.md — 项目总览、本地运行
 2. VERSION.md — 版本信息、检查命令结果
 3. ARCHIVE.md — 项目归档（架构、页面、组件、修复历史）
-4. CHANGELOG.md — v1.0 已完成功能清单
-5. TODO_NEXT.md — 后续升级方向
-6. Obsidian 中 `项目归档/文字侦探/v1.0/` 所有文件
-7. lib/types.ts — 所有类型定义
-8. lib/lessonPlanner.ts — 核心选题和课程编排逻辑
-9. hooks/useGameState.ts — 全局状态管理
-10. AGENTS.md — Next.js 16 特殊规则
+4. TODO_NEXT.md — 后续升级方向
+5. Obsidian 归档 `F:\Obsidian\wiki\raw\AI-projects\math-detective\v2.1\` 所有文件
+6. lib/types.ts — 所有类型定义
+7. lib/lessonPlanner.ts — 核心选题和课程编排逻辑
+8. hooks/useGameState.ts — 全局状态管理
+9. AGENTS.md — Next.js 16 特殊规则
 
-## 禁止事项
+## v2.1 新增文件
+
+| 文件 | 用途 |
+|------|------|
+| `components/PolyfillScript.tsx` | **关键**：body-first polyfill 脚本（Object.hasOwn + globalThis），在 async bundle 前执行 |
+| `scripts/postbuild-css.js` | **关键**：构建后剥离 @layer 包裹 |
+| `.browserslistrc` | 编译目标 Chrome 49+ / Android 7+ |
+| `middleware.ts` | 备用 HTML 注入方案 |
+| `lib/storySystem.ts` | 案件故事系统 |
+| `data/stories.ts` | 12 个侦探破案故事 |
+| `lib/mistakeReinforce.ts` | 错题同知识点再练 |
+| `data/questions/g3-multiplication.ts` | 乘除法题库 |
+| `data/questions/extra-info.ts` | 多余信息题型 |
+| `data/questions/missing-info.ts` | 信息缺失题型 |
+
+## v2.1 新增禁止事项
+
+### 不要把脚本放在 `<head>` 里做 polyfill
+Next.js App Router 把自己的 `<script async>` 插在 `<head>` 最前面，自定义脚本被挤到后面。localhost 上 async 脚本近乎即时下载，polyfill 还没执行 React 就崩了。**唯一可靠方案**：polyfill 放在 `<body>` 第一个子元素，作为同步 `<script>` 阻塞执行。
+
+### 不要用 `next dev` 测低版本兼容性
+Turbopack dev server **不遵循** `.browserslistrc`，生成的 JS 含 `globalThis`、`??` 等现代语法。必须用 `npm run build && npx next start`。
+
+### 不要在生产 CSS 中保留 @layer
+Tailwind v4 把工具类包在 `@layer utilities { ... }` 中。低版本 Android WebView（Chrome < 99）不认此 at-rule，整个块被跳过导致全部样式丢失。`npm run build` 会自动运行 `postbuild-css.js` 剥离 @layer。不要删除这个后处理步骤。
+
+### 不要删除 PolyfillScript 组件
+它是 `app/layout.tsx` 中 `<body>` 的第一个子元素。如果删除，Android 8.0 设备上 React 19 的 `Object.hasOwn` 调用会崩溃。
+
+---
+
+## v1.0 原有禁止事项（仍然有效）
 
 ### 不要让孩子端自由选择题型
-当前设计是每日任务固定 5 关顺序执行。自由选择会导致跳关和技能训练不完整。
+每日任务固定顺序执行。自由选择会导致跳关和技能训练不完整。
 
 ### 不要让完整题找到线索后直接完成
-每个 step 有 phases 数组，必须走完所有 phase（包括 answer/build_equation）才能标记完成。`completeCurrentStep()` 不会跳过 phases。
+每个 step 有 phases 数组，必须走完所有 phase 才能标记完成。
 
 ### 不要让 remove_noise 使用无 noisePhrases 的题
-`selectQuestionForStep()` 中 remove_noise 类型找不到合适题时返回 null，由 `buildDailyLesson()` 替换关卡类型为 `find_action_words`。绝不能回退到没有 noisePhrases 的题。
+`selectQuestionForStep()` 中 remove_noise 类型找不到合适题时返回 null，由 `buildDailyLesson()` 替换关卡类型。
 
 ### 不要写死图标
-题目通过 `visualKey` 关联 `data/visualItems.ts` 中的物品。新增题目必须确保 visualKey 与题文中物品一致。
+题目通过 `visualKey` 关联 `data/visualItems.ts` 中的物品。
 
 ### 不要让所有关卡共用同一道题
-`buildDailyLesson()` 为每个 step 独立调用 `selectQuestionForStep()`，通过 `usedQuestionIds` 去重。每个关卡必须有独立的 questionId。
+`buildDailyLesson()` 为每个 step 独立调用 `selectQuestionForStep()`，通过 `usedQuestionIds` 去重。
 
 ### 不要把虚拟奖励混进 parentRewards
-`getVirtualRewards()` 从 GameState 派生虚拟奖励（徽章、宝箱、streak）。`parentRewards` 只放家长自定义的现实奖励。两者在 rewards 页面分 tab 显示。
+`getVirtualRewards()` 从 GameState 派生虚拟奖励。`parentRewards` 只放家长自定义的现实奖励。
 
 ### 不要让家长设置出现在孩子端
-rewards 页面的家长 tab 必须通过数学题验证后才能进入。`ParentGateModal` 随机生成乘法/除法题，连续 3 次失败锁定。
-
-### 不要用固定验证码
-`generateParentGateQuestion()` 每次随机生成不同的数学题，防止孩子记住答案。
+rewards 页面的家长 tab 必须通过数学题验证。
 
 ### 不要在条件 return 后写 hooks
-React hooks 必须在组件函数体最顶部无条件调用。特别是 `app/rewards/page.tsx` 中 hooks 数量多（useGameState + 11 useState + 1 useEffect + 12 useCallback），必须全部在 `if (!mounted) return` 之前。
+React hooks 必须在组件函数体最顶部无条件调用。
 
 ### 不要直接破坏 localStorage 旧数据
-`lib/migrations.ts` 的 `migrateGameState()` 负责将旧版本数据升级到 v3。所有字段缺失时用 DEFAULT_GAME_STATE 值补全。
-
-### 不要让重置工具出现在孩子模式
-重置今日任务、清空进度、完全重置、恢复默认奖励 — 这 4 个操作都在 rewards 页面的家长 tab 中，需先通过验证。
+`lib/migrations.ts` 的 `migrateGameState()` 负责将旧版本数据升级（当前 v4）。
 
 ### 不要把奥数题默认推给低年级孩子
-奥数题（OlympiadIntro）在 `parentSettings.olympiadEnabled` 为 false 时不进入每日课程。
+奥数题（isExtendedThinking: true）在 easyMode 开启时屏蔽，正常情况下按隐式 skillLevel 少量穿插。
 
 ### 不要部署前跳过 npm run build
 每次修改后必须先 `npm run build` 确认零错误。
-
-## 关键业务逻辑
-
-### 每日任务编排 (`lib/lessonPlanner.ts`)
-```
-getTodayLesson()
-  → 检查 localStorage 是否有今日课程
-  → 有则 normalize 后返回
-  → 无则 buildDailyLesson()
-    → 5 个 stepType 依次 selectQuestionForStep()
-    → remove_noise 无匹配则替换为 find_action_words
-    → 其他类型无匹配则用 full_solve 兜底
-    → 每个 step 独立 questionId，通过 usedQuestionIds 去重
-  → saveTodayLesson() 存到 localStorage
-```
-
-### 题目筛选 (`selectQuestionForStep()`)
-```
-1. 按年级池筛选 (questionsByGrade[grade])
-2. 优先 stepCompatibility 精确匹配
-3. 再按字段规则补充匹配
-4. 无结果 → 降低难度重试
-5. 无结果 → 扩大年级范围重试
-6. remove_noise 绝不回退到无 noisePhrases 的题
-7. 最终兜底：任意题（remove_noise 除外）
-```
-
-### 题库 visual 绑定规则
-- Question.visualKey → data/visualItems.ts 中查找对应物品
-- 题目写「蜡笔」→ visualKey 必须是蜡笔 → 动画显示蜡笔
-- 题目写「小鸟」→ visualKey 必须是小鸟 → 动画显示小鸟
-- 验证脚本：`lib/validateQuestions.ts`
-
-### remove_noise 题要求
-- `noisePhrases` 长度 ≥ 1
-- `usefulPhrases` 长度 ≥ 2
-- `stepCompatibility` 包含 `'remove_noise'`
-- 题目原文中必须能匹配到 noisePhrases 和 usefulPhrases 的内容
-
-### simulation 题要求
-- `operation` 必须是 `'addition'` 或 `'subtraction'`
-- 必须有 `visualKey`
-- 物品有增减变化，适合做动画
-
-### 奖励中心三 tab
-1. **虚拟奖励** — `getVirtualRewards(state)` 派生，9 种（徽章 + streak + 宝箱）
-2. **兑换奖励** — `state.parentRewards` 中 enabled 的奖励，孩子用星星兑换
-3. **家长模式** — 数学题验证 → CRUD 奖励 + 兑换管理 + 重置工具 + 验证日志
-
-### localStorage 结构升级
-- 当前版本: 3
-- `migrateGameState()` 确保所有数组字段存在
-- `migrateTodayLesson()` 确保所有 step 有 questionId 且 phases 有效
-
-## Vercel 部署注意事项
-
-- Next.js 16 项目，Vercel 会自动识别框架
-- 无需额外配置 Build Command / Output Directory
-- 无需环境变量（纯前端项目，数据在 localStorage）

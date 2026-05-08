@@ -1,4 +1,4 @@
-# 文字侦探 v2.0 — 项目归档
+# 文字侦探 v2.1 — 项目归档
 
 ## 项目定位
 
@@ -134,6 +134,28 @@ https://math-detective.vercel.app
 - 奥数题不再作为独立开关控制，按难度融入各年级题库
 - 家长设置改为"降低难度"模式（easyMode）
 - 中国大陆网络访问：Vercel + Supabase 海外架构，建议 VPN；暂不迁移国内
+
+## v2.1 Android 兼容性修复 (2026-05-08)
+
+### 新增文件
+| 文件 | 用途 |
+|------|------|
+| components/PolyfillScript.tsx | body-first polyfill（Object.hasOwn + globalThis + 错误捕获 + 状态指示） |
+| scripts/postbuild-css.js | 构建后剥离 @layer 包裹 |
+| .browserslistrc | Chrome 49+ / Android 7+ 编译目标 |
+| middleware.ts | 备用 HTML polyfill 注入方案 |
+
+### 修复的 5 个问题
+1. **CSS @layer 不兼容低版 WebView** → postbuild 剥离
+2. **Object.hasOwn (ES2022) 不支持** → body-first polyfill
+3. **globalThis (ES2020) 不支持** → body-first polyfill
+4. **async 脚本先于 polyfill 执行** → body 内联同步 `<script>` 
+5. **maximumScale=1 触发渲染异常** → 删除
+
+### 核心踩坑
+- `next dev` 不遵循 `.browserslistrc`，测试兼容性必须 `next build && next start`
+- Next.js `<head>` 中的脚本无法排在 async bundle 之前
+- `Script strategy="beforeInteractive"` 仍然依赖 Next.js Runtime 解析，形成循环依赖
 
 ## AI 开发注意事项
 
