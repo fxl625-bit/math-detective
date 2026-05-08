@@ -32,14 +32,25 @@ function update(updater: (s: GameState) => GameState) {
 
 export function useGameState() {
   const [state, setState] = useState<GameState>(() => {
-    if (globalState) return globalState;
-    const loaded = loadState();
-    const daily = checkDailyReset(loaded);
-    const weekly = checkWeeklyCard(daily);
-    const leveled = { ...weekly, level: calculateLevel(weekly.stars) };
-    const badged = { ...leveled, badges: checkBadges(leveled) };
-    globalState = badged;
-    return badged;
+    if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] init start');
+    if (globalState) {
+      if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] using cached globalState');
+      return globalState;
+    }
+    try {
+      const loaded = loadState();
+      if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] loadState ok v=' + (loaded as any).version);
+      const daily = checkDailyReset(loaded);
+      const weekly = checkWeeklyCard(daily);
+      const leveled = { ...weekly, level: calculateLevel(weekly.stars) };
+      const badged = { ...leveled, badges: checkBadges(leveled) };
+      globalState = badged;
+      if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] init done, stars=' + badged.stars);
+      return badged;
+    } catch (e) {
+      if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] ERROR: ' + (e instanceof Error ? e.message : String(e)));
+      throw e;
+    }
   });
 
   useEffect(() => {
