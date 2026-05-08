@@ -23,7 +23,21 @@ export default function DashboardPage() {
   const [storyIntroShown, setStoryIntroShown] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div className="min-h-screen" />;
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4 animate-bounce-gentle">🔍</div>
+          <p className="text-amber-600 font-bold text-lg">小侦探正在准备...</p>
+          <div className="mt-4 flex gap-1 justify-center">
+            <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+            <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+            <div className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const levelInfo = getLevelInfo(state.level);
   const dailyGoal = state.parentSettings.dailyGoal;

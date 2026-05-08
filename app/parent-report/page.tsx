@@ -50,7 +50,7 @@ export default function ParentReportPage() {
 
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div className="min-h-screen" />;
+  if (!mounted) return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl mb-4 animate-bounce-gentle">📊</div><p className="text-green-600 font-bold">正在加载报告...</p></div></div>;
 
   const levelInfo = getLevelInfo(state.level);
   const total = state.totalCompleted;

@@ -337,7 +337,7 @@ export default function RewardsPage() {
   }, [confirmAction]);
 
   // ALL hooks defined. Now conditional return.
-  if (!mounted) return <div className="min-h-screen" />;
+  if (!mounted) return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl mb-4 animate-bounce-gentle">🎁</div><p className="text-pink-600 font-bold">正在加载奖励中心...</p></div></div>;
 
   // Derived data
   const virtualRewards = getVirtualRewards(state);

@@ -23,7 +23,7 @@ export default function MistakesPage() {
   const [reinforceDone, setReinforceDone] = useState<Record<string, boolean>>({});
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <div className="min-h-screen" />;
+  if (!mounted) return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl mb-4 animate-bounce-gentle">📒</div><p className="text-blue-600 font-bold">正在加载错题本...</p></div></div>;
 
   const mistakes = [...state.mistakes].reverse();
 
