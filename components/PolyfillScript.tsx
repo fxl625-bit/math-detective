@@ -8,14 +8,23 @@ export function PolyfillScript() {
     delete Object.prototype.__gt;
     g.globalThis = g;
   }
-  // polyfill Object.hasOwn (Chrome < 93) — React 19 requires this
+  // polyfill Object.hasOwn (Chrome < 93). React 19 expects it.
   if (!Object.hasOwn) {
     Object.hasOwn = function(obj, prop) {
       return Object.prototype.hasOwnProperty.call(obj, prop);
     };
   }
 
-  // early error capture
+  var debugEnabled = false;
+  try {
+    debugEnabled =
+      window.location.search.indexOf('debug=1') !== -1 ||
+      window.localStorage.getItem('mathDetectiveDebug') === '1';
+  } catch (_) {}
+
+  if (!debugEnabled) return;
+
+  // Debug-only early error capture. This must stay hidden in normal production use.
   window.__earlyErrors = [];
   window.addEventListener('error', function(e) {
     window.__earlyErrors.push(e.target === window
@@ -29,23 +38,7 @@ export function PolyfillScript() {
     window.__earlyErrors.push({type:'promise',reason:String(e.reason)});
   });
 
-  // resource check after 5s — only flag actual script failures, not preloads
   setTimeout(function() {
-    try {
-      var res = performance.getEntriesByType('resource');
-      for (var i = 0; i < res.length; i++) {
-        var r = res[i];
-        // Only check actual script resources (skip preload links, source maps, HMR stubs)
-        if (r.name.indexOf('.js') === -1) continue;
-        if (r.name.indexOf('.js.map') > -1) continue;
-        if (r.name.indexOf('turbopack') > -1) continue;
-        if (r.initiatorType !== 'script') continue;
-        // Flag if transferSize is 0 AND the script was actually fetched (responseEnd > 0)
-        if (r.transferSize === 0 && r.responseEnd > 0 && r.duration > 0) {
-          window.__earlyErrors.push({type:'empty-resource',name:r.name,initiator:r.initiatorType,transfer:r.transferSize});
-        }
-      }
-    } catch(_) {}
     var m = document.querySelector('main');
     if (!m || m.children.length === 0) {
       window.__earlyErrors.push({type:'timeout',msg:'No main content after 5s'});
@@ -92,9 +85,7 @@ export function PolyfillScript() {
 
   var obs = new MutationObserver(function() {
     var m = document.querySelector('main');
-    if (m && m.textContent && m.textContent.length > 80 &&
-        m.textContent.indexOf('准备') === -1 &&
-        m.textContent.indexOf('加载') === -1) {
+    if (m && m.textContent && m.textContent.length > 80) {
       st.textContent = 'OK (' + Math.floor((Date.now()-start)/1000) + 's)';
       st.style.background = 'rgba(0,128,0,0.9)';
       setTimeout(function() { st.remove(); }, 3000);
