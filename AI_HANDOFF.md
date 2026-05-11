@@ -39,7 +39,12 @@ Turbopack dev server **不遵循** `.browserslistrc`，生成的 JS 含 `globalT
 Tailwind v4 把工具类包在 `@layer utilities { ... }` 中。低版本 Android WebView（Chrome < 99）不认此 at-rule，整个块被跳过导致全部样式丢失。`npm run build` 会自动运行 `postbuild-css.js` 剥离 @layer。不要删除这个后处理步骤。
 
 ### 不要删除 PolyfillScript 组件
-它是 `app/layout.tsx` 中 `<body>` 的第一个子元素。如果删除，Android 8.0 设备上 React 19 的 `Object.hasOwn` 调用会崩溃。
+它是 `app/layout.tsx` 中 `<body>` 的第一个子元素。如果删除，Android 8.0 设备上 React 19 的 `Object.hasOwn` 调用会崩溃。Polyfill 本身始终运行（不受 debug 开关影响）。
+
+### 如何开启 Debug Overlay
+生产环境中红色错误条和绿色状态指示器默认隐藏。开发和排障时：
+- URL 加 `?debug=1` 参数
+- 或在 Console 执行 `localStorage.setItem('mathDetectiveDebug', '1')` 然后刷新
 
 ### 不要改回 Turbopack 生产构建
 `package.json` 的 build 脚本必须保持 `next build --webpack`。Turbopack 生产构建会产生空 chunk 和 `empty-resource` 误报。Webpack 虽然慢（~15s vs ~8s），但输出稳定可预测。

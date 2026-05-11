@@ -8,6 +8,7 @@
 | v2.0 | 2026-04-30 | 功能大升级：故事系统、乘除法、多余/缺失题型、奥数融入、侦探晋升、错题重练、家长报告增强 |
 | v2.1 | 2026-05-08 | Android 兼容性修复：CSS @layer 剥离、Object.hasOwn/globalThis polyfill、脚本执行顺序修复 |
 | v2.2 | 2026-05-08 | Webpack 生产构建切换 + empty-resource 误报修复 |
+| v2.3 | 2026-05-11 | Debug overlay 默认隐藏（?debug=1 开启），polyfill 常驻，移除 resource 检测 |
 
 ## v2.0 规划项完成情况
 

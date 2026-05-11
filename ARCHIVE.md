@@ -1,4 +1,4 @@
-# 文字侦探 v2.1 — 项目归档
+# 文字侦探 v2.3 — 项目归档
 
 ## 项目定位
 
@@ -172,6 +172,21 @@ Turbopack 生产构建在 Vercel 上生成含 `turbopack` 命名的空 JS chunk�
 - Turbopack 在生产模式下仍会生成 preload hint 和空引用 chunk
 - `performance.getEntriesByType('resource')` 包含所有资源类型，不筛选类型会导致大量误报
 - Webpack 构建比 Turbopack 慢约 2 倍（15s vs 8s），但 chunk 命名和行为更可预测
+
+## v2.3 Debug Overlay 默认隐藏 (2026-05-11)
+
+### 问题
+生产环境中红色错误条和绿色状态指示器对正常用户可见，干扰体验。
+
+### 修复（1 文件）
+| 文件 | 变更 |
+|------|------|
+| `components/PolyfillScript.tsx` | debug 模式门控：仅 `?debug=1` 或 `localStorage.mathDetectiveDebug === '1'` 时显示；移除 resource 检测；polyfill 常驻 |
+
+### 关键设计
+- **Polyfill 始终运行**：`Object.hasOwn`、`globalThis` 的 polyfill 不受 debug 开关影响——它们不是 debug 功能，是兼容性必需
+- **Debug UI 按需开启**：红色错误条、绿色状态指示器、`__debugLog`、`__earlyErrors` 仅在 debug 模式激活
+- **启用方式**：URL 加 `?debug=1` 或在浏览器 Console 执行 `localStorage.setItem('mathDetectiveDebug', '1')`
 
 ## AI 开发注意事项
 
