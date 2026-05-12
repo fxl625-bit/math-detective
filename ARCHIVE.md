@@ -101,7 +101,7 @@
 
 ## GitHub 仓库
 
-https://github.com/fxl625-bit/math-detective
+（本仓库）
 
 ## Vercel 部署地址
 
