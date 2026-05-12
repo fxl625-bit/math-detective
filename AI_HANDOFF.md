@@ -6,7 +6,7 @@
 2. VERSION.md — 版本信息、检查命令结果
 3. ARCHIVE.md — 项目归档（架构、页面、组件、修复历史）
 4. TODO_NEXT.md — 后续升级方向
-5. Obsidian 归档 `F:\Obsidian\wiki\raw\AI-projects\math-detective\v2.1\` 所有文件
+5. Obsidian 归档中的所有相关文档（如果有归档）
 6. lib/types.ts — 所有类型定义
 7. lib/lessonPlanner.ts — 核心选题和课程编排逻辑
 8. hooks/useGameState.ts — 全局状态管理
