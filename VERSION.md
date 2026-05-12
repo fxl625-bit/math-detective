@@ -8,7 +8,7 @@
 | **项目定位** | 小学低年级数学应用题阅读理解小游戏 |
 | **技术栈** | Next.js 16 (webpack) + React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + localStorage |
 | **部署方式** | Vercel（海外架构，大陆建议 VPN） |
-| **GitHub** | https://github.com/fxl625-bit/math-detective |
+| **GitHub** | （本仓库） |
 | **Vercel** | https://math-detective.vercel.app |
 | **当前状态** | ✅ v2.3 封版，Debug overlay 默认隐藏，Android 8.0+ 兼容 |
 
