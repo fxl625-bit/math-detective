@@ -138,7 +138,6 @@ export function getLearningProfile(): LearningProfile {
     streakDays: state.streak,
     recentAccuracy,
     weakSkills,
-    easyMode: state.parentSettings.easyMode,
     dailyQuestionCount: state.completedToday,
     skillLevel: state.skillLevel || 1,
   };
@@ -184,14 +183,16 @@ export function getStepTypesForGrade(grade: GradeBand): LessonStepType[] {
     'find_action_words',
   ];
 
-  // G3+ 增加比较关系和多余信息题型
-  if (grade !== 'G1' && grade !== 'G2') {
+  // G1/G2: 基础 + 随机进阶关卡（从一年级开始培养比较和筛选能力）
+  if (grade === 'G1' || grade === 'G2') {
+    const g1Advanced: LessonStepType[] = ['find_compare_numbers', 'spot_extra_info', 'spot_missing_info'];
+    shuffleArray(g1Advanced);
+    base.push('simulation', 'remove_noise');
+    base.push(...g1Advanced.slice(0, 1), 'full_solve');
+  } else {
     const advanced: LessonStepType[] = ['find_compare_numbers', 'remove_noise', 'spot_extra_info', 'full_solve'];
-    // 随机选择其中 3 个 + 基础 2 个 = 5 关
     shuffleArray(advanced);
     base.push(...advanced.slice(0, 3));
-  } else {
-    base.push('simulation', 'remove_noise', 'full_solve');
   }
 
   return base;
@@ -205,10 +206,9 @@ function shuffleArray<T>(arr: T[]): void {
 }
 
 /**
- * 计算有效难度上限（考虑 easyMode 和 skillLevel）
+ * 计算有效难度上限（基于 skillLevel 自适应）
  */
 function getEffectiveMaxDifficulty(profile: LearningProfile): number {
-  if (profile.easyMode) return Math.min(2, 1 + Math.floor(profile.skillLevel / 2));
   return Math.min(5, 1 + Math.floor(profile.skillLevel));
 }
 
@@ -275,17 +275,12 @@ export function selectQuestionForStep(params: {
       (q.stepCompatibility?.includes(stepType) || (!q.stepCompatibility && isCompatible(q)))
     );
 
-    // easyMode: 屏蔽拓展题
-    const filtered = profile.easyMode
-      ? compatible.filter(q => !q.isExtendedThinking)
-      : compatible;
-
-    if (filtered.length > 0) {
-      for (let i = filtered.length - 1; i > 0; i--) {
+    if (compatible.length > 0) {
+      for (let i = compatible.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+        [compatible[i], compatible[j]] = [compatible[j], compatible[i]];
       }
-      return filtered[0];
+      return compatible[0];
     }
 
     if (!allowDegrade) return null;
@@ -293,8 +288,7 @@ export function selectQuestionForStep(params: {
     const fieldMatch = pool.filter(q =>
       !usedSet.has(q.id) &&
       q.difficulty <= maxDifficulty &&
-      isCompatible(q) &&
-      (!profile.easyMode || !q.isExtendedThinking)
+      isCompatible(q)
     );
     if (fieldMatch.length > 0) {
       for (let i = fieldMatch.length - 1; i > 0; i--) {
@@ -314,7 +308,7 @@ export function selectQuestionForStep(params: {
   // Degrade: lower difficulty
   if (!result && stepType !== 'remove_noise') {
     for (let diff = maxDifficulty - 1; diff >= 1; diff--) {
-      const lowered = pool.filter(q => !usedSet.has(q.id) && q.difficulty <= diff && isCompatible(q) && (!profile.easyMode || !q.isExtendedThinking));
+      const lowered = pool.filter(q => !usedSet.has(q.id) && q.difficulty <= diff && isCompatible(q));
       if (lowered.length > 0) {
         for (let i = lowered.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));

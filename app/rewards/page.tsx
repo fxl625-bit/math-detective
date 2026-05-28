@@ -11,6 +11,7 @@ import AppButton from '@/components/ui/AppButton';
 import PageContainer from '@/components/layout/PageContainer';
 import ParentRewardForm from '@/components/ParentRewardForm';
 import RedeemConfirmModal from '@/components/RedeemConfirmModal';
+import CostumeShop from '@/components/CostumeShop';
 import { badges as badgeData } from '@/data/badges';
 import { getVirtualRewards } from '@/lib/lessonPlanner';
 import { ParentReward, DEFAULT_PARENT_REWARDS } from '@/lib/types';
@@ -215,7 +216,7 @@ export default function RewardsPage() {
   // All useState hooks
   const [mounted, setMounted] = useState(false);
   const [redeemMsg, setRedeemMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<'virtual' | 'redeem' | 'parent'>('virtual');
+  const [activeTab, setActiveTab] = useState<'virtual' | 'redeem' | 'parent' | 'costume'>('virtual');
   const [parentAuthed, setParentAuthed] = useState(false);
   const [gateModalOpen, setGateModalOpen] = useState(false);
 
@@ -404,6 +405,12 @@ export default function RewardsPage() {
           onClick={() => setActiveTab('redeem')}
         >
           🛒 家长奖励兑换
+        </button>
+        <button
+          className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'costume' ? 'bg-white shadow text-orange-700' : 'text-gray-500'}`}
+          onClick={() => setActiveTab('costume')}
+        >
+          🧥 换装
         </button>
         {parentAuthed && (
           <button
@@ -733,6 +740,16 @@ export default function RewardsPage() {
               <AlertTriangle size={14} /> 恢复全部初始状态
             </AppButton>
           </div>
+        </div>
+      )}
+
+      {/* ========== Tab 4: Costume Shop ========== */}
+      {activeTab === 'costume' && (
+        <div className="space-y-4">
+          <div className="text-center">
+            <p className="text-sm text-gray-500">收集装饰品，装扮你的侦探！</p>
+          </div>
+          <CostumeShop />
         </div>
       )}
 

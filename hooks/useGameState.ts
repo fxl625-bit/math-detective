@@ -92,7 +92,7 @@ export function useGameState() {
     });
   }, []);
 
-  const setParentSettings = useCallback((settings: { dailyGoal?: number; gradeBand?: import('@/lib/types').GradeBand; easyMode?: boolean }) => {
+  const setParentSettings = useCallback((settings: { dailyGoal?: number; gradeBand?: import('@/lib/types').GradeBand }) => {
     update((s) => ({
       ...s,
       parentSettings: { ...s.parentSettings, ...settings },
@@ -273,6 +273,18 @@ export function useGameState() {
     return globalState ?? loadState();
   }, []);
 
+  const toggleDecoration = useCallback((decorationId: string) => {
+    update((s) => {
+      const current = new Set(s.decorations || []);
+      if (current.has(decorationId)) {
+        current.delete(decorationId);
+      } else {
+        current.add(decorationId);
+      }
+      return { ...s, decorations: Array.from(current) };
+    });
+  }, []);
+
   return {
     state,
     completeQuestion: handleCompleteQuestion,
@@ -291,6 +303,7 @@ export function useGameState() {
     clearLearningProgress,
     resetAllState,
     restoreDefaultParentRewards,
+    toggleDecoration,
     getState,
     refresh,
   };

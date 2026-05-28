@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Target, TrendingUp, Lightbulb, Settings, Check, Brain, Shield, GraduationCap } from 'lucide-react';
+import { BarChart3, Target, TrendingUp, Lightbulb, Settings, Check, Brain, GraduationCap } from 'lucide-react';
 import { useGameState } from '@/hooks/useGameState';
 import type { GradeBand, CognitiveSkill } from '@/lib/types';
 import StarDisplay from '@/components/StarDisplay';
@@ -46,7 +46,6 @@ export default function ParentReportPage() {
   // Settings form state
   const [formDailyGoal, setFormDailyGoal] = useState(state.parentSettings.dailyGoal);
   const [formGrade, setFormGrade] = useState<GradeBand>(state.parentSettings.gradeBand);
-  const [formEasyMode, setFormEasyMode] = useState(state.parentSettings.easyMode);
 
   useEffect(() => setMounted(true), []);
 
@@ -95,7 +94,6 @@ export default function ParentReportPage() {
     setParentSettings({
       dailyGoal: formDailyGoal,
       gradeBand: formGrade,
-      easyMode: formEasyMode,
     });
     setShowSettings(false);
   }
@@ -149,21 +147,6 @@ export default function ParentReportPage() {
             </div>
           </div>
 
-          {/* Easy mode toggle */}
-          <div>
-            <label className="text-sm font-bold text-gray-600 mb-2 flex items-center gap-2">
-              <Shield size={16} /> 降低难度
-            </label>
-            <button
-              className={`px-4 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
-                formEasyMode ? 'bg-amber-400 text-white' : 'bg-gray-100 text-gray-500'
-              }`}
-              onClick={() => setFormEasyMode(!formEasyMode)}
-            >
-              <span>{formEasyMode ? '✅' : '⬜'}</span>
-              {formEasyMode ? '降低难度模式已开启' : '开启降低难度模式（减少拓展题，优先出简单题）'}
-            </button>
-          </div>
 
           <AppButton variant="success" size="sm" onClick={handleSaveSettings}>
             <Check size={16} /> 保存设置
@@ -177,7 +160,6 @@ export default function ParentReportPage() {
           <GraduationCap size={20} className="text-purple-600" />
           <span className="text-sm font-bold text-purple-800">
             当前年级：{GRADE_OPTIONS.find(g => g.value === state.parentSettings.gradeBand)?.label || '未设置'}
-            {state.parentSettings.easyMode && ' · 降低难度模式'}
           </span>
         </div>
       </AppCard>

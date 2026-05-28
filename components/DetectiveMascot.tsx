@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DecorationItem } from '@/data/decorations';
 
 interface DetectiveMascotProps {
   mood?: 'happy' | 'thinking' | 'encourage' | 'excited';
@@ -9,6 +10,7 @@ interface DetectiveMascotProps {
   message?: string | string[];
   showMessage?: boolean;
   onMessageEnd?: () => void;
+  decorations?: DecorationItem[];
 }
 
 const mascots: Record<string, { emoji: string; words: string }> = {
@@ -24,10 +26,71 @@ export default function DetectiveMascot({
   message,
   showMessage = true,
   onMessageEnd,
+  decorations,
 }: DetectiveMascotProps) {
   const m = mascots[mood];
   const sizeClass =
     size === 'sm' ? 'text-4xl' : size === 'lg' ? 'text-7xl' : 'text-5xl';
+
+  const decoSize =
+    size === 'sm' ? 'text-sm' : size === 'lg' ? 'text-2xl' : 'text-lg';
+  const hasDecorations = decorations && decorations.length > 0;
+  const hats = hasDecorations ? decorations.filter(d => d.category === 'hat') : [];
+  const accessories = hasDecorations ? decorations.filter(d => d.category === 'accessory') : [];
+  const tools = hasDecorations ? decorations.filter(d => d.category === 'tool') : [];
+  const outfits = hasDecorations ? decorations.filter(d => d.category === 'outfit') : [];
+
+  const characterElement = (
+    <div className="relative inline-block">
+      {/* 帽子装饰 */}
+      {hats.map(d => (
+        <motion.span
+          key={d.id}
+          className={`absolute -top-2 left-1/2 -translate-x-1/2 ${decoSize}`}
+          animate={{ y: [0, -2, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          {d.emoji}
+        </motion.span>
+      ))}
+      {/* 服装装饰（底部） */}
+      {outfits.map(d => (
+        <span key={d.id} className={`absolute -bottom-1 left-1/2 -translate-x-1/2 ${decoSize}`}>
+          {d.emoji}
+        </span>
+      ))}
+      {/* 基础角色 */}
+      <motion.span
+        className={`${sizeClass} cursor-default block`}
+        whileHover={{ scale: 1.15, rotate: [0, -5, 5, 0] }}
+        transition={{ duration: 0.3 }}
+      >
+        {m.emoji}
+      </motion.span>
+      {/* 工具/配件装饰（右侧） */}
+      {tools.map(d => (
+        <motion.span
+          key={d.id}
+          className={`absolute -right-1 top-1/2 -translate-y-1/2 ${decoSize}`}
+          animate={{ rotate: [0, -5, 5, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          {d.emoji}
+        </motion.span>
+      ))}
+      {/* 配件装饰（左侧） */}
+      {accessories.map(d => (
+        <motion.span
+          key={d.id}
+          className={`absolute -left-1 top-1/2 -translate-y-1/2 ${decoSize}`}
+          animate={{ rotate: [0, 5, -5, 0] }}
+          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          {d.emoji}
+        </motion.span>
+      ))}
+    </div>
+  );
 
   const messages = Array.isArray(message)
     ? message
@@ -81,13 +144,7 @@ export default function DetectiveMascot({
         animate={{ y: [0, -5, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <motion.div
-          className={`${sizeClass} cursor-default`}
-          whileHover={{ scale: 1.15, rotate: [0, -5, 5, 0] }}
-          transition={{ duration: 0.3 }}
-        >
-          {m.emoji}
-        </motion.div>
+        {characterElement}
       </motion.div>
     );
   }
@@ -140,13 +197,7 @@ export default function DetectiveMascot({
         )}
       </AnimatePresence>
 
-      <motion.div
-        className={`${sizeClass} cursor-default`}
-        whileHover={{ scale: 1.15, rotate: [0, -5, 5, 0] }}
-        transition={{ duration: 0.3 }}
-      >
-        {m.emoji}
-      </motion.div>
+      {characterElement}
     </motion.div>
   );
 }

@@ -1,7 +1,7 @@
 import { GameState, DEFAULT_GAME_STATE, TodayLesson, LessonStepType } from './types';
 import { normalizeLesson, normalizeStep, getDefaultPhasesForStepType } from './lessonPlanner';
 
-export const LEARNING_STATE_VERSION = 4;
+export const LEARNING_STATE_VERSION = 5;
 
 // ========== 扩展状态类型（带 version） ==========
 
@@ -33,8 +33,8 @@ export function migrateGameState(raw: unknown): VersionedState {
     version: LEARNING_STATE_VERSION,
   };
 
-  // v4 migration: 移除 olympiadEnabled
-  migrateParentSettingsV4(base, obj);
+  // v5 migration: 移除 easyMode
+  migrateParentSettingsV5(base);
 
   // 修复 parentSettings 缺失字段
   base.parentSettings = {
@@ -42,7 +42,7 @@ export function migrateGameState(raw: unknown): VersionedState {
     ...(base.parentSettings || {}),
   };
 
-  // 确保版本4新增字段存在
+  // 确保v5新增字段存在
   if (!Array.isArray(base.weeklySnapshots)) {
     base.weeklySnapshots = [];
   }
@@ -58,20 +58,13 @@ export function migrateGameState(raw: unknown): VersionedState {
   return base;
 }
 
-function migrateParentSettingsV4(base: VersionedState, obj: Record<string, unknown>): void {
-  const oldSettings = obj.parentSettings as Record<string, unknown> | undefined;
-
-  // 如果已有 easyMode，保留它
-  if (typeof base.parentSettings?.easyMode === 'boolean') {
-    return;
+function migrateParentSettingsV5(base: VersionedState): void {
+  // 移除旧版 easyMode 字段
+  if (base.parentSettings && 'easyMode' in base.parentSettings) {
+    const settings = base.parentSettings as Record<string, unknown>;
+    delete settings.easyMode;
+    base.parentSettings = settings as unknown as typeof base.parentSettings;
   }
-
-  // 从旧的 olympiadEnabled 迁移到 easyMode（取反不成立：奥数开 = easyMode关）
-  const olympiadEnabled = oldSettings?.olympiadEnabled;
-  base.parentSettings = {
-    ...base.parentSettings,
-    easyMode: false,
-  };
 }
 
 function ensureArrays(base: VersionedState): void {

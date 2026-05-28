@@ -279,7 +279,6 @@ export interface TomorrowLessonPreview {
 export interface ParentSettings {
   gradeBand: GradeBand;
   dailyGoal: number;
-  easyMode: boolean;
   maxDifficulty: number;
 }
 
@@ -297,7 +296,6 @@ export interface LearningProfile {
   streakDays: number;
   recentAccuracy: number;
   weakSkills: CognitiveSkill[];
-  easyMode: boolean;
   dailyQuestionCount: number;
   skillLevel: number;
 }
@@ -344,7 +342,6 @@ export const DEFAULT_GAME_STATE: GameState = {
   parentSettings: {
     gradeBand: 'G1',
     dailyGoal: 5,
-    easyMode: false,
     maxDifficulty: 2,
   },
   lastStreakCheckDate: '',
