@@ -22,6 +22,9 @@ import FeedbackOverlay from '@/components/FeedbackOverlay';
 import ProgressBar from '@/components/ProgressBar';
 import StarDisplay from '@/components/StarDisplay';
 import TomorrowPreviewCard from '@/components/TomorrowPreviewCard';
+import NumberLine from '@/components/NumberLine';
+import CountingBlocks from '@/components/CountingBlocks';
+import BalanceScale from '@/components/BalanceScale';
 
 const STEP_ORDER: LessonStepType[] = ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve', 'find_compare_numbers', 'spot_extra_info', 'spot_missing_info'];
 
@@ -406,6 +409,12 @@ function EquationAnswerPhase({ question, visual, onCorrect }: { question: Questi
   }
 
   if (answered) {
+    const showNumLine = question.operation === 'addition' || question.operation === 'subtraction';
+    const nA = question.numbers[0];
+    const nB = question.numbers[1] || 0;
+    const opT = question.operation === 'addition' ? 'add' : 'subtract' as const;
+    const res = typeof question.answer === 'number' ? question.answer : undefined;
+
     return (
       <AppCard variant="green">
         <div className="text-center py-4">
@@ -415,6 +424,18 @@ function EquationAnswerPhase({ question, visual, onCorrect }: { question: Questi
             {question.equation.replace('?', String(question.answer))}
           </div>
           <p className="text-sm text-gray-600 mt-2">{question.answerSentence}</p>
+          {showNumLine && res !== undefined && (
+            <div className="mt-4 pt-3 border-t border-green-200">
+              <NumberLine
+                range={opT === 'add'
+                  ? [Math.max(0, nA - 2), nA + nB + 2]
+                  : [Math.max(0, nA - nB - 2), nA + 2]}
+                operation={{ type: opT, from: nA, amount: nB }}
+                highlighted={[nA, res]}
+                compact
+              />
+            </div>
+          )}
         </div>
       </AppCard>
     );
@@ -703,9 +724,19 @@ function SimulationPhased({
 }: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
   const [animationShown, setAnimationShown] = useState(false);
   const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
+  const [showHandsOn, setShowHandsOn] = useState(false);
   const correctOp = question.operation === 'addition' ? 'add' : question.operation === 'subtraction' ? 'subtract' : null;
 
+  const numA = question.numbers[0];
+  const numB = question.numbers[1] || 0;
+  const opType = question.operation === 'addition' ? 'add' : question.operation === 'subtraction' ? 'subtract' : 'add';
+  const result = opType === 'add' ? numA + numB : numA - numB;
+  const numberLineRange: [number, number] = opType === 'add'
+    ? [Math.max(0, numA - 2), numA + numB + 2]
+    : [Math.max(0, numA - numB - 2), numA + 2];
+
   if (phase === 'read') {
+    // ... same as before
     return (
       <div className="space-y-4">
         <AppCard variant="blue">
@@ -738,15 +769,51 @@ function SimulationPhased({
             </AppButton>
           </div>
         ) : (
-          <AppCard variant="amber">
-            <AnimatedItems
-              visual={visual}
-              initialCount={question.numbers[0]}
-              changeCount={question.numbers[1] || 0}
-              operation={question.operation === 'addition' ? 'addition' : question.operation === 'subtraction' ? 'subtraction' : 'addition'}
-              showResult={false}
-            />
-          </AppCard>
+          <div className="space-y-4">
+            <AppCard variant="amber">
+              <AnimatedItems
+                visual={visual}
+                initialCount={numA}
+                changeCount={numB}
+                operation={opType === 'add' ? 'addition' : 'subtraction'}
+                showResult={false}
+              />
+            </AppCard>
+            {/* 数轴可视化 */}
+            <AppCard variant="blue">
+              <h4 className="text-sm font-bold text-blue-700 mb-2">📏 数轴上看变化</h4>
+              <NumberLine
+                range={numberLineRange}
+                operation={{ type: opType, from: numA, amount: numB }}
+                highlighted={[numA, result]}
+              />
+              <p className="text-xs text-gray-500 text-center mt-1">
+                {opType === 'add'
+                  ? `${numA} + ${numB} = ${result}，从${numA}向右跳${numB}格`
+                  : `${numA} - ${numB} = ${result}，从${numA}向左跳${numB}格`}
+              </p>
+            </AppCard>
+            {/* 动手试试 */}
+            <div className="text-center">
+              <button
+                onClick={() => setShowHandsOn(!showHandsOn)}
+                className="text-sm text-amber-600 font-bold hover:text-amber-800 underline"
+              >
+                {showHandsOn ? '收起' : '🖐️ 动手试试'} — 自己数一数{visual.itemName}
+              </button>
+            </div>
+            {showHandsOn && (
+              <AppCard variant="amber">
+                <CountingBlocks
+                  itemEmoji={visual.itemEmoji}
+                  itemName={visual.itemName}
+                  targetCount={result}
+                  maxBlocks={numA + numB + 3}
+                  mode={opType}
+                />
+              </AppCard>
+            )}
+          </div>
         )}
         <BottomActionBar>
           <AppButton variant="success" size="lg" fullWidth disabled={!animationShown} onClick={onPhaseAdvance}>
@@ -1115,6 +1182,8 @@ function CompareNumbersPhased({
   }
 
   if (phase === 'find_numbers' || phase === 'find_compare_numbers') {
+    const n1 = question.numbers[0];
+    const n2 = question.numbers[1] || 0;
     return (
       <div className="space-y-4">
         <AppCard variant="blue">
@@ -1129,6 +1198,20 @@ function CompareNumbersPhased({
             ))}
           </div>
         </AppCard>
+        {/* 天平可视化比较 */}
+        {question.numbers.length >= 2 && (
+          <AppCard variant="amber">
+            <h4 className="text-sm font-bold text-amber-700 mb-2 text-center">⚖️ 天平上看比较</h4>
+            <BalanceScale
+              leftCount={n1}
+              rightCount={n2}
+              leftEmoji={visual.itemEmoji}
+              rightEmoji={visual.itemEmoji}
+              leftLabel={`${n1} ${visual.itemName}`}
+              rightLabel={`${n2} ${visual.itemName}`}
+            />
+          </AppCard>
+        )}
         <BottomActionBar>
           <AppButton variant="success" size="lg" fullWidth onClick={onPhaseAdvance}>
             找到数字关系 ✓ 下一步 →
