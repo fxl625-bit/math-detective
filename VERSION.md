@@ -4,24 +4,37 @@
 |------|------|
 | **项目名称** | 文字侦探（Math Detective） |
 | **当前版本** | v2.4 |
-| **版本历史** | v1.0: 04-29 / v2.0: 04-30 / v2.1: 05-08 / v2.2: 05-08 / v2.3: 05-11 / v2.4: 05-28 |
+| **版本历史** | v1.0: 04-29 / v2.0: 04-30 / v2.1: 05-08 / v2.2: 05-08 / v2.3: 05-11 / v2.4: 05-29 |
 | **项目定位** | 小学低年级数学应用题阅读理解小游戏 |
 | **技术栈** | Next.js 16 (webpack) + React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + localStorage |
 | **部署方式** | Vercel（海外架构，大陆建议 VPN） |
 | **GitHub** | （本仓库） |
 | **Vercel** | https://math-detective.vercel.app |
-| **当前状态** | ✅ v2.4 封版，奥数默认开启 + G1思维题库 + 侦探换装 + 数轴/教具组件 |
+| **当前状态** | ✅ v2.4 封版，奥数默认开启 + 角色卡图片化 + 可视化教具集成 |
 
-## v2.4 升级 (2026-05-28)
+## v2.4 升级 (2026-05-28~29)
 
 | 模块 | 说明 |
 |------|------|
 | 移除 easyMode | 删除降低难度开关，奥数/思维题对所有年级默认开放；数据迁移 v4→v5 |
 | G1 思维题库 | 新建 18 道 G1 思维题（逻辑推理、数列规律、等量代换、年龄比较、天平推理等） |
 | G1 关卡扩展 | G1/G2 随机引入进阶关卡（find_compare_numbers、spot_extra_info、spot_missing_info） |
-| 侦探换装 | 10 件装饰品（帽子/配件/服装/工具），奖励中心新增换装 Tab，DetectiveMascot 支持装饰叠加渲染 |
-| 数轴组件 | 新建 NumberLine（SVG 弧线动画，加法绿色右跳/减法红色左跳） |
-| 互动教具 | 新建 CountingBlocks（拖拽计数积木）+ BalanceScale（SVG 天平倾斜动画） |
+| 侦探换装 | 10 件装饰品（帽子/配件/服装/工具），奖励中心新增换装 Tab |
+| 数轴组件 | NumberLine（SVG 弧线动画，加法绿色右跳/减法红色左跳），集成到 Simulation + Answer 阶段 |
+| 互动教具 | CountingBlocks（拖拽计数积木）+ BalanceScale（SVG 天平倾斜动画），集成到 Simulation + CompareNumbers |
+| 角色卡图片化 | DetectiveMascot 改用 next/image 渲染角色图（4 表情 + 8 收集卡），GPT Image 生成，emoji fallback |
+| 正确率修复 | 重做已完成题目时不再重复累计 correctCount，修复正确率超过 100% 的 bug |
+
+## v2.4 已知问题与教训
+
+详见 [MISTAKES.md](./MISTAKES.md)
+
+| # | 错误 | 教训 |
+|---|------|------|
+| 1 | 正确率 155% — `correctCount` 重复累计 | 任何需要计数的函数都要问：如果重复调用会怎样？ |
+| 2 | 删除源文件后无法恢复 — 分割完就 rm | 生成/转换类的源文件先 git commit 再清理 |
+| 3 | 等分网格切歪 — 假设 GPT 输出列宽均等 | 图片分割必须用边缘检测，不信任 AI 的排版对齐 |
+| 4 | Python 中文路径编码崩溃 | Windows + bash + Python 处理中文路径：用 os.listdir 通配匹配 |
 
 ## v2.3 修复 (2026-05-11)
 
