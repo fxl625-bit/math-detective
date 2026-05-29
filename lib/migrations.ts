@@ -52,6 +52,9 @@ export function migrateGameState(raw: unknown): VersionedState {
   if (!Array.isArray(base.decorations)) {
     base.decorations = [];
   }
+  if (!Array.isArray(base.collectibleCards)) {
+    base.collectibleCards = [];
+  }
 
   ensureArrays(base);
 
@@ -94,6 +97,9 @@ function ensureArrays(base: VersionedState): void {
   }
   if (!Array.isArray(base.decorations)) {
     base.decorations = [];
+  }
+  if (!Array.isArray(base.collectibleCards)) {
+    base.collectibleCards = [];
   }
   if (typeof base.skillLevel !== 'number' || base.skillLevel < 1) {
     base.skillLevel = 1;

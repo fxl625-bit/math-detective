@@ -259,6 +259,32 @@ export function checkDailyCheckin(state: GameState): { state: GameState; bonus: 
 
 // ========== 最近7天打卡状态 ==========
 
+// ========== 收集型角色卡 ==========
+
+const COLLECTIBLE_CONDITIONS: Array<{ id: string; check: (s: GameState) => boolean }> = [
+  { id: 'card-ocean', check: (s) => s.streak >= 30 },
+  { id: 'card-space', check: (s) => s.totalCompleted >= 200 },
+  { id: 'card-legend', check: (s) => s.level >= 6 },
+  { id: 'card-jungle', check: (s) => s.stars >= 100 },
+  { id: 'card-winter', check: (s) => s.streak >= 14 },
+  { id: 'card-ninja', check: (s) => s.correctCount >= 50 && s.wrongCount === 0 },
+  { id: 'card-chef', check: (s) => s.rewardRedemptions.length >= 10 },
+  { id: 'card-artist', check: (s) => s.completedQuestions.length >= 8 },
+];
+
+export function checkCollectibleCards(state: GameState): string[] {
+  const existing = new Set(state.collectibleCards || []);
+  const newlyUnlocked: string[] = [];
+  for (const card of COLLECTIBLE_CONDITIONS) {
+    if (!existing.has(card.id) && card.check(state)) {
+      newlyUnlocked.push(card.id);
+    }
+  }
+  return newlyUnlocked;
+}
+
+// ========== 7天打卡状态 ==========
+
 export function getWeekStreakStatus(state: GameState): boolean[] {
   const today = getDateString();
   const playedToday = state.lastPlayDate === today;

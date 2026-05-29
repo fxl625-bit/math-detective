@@ -2,9 +2,13 @@ import { Question, GradeBand, MathDomain, CognitiveSkill } from '@/lib/types';
 import { g1Questions } from './g1';
 import { g1ThinkingQuestions } from './g1-thinking';
 import { g2Questions } from './g2';
+import { g2OlympiadQuestions } from './g2-olympiad';
 import { g3Questions } from './g3';
+import { g3OlympiadQuestions } from './g3-olympiad';
 import { g4Questions } from './g4';
+import { g4OlympiadQuestions } from './g4-olympiad';
 import { g5Questions } from './g5';
+import { g5OlympiadQuestions } from './g5-olympiad';
 import { g6Questions } from './g6';
 import { olympiadIntroQuestions } from './olympiadIntro';
 import { g3MultiplicationQuestions } from './g3-multiplication';
@@ -17,9 +21,13 @@ export const allQuestions: Question[] = [
   ...g1Questions,
   ...g1ThinkingQuestions,
   ...g2Questions,
+  ...g2OlympiadQuestions,
   ...g3Questions,
+  ...g3OlympiadQuestions,
   ...g4Questions,
+  ...g4OlympiadQuestions,
   ...g5Questions,
+  ...g5OlympiadQuestions,
   ...g6Questions,
   ...g3MultiplicationQuestions,
   ...extraInfoQuestions,
@@ -31,10 +39,10 @@ export const allQuestions: Question[] = [
 
 export const questionsByGrade: Record<GradeBand, Question[]> = {
   'G1': [...g1Questions, ...g1ThinkingQuestions, ...olympiadIntroQuestions],
-  'G2': [...g2Questions, ...olympiadIntroQuestions],
-  'G3': [...g3Questions, ...g3MultiplicationQuestions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G3'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G3'), ...olympiadIntroQuestions],
-  'G4': [...g4Questions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G4'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G4'), ...olympiadIntroQuestions],
-  'G5': [...g5Questions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G5'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G5'), ...olympiadIntroQuestions],
+  'G2': [...g2Questions, ...g2OlympiadQuestions, ...olympiadIntroQuestions],
+  'G3': [...g3Questions, ...g3MultiplicationQuestions, ...g3OlympiadQuestions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G3'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G3'), ...olympiadIntroQuestions],
+  'G4': [...g4Questions, ...g4OlympiadQuestions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G4'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G4'), ...olympiadIntroQuestions],
+  'G5': [...g5Questions, ...g5OlympiadQuestions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G5'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G5'), ...olympiadIntroQuestions],
   'G6': [...g6Questions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G6'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G6'), ...olympiadIntroQuestions],
   'OlympiadIntro': olympiadIntroQuestions.map(q => ({ ...q, isExtendedThinking: true })),
 };

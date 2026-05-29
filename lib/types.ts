@@ -325,6 +325,7 @@ export interface GameState {
   weeklySnapshots: WeeklySnapshot[];
   skillLevel: number;
   decorations: string[];
+  collectibleCards: string[];
 }
 
 export const DEFAULT_GAME_STATE: GameState = {
@@ -354,4 +355,5 @@ export const DEFAULT_GAME_STATE: GameState = {
   weeklySnapshots: [],
   skillLevel: 1,
   decorations: [],
+  collectibleCards: [],
 };
