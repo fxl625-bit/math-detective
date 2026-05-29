@@ -154,25 +154,34 @@ export function completeQuestion(
   correct: boolean
 ): GameState {
   const alreadyDone = state.completedQuestions.includes(questionId);
+
+  // 重复做题不重复计分（避免正确率 > 100% 等统计异常）
+  if (alreadyDone) {
+    return {
+      ...state,
+      completedQuestions: state.completedQuestions,
+      completedToday: state.completedToday,
+      totalCompleted: state.totalCompleted,
+      correctCount: state.correctCount,
+      stars: state.stars,
+    };
+  }
+
   const newStars = correct ? getStarReward(state.level) : 0;
 
-  // Update skill level based on performance
   let newSkillLevel = state.skillLevel || 1;
   if (correct && state.correctCount % 5 === 0 && newSkillLevel < 10) {
     newSkillLevel += 1;
   }
 
-  // Record weekly snapshot
   let newSnapshots = state.weeklySnapshots || [];
   newSnapshots = recordWeeklySnapshot(newSnapshots, state, correct);
 
   return {
     ...state,
-    completedQuestions: alreadyDone
-      ? state.completedQuestions
-      : [...state.completedQuestions, questionId],
-    completedToday: alreadyDone ? state.completedToday : state.completedToday + 1,
-    totalCompleted: alreadyDone ? state.totalCompleted : state.totalCompleted + 1,
+    completedQuestions: [...state.completedQuestions, questionId],
+    completedToday: state.completedToday + 1,
+    totalCompleted: state.totalCompleted + 1,
     correctCount: correct ? state.correctCount + 1 : state.correctCount,
     stars: state.stars + newStars,
     skillLevel: newSkillLevel,
