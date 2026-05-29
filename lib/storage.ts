@@ -243,3 +243,32 @@ export function getStreakMood(streak: number): string {
   if (streak >= 3) return '💪 侦探在成长中！';
   return '🕵️ 新的一天，新的案件！';
 }
+
+// ========== 每日签到 ==========
+
+export function checkDailyCheckin(state: GameState): { state: GameState; bonus: number } | null {
+  const today = getDateString();
+  if (state.lastCheckinDate === today) return null; // 今天已签到
+
+  const bonus = Math.floor(Math.random() * 5) + 1; // 1-5 颗随机星星
+  return {
+    state: { ...state, stars: state.stars + bonus, lastCheckinDate: today },
+    bonus,
+  };
+}
+
+// ========== 最近7天打卡状态 ==========
+
+export function getWeekStreakStatus(state: GameState): boolean[] {
+  const today = getDateString();
+  const playedToday = state.lastPlayDate === today;
+  const result: boolean[] = [];
+  for (let i = 6; i >= 0; i--) {
+    if (i === 0) {
+      result.push(playedToday);
+    } else {
+      result.push(playedToday && state.streak > i);
+    }
+  }
+  return result;
+}

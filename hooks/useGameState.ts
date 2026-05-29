@@ -13,6 +13,7 @@ import {
   addMistake,
   retryMistakeCorrect,
   completeQuestion,
+  checkDailyCheckin,
 } from '@/lib/storage';
 
 let globalState: GameState | null = null;
@@ -285,6 +286,17 @@ export function useGameState() {
     });
   }, []);
 
+  const doCheckin = useCallback((): number | null => {
+    let bonus: number | null = null;
+    update((s) => {
+      const result = checkDailyCheckin(s);
+      if (!result) return s;
+      bonus = result.bonus;
+      return result.state;
+    });
+    return bonus;
+  }, []);
+
   return {
     state,
     completeQuestion: handleCompleteQuestion,
@@ -304,6 +316,7 @@ export function useGameState() {
     resetAllState,
     restoreDefaultParentRewards,
     toggleDecoration,
+    doCheckin,
     getState,
     refresh,
   };

@@ -306,6 +306,7 @@ export interface GameState {
   stars: number;
   streak: number;
   lastPlayDate: string;
+  lastCheckinDate: string;
   completedToday: number;
   totalCompleted: number;
   correctCount: number;
@@ -330,6 +331,7 @@ export const DEFAULT_GAME_STATE: GameState = {
   stars: 0,
   streak: 0,
   lastPlayDate: '',
+  lastCheckinDate: '',
   completedToday: 0,
   totalCompleted: 0,
   correctCount: 0,
