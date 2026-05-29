@@ -155,15 +155,19 @@ export function completeQuestion(
 ): GameState {
   const alreadyDone = state.completedQuestions.includes(questionId);
 
+  // 记录复习日期（新题和复习都记录）
+  const today = getDateString();
+  const reviewDates = { ...(state.questionReviewDates || {}) };
+  const reviewCounts = { ...(state.questionReviewCounts || {}) };
+  reviewDates[questionId] = today;
+  reviewCounts[questionId] = (reviewCounts[questionId] || 0) + 1;
+
   // 重复做题不重复计分（避免正确率 > 100% 等统计异常）
   if (alreadyDone) {
     return {
       ...state,
-      completedQuestions: state.completedQuestions,
-      completedToday: state.completedToday,
-      totalCompleted: state.totalCompleted,
-      correctCount: state.correctCount,
-      stars: state.stars,
+      questionReviewDates: reviewDates,
+      questionReviewCounts: reviewCounts,
     };
   }
 
@@ -186,6 +190,8 @@ export function completeQuestion(
     stars: state.stars + newStars,
     skillLevel: newSkillLevel,
     weeklySnapshots: newSnapshots,
+    questionReviewDates: reviewDates,
+    questionReviewCounts: reviewCounts,
   };
 }
 

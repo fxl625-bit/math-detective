@@ -55,6 +55,12 @@ export function migrateGameState(raw: unknown): VersionedState {
   if (!Array.isArray(base.collectibleCards)) {
     base.collectibleCards = [];
   }
+  if (!base.questionReviewDates || typeof base.questionReviewDates !== 'object') {
+    base.questionReviewDates = {};
+  }
+  if (!base.questionReviewCounts || typeof base.questionReviewCounts !== 'object') {
+    base.questionReviewCounts = {};
+  }
 
   ensureArrays(base);
 
@@ -100,6 +106,12 @@ function ensureArrays(base: VersionedState): void {
   }
   if (!Array.isArray(base.collectibleCards)) {
     base.collectibleCards = [];
+  }
+  if (!base.questionReviewDates || typeof base.questionReviewDates !== 'object') {
+    base.questionReviewDates = {};
+  }
+  if (!base.questionReviewCounts || typeof base.questionReviewCounts !== 'object') {
+    base.questionReviewCounts = {};
   }
   if (typeof base.skillLevel !== 'number' || base.skillLevel < 1) {
     base.skillLevel = 1;

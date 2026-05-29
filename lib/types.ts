@@ -326,6 +326,8 @@ export interface GameState {
   skillLevel: number;
   decorations: string[];
   collectibleCards: string[];
+  questionReviewDates: Record<string, string>;
+  questionReviewCounts: Record<string, number>;
 }
 
 export const DEFAULT_GAME_STATE: GameState = {
@@ -356,4 +358,6 @@ export const DEFAULT_GAME_STATE: GameState = {
   skillLevel: 1,
   decorations: [],
   collectibleCards: [],
+  questionReviewDates: {},
+  questionReviewCounts: {},
 };

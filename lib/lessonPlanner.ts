@@ -349,6 +349,50 @@ export function selectQuestionForStep(params: {
   return result;
 }
 
+// ========== 间隔复习（艾宾浩斯记忆曲线） ==========
+
+const REVIEW_INTERVALS = [1, 3, 7, 14, 30]; // 第n次复习后的间隔天数
+
+function getReviewInterval(count: number): number | null {
+  // count=1 是首次完成，1天后复习；count=6 后视为掌握，不再强制复习
+  if (count < 1) return null;
+  const idx = count - 1;
+  if (idx >= REVIEW_INTERVALS.length) return null; // 已掌握
+  return REVIEW_INTERVALS[idx];
+}
+
+function isDueForReview(questionId: string, state: {
+  questionReviewDates: Record<string, string>;
+  questionReviewCounts: Record<string, number>;
+}): boolean {
+  const count = state.questionReviewCounts[questionId] || 0;
+  const interval = getReviewInterval(count);
+  if (interval === null) return false;
+
+  const lastDate = state.questionReviewDates[questionId];
+  if (!lastDate) return false;
+
+  const lastTime = new Date(lastDate).getTime();
+  const dueTime = lastTime + interval * 86400000;
+  return Date.now() >= dueTime;
+}
+
+function getDueReviewQuestions(
+  profile: LearningProfile,
+  state: { questionReviewDates: Record<string, string>; questionReviewCounts: Record<string, number> },
+  excludeIds: string[],
+): Question[] {
+  const excludeSet = new Set(excludeIds);
+  const maxDifficulty = getEffectiveMaxDifficulty(profile);
+  const pool = questionsByGrade[profile.gradeBand] || allQuestions;
+
+  return pool.filter(q =>
+    !excludeSet.has(q.id) &&
+    isDueForReview(q.id, state) &&
+    q.difficulty <= Math.min(5, maxDifficulty + 1)
+  );
+}
+
 // ========== 每日课程构建 ==========
 
 function buildDailyLesson(
@@ -370,10 +414,40 @@ function buildDailyLesson(
     saveRecentStoryId(caseStory.id);
   }
 
+  // 加载完整状态以获取复习数据
+  const fullState = loadState();
+  const dueReviews = getDueReviewQuestions(profile, fullState, []);
+  // 每天 2 道复习题（如果有足够的待复习题）
+  const reviewSlots = Math.min(2, dueReviews.length);
+  const newSlots = stepTypes.length - reviewSlots;
+
   const usedQuestionIds: string[] = [];
   const steps: LessonStep[] = [];
 
-  for (let i = 0; i < stepTypes.length; i++) {
+  // 先放复习题到前几个关卡（基础关卡优先复习）
+  for (let i = 0; i < reviewSlots && i < stepTypes.length; i++) {
+    const reviewQ = dueReviews[i];
+    if (!reviewQ) break;
+
+    const st = stepTypes[i];
+    usedQuestionIds.push(reviewQ.id);
+    const phases = [...getDefaultPhasesForStepType(st)];
+
+    steps.push({
+      id: `${today}_review_${i}_${reviewQ.id}`,
+      type: st,
+      title: STEP_TITLES[st],
+      description: STEP_DESCRIPTIONS[st],
+      questionId: reviewQ.id,
+      phases,
+      currentPhaseIndex: 0,
+      status: i === 0 ? 'current' : 'locked',
+      requiresAnswer: true,
+    });
+  }
+
+  // 剩余关卡用新题
+  for (let i = steps.length; i < stepTypes.length; i++) {
     const st = stepTypes[i];
     const question = selectQuestionForStep({
       stepType: st,
