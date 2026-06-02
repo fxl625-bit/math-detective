@@ -459,25 +459,41 @@ function getDisplayEquation(question: Question): string {
 // ========== Shared: Clue Summary ==========
 
 function ClueSummary({ question }: { question: Question }) {
-  const hasAge = question.text.includes('年龄') || question.text.includes('岁') || question.text.includes('爸爸') || question.text.includes('妈妈');
+  const hasAge = question.text.includes('岁') || question.text.includes('年龄');
   const hasBei = question.keywords.some(k => k.word === '倍');
+  const hasInterval = question.text.includes('每隔') || question.text.includes('植树') || question.text.includes('种一棵');
+  const hasCircle = question.text.includes('圆形') || question.text.includes('一圈') || question.text.includes('池塘周');
+  const hasShare = question.text.includes('平均分') || question.text.includes('每人') || question.text.includes('每份');
+  const hasCompare = question.text.includes('比') && question.text.includes('多') || question.text.includes('相差');
+  const isMultiStep = question.operation === 'mixed';
 
-  const opLabel: Record<string, string> = {
-    addition: '变多了（加法）',
-    subtraction: '变少了（减法）',
-    multiplication: '变多了（乘法）',
-    division: '平均分（除法）',
-    comparison: '比多少（用减法求差）',
-    mixed: hasAge ? '年龄差不变，一年一年试' : hasBei ? '几份一样多合起来' : '多步计算，分步来想',
-    logic: '逻辑推理',
-  };
-
-  // 对"倍"生成低年级友好解释
-  const beiHint = hasBei
-    ? question.numbers.filter(n => n !== 0).length >= 2
-      ? `${question.numbers[0]}的${question.numbers[1]}倍 = ${question.numbers[0]} + ${question.numbers[0]}（${question.numbers[1]}个${question.numbers[0]}合起来）`
-      : '"倍"就是几份一样多，可以先看成重复相加'
-    : null;
+  // 数量关系——用孩子能懂的语言
+  let opDesc = '';
+  if (hasAge) {
+    opDesc = '爸爸和孩子每年都长大1岁，年龄差永远不变。可以一年一年试！';
+  } else if (hasCircle && hasInterval) {
+    opDesc = '沿着圆圈走一圈，每走一段就到一个种树位置。因为是圆圈，最后一段会接回起点，所以有几段就有几棵树。';
+  } else if (hasInterval) {
+    opDesc = '先看总长，再看每段多长。有几段就有几个位置。注意两端要不要多算。';
+  } else if (hasBei) {
+    opDesc = `"倍"可以看成几份一样多。比如3的2倍 = 3 + 3（2个3合起来）。`;
+  } else if (hasShare) {
+    opDesc = '"平均分"就是每份一样多。把总数分成几份，每份是多少。';
+  } else if (hasCompare) {
+    opDesc = '要比较两个数量：谁多？谁少？多几个？用减法求相差。';
+  } else if (isMultiStep) {
+    opDesc = '这道题要分几步来想：先做什么，再做什么，最后算什么。一步一步来！';
+  } else {
+    const map: Record<string, string> = {
+      addition: '数量合起来——变多了，用加法。',
+      subtraction: '数量减少——变少了，用减法。',
+      multiplication: '几个一样多合起来——每份一样多，有几份。',
+      division: '把总数分成一样多的几份——这就是除法。',
+      comparison: '比一比：谁多？谁少？差多少？',
+      logic: '这道题要用推理来想，不是直接算。',
+    };
+    opDesc = map[question.operation] || '仔细读题，理解题目意思。';
+  }
 
   return (
     <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200 space-y-2">
@@ -520,16 +536,9 @@ function ClueSummary({ question }: { question: Question }) {
       )}
       {/* 运算关系 */}
       <div className="text-sm">
-        <span className="font-bold text-blue-600">🧮 数量关系：</span>
-        <span className="text-gray-700">{opLabel[question.operation] || '分析中...'}</span>
+        <span className="font-bold text-blue-600">🧮 怎么想：</span>
+        <span className="text-gray-700">{opDesc}</span>
       </div>
-      {/* "倍"的低年级友好解释 */}
-      {beiHint && (
-        <div className="text-sm bg-amber-50 rounded-lg p-2 border border-amber-200">
-          <span className="font-bold text-amber-700">💡 关于"倍"：</span>
-          <span className="text-amber-800">{beiHint}</span>
-        </div>
-      )}
       {/* 提示 */}
       {question.hints.length > 0 && (
         <details className="text-sm">
