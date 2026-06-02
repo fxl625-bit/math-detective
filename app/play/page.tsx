@@ -629,12 +629,31 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
         </button>
       )}
 
+      {/* 分步推导（所有题都展示） */}
+      {question.solutionSteps.length > 0 && (
+        <AppCard variant="blue">
+          <h4 className="text-sm font-extrabold text-blue-700 mb-3 flex items-center gap-1">
+            📝 一步一步想
+          </h4>
+          <div className="space-y-2">
+            {question.solutionSteps.map((step, i) => (
+              <div key={i} className="flex items-start gap-2 text-sm">
+                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center text-xs font-bold mt-0.5">
+                  {i + 1}
+                </span>
+                <span className="text-gray-700">{step}</span>
+              </div>
+            ))}
+          </div>
+        </AppCard>
+      )}
+
       <AppCard variant="amber">
         <div className="text-center">
           <Calculator size={32} className="mx-auto mb-2 text-amber-600" />
           <h3 className="font-extrabold text-amber-800 text-lg mb-2">🧮 列算式，算答案！</h3>
           <p className="text-sm text-gray-600 mb-3">
-            根据线索，一步一步算出答案
+            根据上面的步骤，写出算式并算出答案
           </p>
           <div className="text-lg font-extrabold text-gray-700 mb-4 p-3 bg-amber-50 rounded-xl whitespace-pre-line">
             {getDisplayEquation(question)}
