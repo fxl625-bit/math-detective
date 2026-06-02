@@ -61,6 +61,13 @@ export function migrateGameState(raw: unknown): VersionedState {
   if (!base.questionReviewCounts || typeof base.questionReviewCounts !== 'object') {
     base.questionReviewCounts = {};
   }
+  if (typeof base.answerAttempts !== 'number' || base.answerAttempts < 0) {
+    base.answerAttempts = Math.max(
+      Number(base.correctCount ?? 0),
+      Number(base.wrongCount ?? 0),
+      Number(base.totalCompleted ?? 0)
+    );
+  }
 
   ensureArrays(base);
 
@@ -112,6 +119,13 @@ function ensureArrays(base: VersionedState): void {
   }
   if (!base.questionReviewCounts || typeof base.questionReviewCounts !== 'object') {
     base.questionReviewCounts = {};
+  }
+  if (typeof base.answerAttempts !== 'number' || base.answerAttempts < 0) {
+    base.answerAttempts = Math.max(
+      Number(base.correctCount ?? 0),
+      Number(base.wrongCount ?? 0),
+      Number(base.totalCompleted ?? 0)
+    );
   }
   if (typeof base.skillLevel !== 'number' || base.skillLevel < 1) {
     base.skillLevel = 1;

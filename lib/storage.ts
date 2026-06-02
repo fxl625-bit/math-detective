@@ -162,19 +162,33 @@ export function completeQuestion(
   reviewDates[questionId] = today;
   reviewCounts[questionId] = (reviewCounts[questionId] || 0) + 1;
 
-  // 重复做题不重复计分（避免正确率 > 100% 等统计异常）
-  if (alreadyDone) {
+  // 每次提交答案都计入 answerAttempts
+  const newAttempts = (state.answerAttempts || 0) + 1;
+
+  // 答错：只记录 attempt 和复习日期，不改变 totalCompleted 和 correctCount
+  if (!correct) {
     return {
       ...state,
+      answerAttempts: newAttempts,
       questionReviewDates: reviewDates,
       questionReviewCounts: reviewCounts,
     };
   }
 
-  const newStars = correct ? getStarReward(state.level) : 0;
+  // 答对：如果是重复做题，不重复计分
+  if (alreadyDone) {
+    return {
+      ...state,
+      answerAttempts: newAttempts,
+      questionReviewDates: reviewDates,
+      questionReviewCounts: reviewCounts,
+    };
+  }
+
+  const newStars = getStarReward(state.level);
 
   let newSkillLevel = state.skillLevel || 1;
-  if (correct && state.correctCount % 5 === 0 && newSkillLevel < 10) {
+  if (state.correctCount % 5 === 0 && newSkillLevel < 10) {
     newSkillLevel += 1;
   }
 
@@ -186,7 +200,8 @@ export function completeQuestion(
     completedQuestions: [...state.completedQuestions, questionId],
     completedToday: state.completedToday + 1,
     totalCompleted: state.totalCompleted + 1,
-    correctCount: correct ? state.correctCount + 1 : state.correctCount,
+    correctCount: state.correctCount + 1,
+    answerAttempts: newAttempts,
     stars: state.stars + newStars,
     skillLevel: newSkillLevel,
     weeklySnapshots: newSnapshots,
@@ -287,6 +302,30 @@ export function checkCollectibleCards(state: GameState): string[] {
     }
   }
   return newlyUnlocked;
+}
+
+// ========== 正确率计算 ==========
+
+export function calculateAccuracy(state: { correctCount: number; answerAttempts: number }): number {
+  const attempts = Math.max(0, Number(state.answerAttempts ?? 0));
+  const correct = Math.max(0, Number(state.correctCount ?? 0));
+  if (attempts <= 0) return 0;
+  const safeCorrect = Math.min(correct, attempts);
+  return Math.round((safeCorrect / attempts) * 100);
+}
+
+export function normalizeStats(state: GameState): GameState {
+  const answerAttempts = Math.max(
+    Number(state.answerAttempts ?? 0),
+    Number(state.correctCount ?? 0),
+    Number(state.wrongCount ?? 0)
+  );
+  const safeAttempts = Math.max(answerAttempts, Number(state.correctCount ?? 0));
+  return { ...state, answerAttempts: safeAttempts };
+}
+
+export function formatAccuracy(accuracy: number): string {
+  return `${Math.max(0, Math.min(100, Math.round(accuracy)))}%`;
 }
 
 // ========== 7天打卡状态 ==========

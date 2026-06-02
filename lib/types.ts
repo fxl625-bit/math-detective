@@ -311,6 +311,7 @@ export interface GameState {
   totalCompleted: number;
   correctCount: number;
   wrongCount: number;
+  answerAttempts: number;
   level: number;
   badges: string[];
   completedQuestions: string[];
@@ -339,6 +340,7 @@ export const DEFAULT_GAME_STATE: GameState = {
   totalCompleted: 0,
   correctCount: 0,
   wrongCount: 0,
+  answerAttempts: 0,
   level: 1,
   badges: [],
   completedQuestions: [],

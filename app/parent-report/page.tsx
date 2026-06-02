@@ -52,8 +52,8 @@ export default function ParentReportPage() {
   if (!mounted) return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl mb-4 animate-bounce-gentle">📊</div><p className="text-green-600 font-bold">正在加载报告...</p></div></div>;
 
   const levelInfo = getLevelInfo(state.level);
-  const total = state.totalCompleted;
-  const correctRate = total > 0 ? Math.round((state.correctCount / total) * 100) : 0;
+  const attempts = state.answerAttempts || 0;
+  const correctRate = attempts > 0 ? Math.round((state.correctCount / attempts) * 100) : 0;
 
   // Error type analysis
   const errorTypes = state.mistakes.reduce<Record<string, number>>((acc, m) => {
@@ -64,31 +64,29 @@ export default function ParentReportPage() {
   // Skill-based error tracking
   const skillMistakes = state.skillMistakes || {};
 
-  // Last 7 days accuracy (from mistakes)
+  // Last 7 days accuracy: based on mistakes count vs total attempts
   const recentMistakes = state.mistakes.filter(m => {
     const d = new Date(m.date);
     const weekAgo = new Date(Date.now() - 7 * 86400000);
     return d >= weekAgo;
   });
-  const recentTotal = recentMistakes.length + Math.min(state.correctCount, state.totalCompleted);
-  const recentAccuracy = recentTotal > 0
-    ? Math.round(((recentTotal - recentMistakes.length) / recentTotal) * 100)
-    : 100;
+  const recentCorrect = Math.max(0, state.correctCount - 0); // Use global accuracy as fallback
+  const recentAccuracyRate = attempts > 0 ? Math.round((state.correctCount / attempts) * 100) : 0;
 
   // Suggestions
   const suggestions: string[] = [];
-  if (correctRate < 60 && total >= 5) suggestions.push('建议从基础关卡重新巩固，降低难度后再逐步提升。');
+  if (correctRate < 60 && state.totalCompleted >= 5) suggestions.push('建议从基础关卡重新巩固，降低难度后再逐步提升。');
   if (errorTypes['动作词识别错误'] && errorTypes['动作词识别错误'] > 2) suggestions.push('孩子在"加减法关键词"识别上需要加强，可以多做"找动作词"关卡。');
   if (errorTypes['干扰信息判断错误'] && errorTypes['干扰信息判断错误'] > 1) suggestions.push('孩子容易被题目的无关信息干扰，建议多练习"擦掉废话"关卡。');
-  if (state.streak < 3 && total >= 5) suggestions.push('建议鼓励孩子每天坚持完成关卡任务，养成习惯比数量更重要。');
+  if (state.streak < 3 && state.totalCompleted >= 5) suggestions.push('建议鼓励孩子每天坚持完成关卡任务，养成习惯比数量更重要。');
   if (Object.keys(skillMistakes).length > 0) {
     const topWeak = Object.entries(skillMistakes).sort((a, b) => b[1] - a[1])[0];
     if (topWeak && topWeak[1] >= 3) {
       suggestions.push(`弱项技能"${SKILL_LABELS[topWeak[0] as CognitiveSkill] || topWeak[0]}"需重点练习，已累计${topWeak[1]}次错误。`);
     }
   }
-  if (suggestions.length === 0 && total >= 5) suggestions.push('孩子表现不错！继续保持每天练习的习惯。');
-  if (total < 5) suggestions.push('刚开始使用，数据积累中。坚持一周后查看详细分析。');
+  if (suggestions.length === 0 && state.totalCompleted >= 5) suggestions.push('孩子表现不错！继续保持每天练习的习惯。');
+  if (state.totalCompleted < 5) suggestions.push('刚开始使用，数据积累中。坚持一周后查看详细分析。');
 
   function handleSaveSettings() {
     setParentSettings({
@@ -179,7 +177,7 @@ export default function ParentReportPage() {
             <div className="text-xs text-gray-500">总体正确率</div>
           </div>
           <div className="text-center p-3 bg-blue-50 rounded-xl">
-            <div className="text-3xl font-extrabold text-blue-600">{recentAccuracy}%</div>
+            <div className="text-3xl font-extrabold text-blue-600">{recentAccuracyRate}%</div>
             <div className="text-xs text-gray-500">7日正确率</div>
           </div>
         </div>
@@ -195,9 +193,10 @@ export default function ParentReportPage() {
           <TrendingUp size={20} className="text-blue-600" />整体数据
         </h2>
         <div className="space-y-3">
-          <Row label="累计完成关数" value={`${total} 关`} />
+          <Row label="累计完成关数" value={`${state.totalCompleted} 关`} />
           <Row label="正确 / 错误" value={<span><span className="text-green-600">{state.correctCount}</span> / <span className="text-red-400">{state.wrongCount}</span></span>} />
           <Row label="连续打卡" value={<StreakDisplay streak={state.streak} size="sm" />} />
+          <Row label="提交次数" value={`${state.answerAttempts || 0} 次`} />
           <Row label="侦探等级" value={<LevelBadge level={state.level} name={levelInfo.name} icon={levelInfo.icon} size="sm" />} />
           <Row label="拥有星星" value={<StarDisplay count={state.stars} size="sm" />} />
           <Row label="获得徽章" value={<span className="font-extrabold text-purple-600">{state.badges.length} 枚</span>} />
@@ -229,7 +228,7 @@ export default function ParentReportPage() {
         <h2 className="font-extrabold text-gray-800 flex items-center gap-2 mb-4">
           <Brain size={20} className="text-purple-500" />技能分布图
         </h2>
-        <SkillRadarChart skillMistakes={skillMistakes} totalCompleted={total} />
+        <SkillRadarChart skillMistakes={skillMistakes} totalCompleted={state.totalCompleted} />
         <p className="text-xs text-gray-400 text-center mt-2">越靠近中心表示该技能越弱（错误次数越多）</p>
       </AppCard>
 

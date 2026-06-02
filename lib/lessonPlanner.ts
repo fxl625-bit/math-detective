@@ -221,8 +221,8 @@ function getDateStr(): string {
  */
 export function getLearningProfile(): LearningProfile {
   const state = loadState();
-  const total = state.correctCount + state.wrongCount;
-  const recentAccuracy = total > 0 ? Math.round((state.correctCount / total) * 100) : 100;
+  const attempts = state.answerAttempts || 0;
+  const recentAccuracy = attempts > 0 ? Math.round((state.correctCount / attempts) * 100) : 100;
 
   const skillMistakes = state.skillMistakes || {};
   const weakSkills: CognitiveSkill[] = [];

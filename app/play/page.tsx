@@ -94,6 +94,19 @@ export default function PlayPage() {
     }
   }, [lesson, currentStep]);
 
+  // Record wrong answer (答错记录到错题本和统计)
+  const handleWrongAnswer = useCallback((input: string) => {
+    if (!question) return;
+    completeQuestion(question.id, false, {
+      questionId: question.id,
+      questionText: question.text,
+      myAnswer: input,
+      correctAnswer: question.answer,
+      errorType: 'answer_wrong',
+      retriedCorrect: false,
+    });
+  }, [question, completeQuestion]);
+
   // Step completion (called from explain phase "完成本关" button)
   const handleStepComplete = useCallback((correct: boolean) => {
     if (!lesson || !currentStep || !question) return;
@@ -169,8 +182,8 @@ export default function PlayPage() {
   if (lesson.completed) {
     const profile = getLearningProfile();
     const tomorrowPreview = getTomorrowLessonPreview(profile, state);
-    const totalQuestions = state.correctCount + state.wrongCount;
-    const todayAccuracy = totalQuestions > 0 ? Math.round((state.correctCount / totalQuestions) * 100) : 100;
+    const attempts = state.answerAttempts || 0;
+    const todayAccuracy = attempts > 0 ? Math.round((state.correctCount / attempts) * 100) : 0;
     const starsEarned = state.level >= 5 ? 15 : state.level >= 3 ? 10 : 5;
     const completeCaseStory = getCaseStoryForLesson(lesson);
 
@@ -349,6 +362,7 @@ export default function PlayPage() {
           onPhaseAdvance={handlePhaseAdvance}
           onStepComplete={handleStepComplete}
           onPhaseBack={handlePhaseBack}
+          onWrongAnswer={handleWrongAnswer}
         />
       </AnimatePresence>
 
@@ -367,7 +381,7 @@ export default function PlayPage() {
 
 function PhaseAwareStep({
   step, phase, question, visual,
-  onPhaseAdvance, onStepComplete, onPhaseBack,
+  onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
 }: {
   step: LessonStep;
   phase: StepPhase | null;
@@ -376,26 +390,27 @@ function PhaseAwareStep({
   onPhaseAdvance: () => void;
   onStepComplete: (correct: boolean) => void;
   onPhaseBack: () => void;
+  onWrongAnswer: (input: string) => void;
 }) {
   if (!phase) return null;
 
   switch (step.type) {
     case 'find_numbers':
-      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
+      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
     case 'find_action_words':
-      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
+      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
     case 'simulation':
-      return <SimulationPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
+      return <SimulationPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
     case 'remove_noise':
-      return <RemoveNoisePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
+      return <RemoveNoisePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
     case 'full_solve':
-      return <FullSolvePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
+      return <FullSolvePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
     case 'find_compare_numbers':
-      return <CompareNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
+      return <CompareNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
     case 'spot_extra_info':
-      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
+      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
     case 'spot_missing_info':
-      return <SpotMissingInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
+      return <SpotMissingInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
     default:
       return null;
   }
@@ -471,15 +486,17 @@ function ClueSummary({ question }: { question: Question }) {
 
 // ========== Shared: Equation + Answer Phase ==========
 
-function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack }: {
+function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrongAnswer }: {
   question: Question;
   visual: ReturnType<typeof getVisual>;
   onCorrect: () => void;
   onPhaseBack?: () => void;
+  onWrongAnswer: (input: string) => void;
 }) {
   const [userAnswer, setUserAnswer] = useState('');
   const [shakeInput, setShakeInput] = useState(false);
   const [answered, setAnswered] = useState(false);
+  const [wrongFeedback, setWrongFeedback] = useState<string | null>(null);
   const [showClues, setShowClues] = useState(true);
 
   function handleSubmit() {
@@ -491,10 +508,17 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack }: {
 
     if (isCorrect) {
       setAnswered(true);
+      setWrongFeedback(null);
       onCorrect();
     } else {
       setShakeInput(true);
       setTimeout(() => setShakeInput(false), 500);
+      onWrongAnswer(input);
+      // 温和反馈
+      const op = question.operation;
+      if (op === 'addition') setWrongFeedback('还差一点！这里数量变多了，用的是加法，再算算看～');
+      else if (op === 'subtraction') setWrongFeedback('还差一点！这里数量变少了，用的是减法，再想想～');
+      else setWrongFeedback('还差一点，我们再看一眼线索，重新算一遍～');
     }
   }
 
@@ -573,6 +597,15 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack }: {
         </div>
       </AppCard>
 
+      {/* 错误反馈 */}
+      {wrongFeedback && (
+        <AppCard variant="amber">
+          <div className="text-center text-sm">
+            <span className="text-amber-700">💡 {wrongFeedback}</span>
+          </div>
+        </AppCard>
+      )}
+
       <div className="flex items-center gap-2">
         {onPhaseBack && (
           <AppButton variant="secondary" size="md" onClick={onPhaseBack}>
@@ -593,8 +626,8 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack }: {
 // Phases: read → find_numbers → [equation+answer] → completed
 
 function FindNumbersPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [found, setFound] = useState<Set<number>>(new Set());
   const allFound = found.size === question.numbers.length;
@@ -683,15 +716,15 @@ function FindNumbersPhased({
   }
 
   // phases after find_numbers → equation + answer
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
 }
 
 // ========== Step 2: Find Action Words (Phased) ==========
 // Phases: read → find_keywords → choose_operation → [equation+answer] → completed
 
 function FindActionWordsPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [found, setFound] = useState<Set<number>>(new Set());
   const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
@@ -823,15 +856,15 @@ function FindActionWordsPhased({
   }
 
   // Final phase: equation + answer
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
 }
 
 // ========== Step 3: Simulation (Phased) ==========
 // Phases: read → simulation → choose_operation → answer → completed
 
 function SimulationPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [animationShown, setAnimationShown] = useState(false);
   const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
@@ -980,15 +1013,15 @@ function SimulationPhased({
   }
 
   // answer phase
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
 }
 
 // ========== Step 4: Remove Noise (Phased) ==========
 // Phases: read → remove_noise → build_equation → answer → completed
 
 function RemoveNoisePhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [erased, setErased] = useState<Set<number>>(new Set());
   const [noiseDone, setNoiseDone] = useState(false);
@@ -1093,15 +1126,15 @@ function RemoveNoisePhased({
   }
 
   // Final phases: build_equation → answer
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
 }
 
 // ========== Step 5: Full Solve (Phased) ==========
 // Phases: read → find_numbers → find_keywords → choose_operation → build_equation → answer → explain → completed
 
 function FullSolvePhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
 
@@ -1239,7 +1272,7 @@ function FullSolvePhased({
   }
 
   if (phase === 'answer') {
-    return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
+    return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
   }
 
   // explain phase
@@ -1272,8 +1305,8 @@ function FullSolvePhased({
 // ========== Step 6: Find Compare Numbers (Phased) ==========
 
 function CompareNumbersPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
 
   if (phase === 'read') {
@@ -1335,14 +1368,14 @@ function CompareNumbersPhased({
     );
   }
 
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
 }
 
 // ========== Step 7: Spot Extra Info (Phased) ==========
 
 function SpotExtraInfoPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [foundExtra, setFoundExtra] = useState<Set<number>>(new Set());
   const extraNumbers = question.extraNumbers ?? [];
@@ -1413,14 +1446,14 @@ function SpotExtraInfoPhased({
     );
   }
 
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
 }
 
 // ========== Step 8: Spot Missing Info (Phased) ==========
 
 function SpotMissingInfoPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [choice, setChoice] = useState<boolean | null>(null);
   const isInsufficient = question.isInsufficient === true;
@@ -1511,5 +1544,5 @@ function SpotMissingInfoPhased({
     );
   }
 
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
 }
