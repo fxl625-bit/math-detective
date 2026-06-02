@@ -3,16 +3,82 @@
 | 项目 | 内容 |
 |------|------|
 | **项目名称** | 文字侦探（Math Detective） |
-| **当前版本** | v2.5 |
-| **版本历史** | v1.0: 04-29 / v2.0: 04-30 / v2.1: 05-08 / v2.2: 05-08 / v2.3: 05-11 / v2.4: 05-29 / v2.5: 05-29 |
+| **当前版本** | v2.6 |
+| **版本历史** | v1.0: 04-29 / v2.0: 04-30 / v2.1: 05-08 / v2.2: 05-08 / v2.3: 05-11 / v2.4: 05-29 / v2.5: 05-29 / v2.6: 06-02 |
 | **项目定位** | 小学低年级数学应用题阅读理解小游戏（奥数渐进体系） |
 | **技术栈** | Next.js 16 (webpack) + React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + localStorage |
 | **部署方式** | Vercel（海外架构，大陆建议 VPN） |
 | **GitHub** | （本仓库） |
 | **Vercel** | https://math-detective.vercel.app |
-| **当前状态** | ✅ v2.5 封版，奥数渐进体系（G1-G5）+ 每日激励系统 + 间隔复习 |
+| **当前状态** | ✅ v2.6 封版，P0/P1 全修复，342题全校验，G3-G6故事补齐 |
 
 ---
+
+## v2.6 P0/P1 修复 (2026-06-02)
+
+### P0 修复 (6/6)
+| 任务 | 说明 |
+|------|------|
+| P0-1 | 类型体系：LessonType(10种) / KeywordType(9种) / NumberRole(3种) |
+| P0-2 | 选题逻辑：inferLessonType / inferKeywordType / classifyNumberRole 精确匹配 |
+| P0-3 | 校验系统：validateQuestionIntegrity 含12项检查 + 选项一致性 |
+| P0-4 | 数字线索：logic_reasoning 与 find_numbers 冲突修复，stepCompatibility 清理 |
+| P0-5 | 动作关卡：FORBIDDEN_KEYWORD_TYPES 禁止关键词交叉检查 |
+| P0-6 | 组件状态：4个页面 setTimeout→setState 添加 mountedRef 卸载保护 |
+
+### P1 批量修复 (3/3)
+| 任务 | 说明 |
+|------|------|
+| P1-1 | 342题全部补齐 lessonType + keywordType 字段（自动推断 + 手工标注18边缘题） |
+| P1-2 | scripts/validate-questions.ts 全题库扫描脚本 |
+| P1-3 | 构建验证通过，新增 npm script `validate:questions` |
+
+### 故事扩展
+| 年级 | 新增故事 | 主题 |
+|------|----------|------|
+| G3-G4 | 科学实验室数据疑案 | 科学 |
+| G3-G4 | 校园义卖账目谜案 | 校园 |
+| G3-G4 | 图书馆借阅谜踪 | 校园 |
+| G3-G4 | 运动会计分迷局 | 运动 |
+| G5-G6 | 天文台数据疑云 | 科学 |
+| G5-G6 | 城市规划比例谜案 | 工程 |
+| G5-G6 | 银行利率计算案 | 金融 |
+| G5-G6 | 藏宝图比例之谜 | 探险 |
+
+### 题库统计
+- 基础题：180（G1-G6 + 乘除法 + 多余/缺失信息）
+- 奥数题：136（G1思维30 + G2入门20 + G3基础25 + G4进阶28 + G5冲刺33）
+- OlympiadIntro：30
+- 总题库：342 题（新增26题：g5-olympiad 5题 + g6 2题 + 各类补充）
+- 校验结果：342/342 通过 ✅，0 CRITICAL，0 WARNING
+
+### 新增/修改文件
+
+| 类型 | 文件 | 说明 |
+|------|------|------|
+| 新建 | `lib/questionValidation.ts` | 完整校验系统（12项检查） |
+| 新建 | `scripts/validate-questions.ts` | 全题库扫描脚本 |
+| 新建 | `scripts/add-lesson-keyword-types.ts` | 多行格式批量注入 |
+| 新建 | `scripts/inject-compact-lesson-keyword.mjs` | 紧凑格式注入 |
+| 新建 | `scripts/fix-edge-lesson-keyword.mjs` | 边缘case修复 |
+| 新建 | `scripts/fix-critical-lessontype.mjs` | CRITICAL lessonType修复 |
+| 新建 | `scripts/fix-logic-stepcompat-v2.mjs` | 针对性 find_numbers 清理 |
+| 新建 | `scripts/fix-logic-stepcompat.js` | 旧版 stepCompatibility修复 |
+| 新建 | `scripts/fix-compact.pl` | Perl版紧凑格式修复 |
+| 新建 | `scripts/fix-all-logic-stepcompat.mjs` | 全量 find_numbers 清理 |
+| 新建 | `scripts/cleanup-null-lesson-keyword.mjs` | null值清理 |
+| 新建 | `tsconfig.scripts.json` | 脚本编译配置 |
+| 修改 | `lib/types.ts` | 新增 LessonType/KeywordType/NumberRole + 映射表 |
+| 修改 | `lib/lessonPlanner.ts` | classifyNumberRole 调用更新 |
+| 修改 | `lib/questionValidation.ts` | 导入修复 + 变量修正 |
+| 修改 | `app/play/page.tsx` | EquationAnswerPhase 添加 mountedRef |
+| 修改 | `app/play/solve/page.tsx` | 添加 mountedRef 保护 |
+| 修改 | `app/play/clues/page.tsx` | 添加 mountedRef 保护 |
+| 修改 | `app/play/noise/page.tsx` | 添加 mountedRef 保护 |
+| 修改 | `data/stories.ts` | +8个G3-G6故事（+196行） |
+| 修改 | `data/questions/*.ts` (15个文件) | 全部补齐 lessonType/keywordType + 数据修复 |
+| 修改 | `VERSION.md` | 更新至v2.6 |
+| 修改 | `package.json` | +`validate:questions` script + tsconfig-paths依赖 |
 
 ## v2.5 升级 (2026-05-29)
 
