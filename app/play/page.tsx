@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -34,6 +34,8 @@ export default function PlayPage() {
   const { state, completeQuestion } = useGameState();
 
   const [lesson, setLesson] = useState<TodayLesson | null>(null);
+  const lessonRef = useRef(lesson);
+  lessonRef.current = lesson;
   const [mounted, setMounted] = useState(false);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -130,7 +132,8 @@ export default function PlayPage() {
 
   // Step completion (called from explain phase "完成本关" button)
   const handleStepComplete = useCallback((correct: boolean) => {
-    if (!lesson || !currentStep || !question) return;
+    const currentLesson = lessonRef.current;
+    if (!currentLesson || !currentStep || !question) return;
 
     completeQuestion(question.id, correct, correct ? undefined : {
       questionId: question.id,
@@ -142,7 +145,7 @@ export default function PlayPage() {
     });
 
     // 单次推进：从 explain → completed → next step
-    const afterAdvance = advancePhase(lesson);
+    const afterAdvance = advancePhase(currentLesson);
     saveTodayLesson(afterAdvance);
     setLesson(afterAdvance);
 
@@ -153,7 +156,7 @@ export default function PlayPage() {
         type: 'success',
         message: '🎉 今天的侦探任务完成！你获得了今日宝箱！',
       });
-    } else if (afterAdvance.currentStepIndex !== lesson.currentStepIndex) {
+    } else if (afterAdvance.currentStepIndex !== currentLesson.currentStepIndex) {
       const steps = afterAdvance.steps;
       const completedCount = steps.filter(s => s.status === 'completed').length;
       setFeedback({
@@ -162,7 +165,7 @@ export default function PlayPage() {
         message: `✅ 很好，下一条线索出现了！已完成 ${completedCount}/${steps.length} 关，继续破案！`,
       });
     }
-  }, [lesson, currentStep, question, completeQuestion]);
+  }, [currentStep, question, completeQuestion]);
 
   if (!mounted) {
     return (
