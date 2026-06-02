@@ -48,7 +48,7 @@ export function getDefaultPhasesForStepType(type: LessonStepType): StepPhase[] {
     case 'spot_extra_info':
       return ['read', 'find_numbers', 'spot_extra_info', 'answer'];
     case 'spot_missing_info':
-      return ['read', 'find_numbers', 'spot_missing_info', 'answer'];
+      return ['read', 'spot_missing_info', 'answer'];
     default:
       return ['read', 'answer'];
   }

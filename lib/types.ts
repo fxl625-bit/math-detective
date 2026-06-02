@@ -139,7 +139,7 @@ export const STEP_DEFAULT_PHASES: Record<LessonStepType, StepPhase[]> = {
   full_solve: ['read', 'find_numbers', 'find_keywords', 'choose_operation', 'build_equation', 'answer', 'explain', 'completed'],
   find_compare_numbers: ['read', 'find_numbers', 'find_compare_numbers', 'choose_operation', 'answer', 'completed'],
   spot_extra_info: ['read', 'find_numbers', 'spot_extra_info', 'answer', 'completed'],
-  spot_missing_info: ['read', 'find_numbers', 'spot_missing_info', 'answer', 'completed'],
+  spot_missing_info: ['read', 'spot_missing_info', 'answer', 'completed'],
 };
 
 export interface LessonStep {

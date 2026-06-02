@@ -1547,7 +1547,7 @@ function SpotMissingInfoPhased({
     );
   }
 
-  if (phase === 'find_numbers' || phase === 'spot_missing_info') {
+  if (phase === 'spot_missing_info') {
     return (
       <div className="space-y-4">
         <AppCard variant="amber">
