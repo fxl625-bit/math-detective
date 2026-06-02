@@ -347,7 +347,7 @@ export default function PlayPage() {
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-lg font-extrabold text-amber-800 truncate">
-            {getStepLabel(currentStep)}
+            {getStepLabel(currentStep, lesson)}
           </h1>
           <p className="text-xs text-amber-600 truncate">{stepNarrative.description}</p>
           <div className="flex items-center gap-2 mt-1">

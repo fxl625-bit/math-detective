@@ -771,11 +771,19 @@ export function clearTodayLesson(): void {
   } catch { /* ignore */ }
 }
 
-export function getStepLabel(step: LessonStep): string {
+export function getStepLabel(step: LessonStep, lesson?: TodayLesson): string {
+  // 使用 lesson.steps 中的真实位置，而非全局类型顺序
+  const steps = lesson?.steps;
+  if (steps && Array.isArray(steps)) {
+    const idx = steps.findIndex(s => s.id === step.id);
+    if (idx >= 0) {
+      return `第 ${idx + 1} 关 / 共 ${steps.length} 关：${step.title}`;
+    }
+  }
+  // fallback
   const stepOrder: LessonStepType[] = ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve', 'find_compare_numbers', 'spot_extra_info', 'spot_missing_info'];
   const stepNum = stepOrder.indexOf(step.type) + 1;
-  const total = 5;
-  return `第 ${stepNum} 关 / 共 ${total} 关：${step.title}`;
+  return `第 ${stepNum} 关：${step.title}`;
 }
 
 export function getCompletionMessage(stepIndex: number, total: number): string {

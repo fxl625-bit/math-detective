@@ -14,6 +14,7 @@ import {
   retryMistakeCorrect,
   completeQuestion,
   checkDailyCheckin,
+  normalizeStats,
 } from '@/lib/storage';
 
 let globalState: GameState | null = null;
@@ -40,8 +41,8 @@ export function useGameState() {
     }
     try {
       const loaded = loadState();
-      if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] loadState ok v=' + (loaded as any).version);
-      const daily = checkDailyReset(loaded);
+      const normalized = normalizeStats(loaded);
+      const daily = checkDailyReset(normalized);
       const weekly = checkWeeklyCard(daily);
       const leveled = { ...weekly, level: calculateLevel(weekly.stars) };
       const badged = { ...leveled, badges: checkBadges(leveled) };
