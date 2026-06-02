@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DecorationItem } from '@/data/decorations';
+import { AvatarItem, getAvatarItemById } from '@/data/avatarItems';
 
 interface DetectiveMascotProps {
   mood?: 'happy' | 'thinking' | 'encourage' | 'excited';
@@ -11,7 +11,7 @@ interface DetectiveMascotProps {
   message?: string | string[];
   showMessage?: boolean;
   onMessageEnd?: () => void;
-  decorations?: DecorationItem[];
+  decorations?: AvatarItem[];
 }
 
 const mascots: Record<string, { image: string; emoji: string; words: string }> = {
@@ -22,16 +22,10 @@ const mascots: Record<string, { image: string; emoji: string; words: string }> =
 };
 
 const SIZE_MAP = {
-  sm: { px: 64, emojiClass: 'text-4xl' },
-  md: { px: 96, emojiClass: 'text-5xl' },
-  lg: { px: 128, emojiClass: 'text-7xl' },
+  sm: { px: 64, emojiClass: 'text-4xl', decoSize: 'text-sm' },
+  md: { px: 96, emojiClass: 'text-5xl', decoSize: 'text-lg' },
+  lg: { px: 128, emojiClass: 'text-7xl', decoSize: 'text-2xl' },
 } as const;
-
-const DECO_CLASS: Record<string, string> = {
-  sm: 'text-sm',
-  md: 'text-lg',
-  lg: 'text-2xl',
-};
 
 export default function DetectiveMascot({
   mood = 'happy',
@@ -42,41 +36,45 @@ export default function DetectiveMascot({
   decorations,
 }: DetectiveMascotProps) {
   const m = mascots[mood];
-  const { px, emojiClass } = SIZE_MAP[size];
-  const decoSize = DECO_CLASS[size];
+  const { px, emojiClass, decoSize } = SIZE_MAP[size];
   const [imgError, setImgError] = useState(false);
 
-  // Reset error state when mood changes
   useEffect(() => { setImgError(false); }, [mood]);
 
-  const hasDecorations = decorations && decorations.length > 0;
-  const hats = hasDecorations ? decorations.filter(d => d.category === 'hat') : [];
-  const accessories = hasDecorations ? decorations.filter(d => d.category === 'accessory') : [];
-  const tools = hasDecorations ? decorations.filter(d => d.category === 'tool') : [];
-  const outfits = hasDecorations ? decorations.filter(d => d.category === 'outfit') : [];
+  // 按 zIndex 排序 + 按 slot 分组（同 slot 只保留最后装备的，canStack 的除外）
+  const items = decorations || [];
+  // 同 slot 互斥处理：canStack 的保留全部，不 canStack 的只保留最后一个
+  const slotLast: Record<string, AvatarItem> = {};
+  const stackItems: AvatarItem[] = [];
+  for (const item of items) {
+    if (item.canStack) {
+      stackItems.push(item);
+    } else {
+      slotLast[item.slot] = item; // 最后一个覆盖
+    }
+  }
+  const resolved = [...Object.values(slotLast), ...stackItems];
+  // 按 zIndex 分层排序
+  resolved.sort((a, b) => (a.zIndex || 20) - (b.zIndex || 20));
 
   const characterElement = (
     <div className="relative inline-block">
-      {/* 帽子装饰 */}
-      {hats.map(d => (
+      {/* 分层渲染装饰 */}
+      {resolved.map(item => (
         <motion.span
-          key={d.id}
-          className={`absolute -top-2 left-1/2 -translate-x-1/2 z-10 ${decoSize}`}
-          animate={{ y: [0, -2, 0] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          key={item.id}
+          className={`${item.positionClass} ${decoSize} select-none pointer-events-none`}
+          style={{ zIndex: item.zIndex || 20 }}
+          animate={item.animateProps || {}}
+          transition={item.animateProps ? { duration: 2, repeat: Infinity, ease: 'easeInOut' } : undefined}
         >
-          {d.emoji}
+          {item.emoji}
         </motion.span>
       ))}
-      {/* 服装装饰（底部） */}
-      {outfits.map(d => (
-        <span key={d.id} className={`absolute -bottom-1 left-1/2 -translate-x-1/2 z-10 ${decoSize}`}>
-          {d.emoji}
-        </span>
-      ))}
-      {/* 基础角色：图片 或 emoji fallback */}
+      {/* 基础角色 */}
       <motion.div
-        className="cursor-default block"
+        className="cursor-default block relative"
+        style={{ zIndex: 20 }}
         whileHover={{ scale: 1.15, rotate: [0, -5, 5, 0] }}
         transition={{ duration: 0.3 }}
       >
@@ -95,28 +93,6 @@ export default function DetectiveMascot({
           />
         )}
       </motion.div>
-      {/* 工具/配件装饰（右侧） */}
-      {tools.map(d => (
-        <motion.span
-          key={d.id}
-          className={`absolute -right-1 top-1/2 -translate-y-1/2 z-10 ${decoSize}`}
-          animate={{ rotate: [0, -5, 5, 0] }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          {d.emoji}
-        </motion.span>
-      ))}
-      {/* 配件装饰（左侧） */}
-      {accessories.map(d => (
-        <motion.span
-          key={d.id}
-          className={`absolute -left-1 top-1/2 -translate-y-1/2 z-10 ${decoSize}`}
-          animate={{ rotate: [0, 5, -5, 0] }}
-          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          {d.emoji}
-        </motion.span>
-      ))}
     </div>
   );
 
@@ -130,7 +106,6 @@ export default function DetectiveMascot({
   const [displayedText, setDisplayedText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
-  // Reset when messages change
   useEffect(() => {
     if (messages && messages.length > 0) {
       setCurrentMsgIndex(0);
@@ -139,10 +114,8 @@ export default function DetectiveMascot({
     }
   }, [message]);
 
-  // Typewriter effect
   useEffect(() => {
     if (!messages || messages.length === 0 || !isTyping) return;
-
     const currentMsg = messages[currentMsgIndex] || '';
     if (displayedText.length >= currentMsg.length) {
       const timer = setTimeout(() => {
@@ -156,11 +129,9 @@ export default function DetectiveMascot({
       }, 1200);
       return () => clearTimeout(timer);
     }
-
     const timer = setTimeout(() => {
       setDisplayedText(currentMsg.slice(0, displayedText.length + 1));
     }, 40 + Math.random() * 30);
-
     return () => clearTimeout(timer);
   }, [messages, currentMsgIndex, displayedText, isTyping, onMessageEnd]);
 
@@ -176,10 +147,7 @@ export default function DetectiveMascot({
     );
   }
 
-  const bubbleText = messages
-    ? displayedText
-    : m.words;
-
+  const bubbleText = messages ? displayedText : m.words;
   const showBubble = messages ? displayedText.length > 0 : size !== 'sm';
 
   return (
@@ -188,7 +156,6 @@ export default function DetectiveMascot({
       animate={{ y: [0, -5, 0] }}
       transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
     >
-      {/* 文字泡 */}
       <AnimatePresence>
         {showBubble && (
           <motion.div
@@ -198,10 +165,8 @@ export default function DetectiveMascot({
             exit={{ opacity: 0, scale: 0.9 }}
           >
             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white border-r-2 border-b-2 border-amber-300 rotate-45" />
-            <p
-              className="text-sm text-amber-800 font-medium leading-relaxed text-center"
-              style={{ minHeight: messages ? '1.25em' : 'auto' }}
-            >
+            <p className="text-sm text-amber-800 font-medium leading-relaxed text-center"
+              style={{ minHeight: messages ? '1.25em' : 'auto' }}>
               {bubbleText}
               {messages && isTyping && displayedText.length === (messages[currentMsgIndex]?.length || 0) && (
                 <span className="animate-pulse">|</span>
@@ -210,19 +175,13 @@ export default function DetectiveMascot({
             {messages && messages.length > 1 && (
               <div className="flex justify-center gap-1 mt-1">
                 {messages.map((_, i) => (
-                  <span
-                    key={i}
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      i === currentMsgIndex ? 'bg-amber-400' : 'bg-amber-200'
-                    }`}
-                  />
+                  <span key={i} className={`w-1.5 h-1.5 rounded-full ${i === currentMsgIndex ? 'bg-amber-400' : 'bg-amber-200'}`} />
                 ))}
               </div>
             )}
           </motion.div>
         )}
       </AnimatePresence>
-
       {characterElement}
     </motion.div>
   );

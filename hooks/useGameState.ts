@@ -16,6 +16,7 @@ import {
   checkDailyCheckin,
   normalizeStats,
 } from '@/lib/storage';
+import { getAvatarItemById } from '@/data/avatarItems';
 
 let globalState: GameState | null = null;
 let listeners: Array<(s: GameState) => void> = [];
@@ -278,9 +279,29 @@ export function useGameState() {
   const toggleDecoration = useCallback((decorationId: string) => {
     update((s) => {
       const current = new Set(s.decorations || []);
+      const item = getAvatarItemById(decorationId);
       if (current.has(decorationId)) {
+        // 卸下
         current.delete(decorationId);
       } else {
+        // 装备前检查：同 slot 且不可叠加的自动替换
+        if (item && !item.canStack) {
+          for (const existingId of current) {
+            const existing = getAvatarItemById(existingId);
+            if (existing && existing.slot === item.slot && !existing.canStack) {
+              current.delete(existingId); // 卸下旧装饰
+            }
+          }
+        }
+        // 同 anchor 检查（aura/sticker 等可叠加但同 anchor 只能一个）
+        if (item?.canStack) {
+          for (const existingId of current) {
+            const existing = getAvatarItemById(existingId);
+            if (existing && existing.anchor === item.anchor && existing.slot === item.slot) {
+              current.delete(existingId);
+            }
+          }
+        }
         current.add(decorationId);
       }
       return { ...s, decorations: Array.from(current) };
