@@ -15,6 +15,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['每瓶2.5升，共3瓶', '2.5×3=7.5'],
     hints: ['小数乘法：先按整数计算，再点小数点！'],
     difficulty: 1, category: 'multiplication', visualKey: 'cup', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -31,6 +33,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['总数7.2，份数6', '7.2÷6=1.2'],
     hints: ['小数除以整数，商的小数点要和被除数对齐！'],
     difficulty: 1, category: 'division', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -47,6 +51,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['单价6.8，数量2.5', '6.8×2.5=17'],
     hints: ['小数乘小数，看因数一共有几位小数！'],
     difficulty: 2, category: 'multiplication', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -63,6 +69,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['单价：32÷5=6.4', '3千克价：6.4×3=19.2'],
     hints: ['先求单价（除法），再求总价（乘法）！'],
     difficulty: 2, category: 'mixed', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -79,6 +87,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['先减书钱：50-23.8=26.2', '再减笔钱：26.2-6.5=19.7'],
     hints: ['小数减法注意小数点对齐！'],
     difficulty: 2, category: 'mixed', visualKey: 'book', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -95,6 +105,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['设未知数x为买的本数', '列方程：8x=96', '解：x=96÷8=12'],
     hints: ['用字母x表示未知数，列出方程再求解！'],
     difficulty: 2, category: 'division', visualKey: 'book', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -111,6 +123,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['设小红有x元', '列方程：3x+5=59', '两边减5：3x=54', 'x=54÷3=18'],
     hints: ['"比...几倍还多几"用方程很方便！'],
     difficulty: 3, category: 'mixed', visualKey: 'candy', requiresAnswer: true,
+  lessonType:'times_intro',
+  keywordType:'times_intro',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -127,6 +141,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['三角形面积=底×高÷2', '12×8=96', '96÷2=48'],
     hints: ['三角形面积公式：底×高÷2！'],
     difficulty: 1, category: 'mixed', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'geometry_count',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -143,6 +159,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['梯形面积=(上底+下底)×高÷2', '(8+12)=20', '20×5=100', '100÷2=50'],
     hints: ['梯形面积：(上底+下底)×高÷2！'],
     difficulty: 2, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -159,6 +177,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['面积：15×8=120', '油漆：120×0.6=72'],
     hints: ['平行四边形面积=底×高！先求面积再算油漆。'],
     difficulty: 2, category: 'mixed', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'planting_interval',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -175,6 +195,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['一共：2/5+1/5=3/5', '相差：2/5-1/5=1/5'],
     hints: ['同分母分数加减，分母不变，分子相加减！'],
     difficulty: 1, category: 'mixed', visualKey: 'bun', requiresAnswer: true,
+  lessonType:'compare_more_less',
+  keywordType:'compare',
   stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
@@ -191,6 +213,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['3/4-1/4=2/4', '化简：2/4=1/2'],
     hints: ['同分母分数相减，分母不变，分子相减！注意化简。'],
     difficulty: 1, category: 'subtraction', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
@@ -207,6 +231,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['吃了：24×1/3=8', '还剩：24-8=16'],
     hints: ['求一个数的几分之几是多少，用乘法！'],
     difficulty: 2, category: 'mixed', visualKey: 'cookie', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
   },
   {
@@ -223,6 +249,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['通分：1/2=2/4', '已修：2/4+1/4=3/4', '剩余：1-3/4=1/4'],
     hints: ['异分母分数要先通分再计算！'],
     difficulty: 2, category: 'mixed', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
@@ -239,6 +267,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['体积：60×40×30=72000', '换算：72000÷1000=72升'],
     hints: ['长方体体积=长×宽×高！1升=1000立方厘米。'],
     difficulty: 2, category: 'mixed', visualKey: 'goldfish', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -255,6 +285,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['正方体体积=棱长的立方', '15×15=225', '225×15=3375'],
     hints: ['正方体体积=棱长×棱长×棱长！'],
     difficulty: 1, category: 'multiplication', visualKey: 'yogurt', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
   },
   {
@@ -271,6 +303,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['一天合做：48+52=100', '5天：100×5=500'],
     hints: ['可以先求两人一天合做多少个，再求5天！'],
     difficulty: 2, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -287,6 +321,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['速度和：90+80=170', '相遇时间：680÷170=4'],
     hints: ['相遇时间=总路程÷速度和！'],
     difficulty: 3, category: 'division', visualKey: 'toyCar', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -304,6 +340,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['去掉节日描写', '八五折=0.85', '一件折后：280×0.85=238', '两件：238×2=476'],
     hints: ['八五折就是现价=原价×0.85！'],
     difficulty: 3, category: 'mixed', visualKey: 'adult', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -320,6 +358,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['长方形：20×10=200', '梯形：(10+16)×8÷2=104', '总面积：200+104=304'],
     hints: ['组合图形分开算，再加起来！'],
     difficulty: 3, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -337,13 +377,15 @@ export const g5Questions: Question[] = [
     solutionSteps: ['去掉春节和超市描写的句子', '找到2.5升和4瓶', '2.5×4=10'],
     hints: ['哪些信息和果汁无关？'],
     difficulty: 1, category: 'multiplication', visualKey: 'cup', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
     id: 'g5_22', gradeBand: 'G5', domain: 'decimals',
     cognitiveSkills: ['remove_noise', 'multi_step_reasoning'],
     text: '科技节展览馆里人山人海，各种发明创造让人眼花缭乱。一件衣服原价280元，打八五折后，小明妈妈买了2件，一共花了多少元？',
-    numbers: [280, 0.85, 2],
+    numbers: [280, 2],
     keywords: [{ word: '八五折', type: 'multiply' }, { word: '一共', type: 'add' }],
     noisePhrases: ['科技节展览馆里人山人海', '各种发明创造让人眼花缭乱'],
     usefulPhrases: ['原价280元', '打八五折', '买了2件', '一共花了多少元'],
@@ -354,6 +396,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['去掉科技节展览的句子', '先算折扣价：280×0.85=238', '再算2件：238×2=476'],
     hints: ['开头的描写要算进去吗？'],
     difficulty: 3, category: 'mixed', visualKey: 'adult', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -371,6 +415,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['去掉美术教室的描写', '长方体体积=长×宽×高', '60×30×40=72000cm³', '72000÷1000=72升'],
     hints: ['开头的句子和鱼缸有关吗？'],
     difficulty: 2, category: 'multiplication', visualKey: 'fish', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'remove_noise', 'full_solve'],
   },
   {
@@ -388,6 +434,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['去掉中秋和月亮的描写', '同分母相加：3/8+2/8=5/8', '剩余：1-5/8=3/8'],
     hints: ['第一句话要参与计算吗？'],
     difficulty: 2, category: 'mixed', visualKey: 'bun', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
     stepCompatibility: ['find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -405,6 +453,8 @@ export const g5Questions: Question[] = [
     solutionSteps: ['去掉跑步描写的句子', '篮球总额：80×5=400', '足球总额：520-400=120', '足球单价：120÷3=40'],
     hints: ['开头在说跑步，需要算吗？'],
     difficulty: 3, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   }
 ];

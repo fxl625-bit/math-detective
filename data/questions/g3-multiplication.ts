@@ -15,6 +15,8 @@ export const g3MultiplicationQuestions: Question[] = [
     solutionSteps: ['找到数字12和3', '"每盒"表示一份有12支', '"买了3盒"表示有3份', '乘法：12×3=36'],
     hints: ['想想：1盒有12支，3盒就是3个12，怎么算最快？'],
     difficulty: 2, category: 'multiplication', visualKey: 'stationery', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
   },
   {
@@ -31,6 +33,8 @@ export const g3MultiplicationQuestions: Question[] = [
     solutionSteps: ['找到数字8和5', '"每行8人"表示一份8个', '"5行"表示有5份', '8×5=40'],
     hints: ['一排有8个人，5排就是几个8？'],
     difficulty: 1, category: 'multiplication', visualKey: 'student', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
   },
   {
@@ -47,6 +51,8 @@ export const g3MultiplicationQuestions: Question[] = [
     solutionSteps: ['找到数字6和4', '一盒6块是每份的数量', '4盒是份数', '6×4=24'],
     hints: ['一盒有6块蛋糕，4盒有几个6？'],
     difficulty: 1, category: 'multiplication', visualKey: 'cake', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve', 'find_compare_numbers'],
   },
   {
@@ -63,6 +69,8 @@ export const g3MultiplicationQuestions: Question[] = [
     solutionSteps: ['找到数字7和5', '每只7根是单份量', '5只是份数', '7×5=35'],
     hints: ['一只熊猫吃7根，5只就是5个7！'],
     difficulty: 1, category: 'multiplication', visualKey: 'bamboo', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
   },
   {
@@ -79,6 +87,8 @@ export const g3MultiplicationQuestions: Question[] = [
     solutionSteps: ['找到数字9和6', '每个书架9本书', '6个书架', '9×6=54'],
     hints: ['一个书架9本书，6个书架就是几个9？'],
     difficulty: 2, category: 'multiplication', visualKey: 'book', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve', 'find_compare_numbers'],
   },
   {
@@ -95,6 +105,8 @@ export const g3MultiplicationQuestions: Question[] = [
     solutionSteps: ['找到10和4', '每队10人', '4个队', '10×4=40'],
     hints: ['每队10人，4队就是多少？'],
     difficulty: 1, category: 'multiplication', visualKey: 'student', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
   },
   {
@@ -111,6 +123,8 @@ export const g3MultiplicationQuestions: Question[] = [
     solutionSteps: ['找到8和5', '8袋是数量', '每袋5颗是每份数', '8×5=40'],
     hints: ['8袋糖，每袋5颗，一共有几颗？'],
     difficulty: 1, category: 'multiplication', visualKey: 'candy', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve', 'find_compare_numbers'],
   },
   {
@@ -127,6 +141,8 @@ export const g3MultiplicationQuestions: Question[] = [
     solutionSteps: ['找到24和6', '"平均分给"表示除法', '24÷6=4'],
     hints: ['24个东西分给6个人，每人多少？'],
     difficulty: 1, category: 'division', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
   },
   {
@@ -143,6 +159,8 @@ export const g3MultiplicationQuestions: Question[] = [
     solutionSteps: ['找到30和5', '30是总数', '每5朵一份', '30÷5=6束'],
     hints: ['30朵花，5朵扎一束，能扎几束？'],
     difficulty: 1, category: 'division', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
   },
   {
@@ -159,6 +177,8 @@ export const g3MultiplicationQuestions: Question[] = [
     solutionSteps: ['找到35和7', '35是总数', '每7个一份', '35÷7=5'],
     hints: ['35个鸡蛋，7个装一盒，装几盒？'],
     difficulty: 1, category: 'division', visualKey: 'egg', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
   },
 ];

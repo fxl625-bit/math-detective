@@ -16,7 +16,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['较大数甲=(和+差)÷2=(36+8)÷2=22', '较小数乙=(和-差)÷2=(36-8)÷2=14'],
     hints: ['和差问题：大数=(和+差)÷2，小数=(和-差)÷2！'],
     difficulty: 2, category: 'mixed', visualKey: 'apple', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'compare',
+  stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
     id: 'oi_02', gradeBand: 'OlympiadIntro', domain: 'logic_reasoning',
@@ -32,7 +34,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['差=4×2=8', '小明=(和+差)÷2=(46+8)÷2=27'],
     hints: ['给4张后一样多，说明原来差8张！'],
     difficulty: 2, category: 'mixed', visualKey: 'sticker', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'equal_groups',
+  stepCompatibility: ['find_action_words', 'full_solve'],
   },
   // ========== 年龄问题 ==========
   {
@@ -49,7 +53,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['年龄差：35-7=28不变', '3倍时年龄差对应2份', '1份：28÷2=14', '儿子14岁时，即14-7=7年后'],
     hints: ['年龄差永远不变，这是解题关键！'],
     difficulty: 3, category: 'mixed', visualKey: 'adult', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'times_intro',
+  stepCompatibility: ['full_solve'],
   gradeFriendlyEquation: {
     G1: '爸爸一直比儿子大28岁。\n一年一年试：第7年爸爸42岁，儿子14岁，14+14+14=42，正好是3倍！',
     G2: '年龄差28岁不变。3倍时年龄差对应2份：28÷2=14。儿子14岁时是7年后。',
@@ -70,7 +76,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['三年前妈妈：39-3=36', '三年前女儿：36÷4=9', '今年女儿：9+3=12'],
     hints: ['先算三年前的年龄，再加回来！'],
     difficulty: 2, category: 'mixed', visualKey: 'adult', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'times_intro',
+  stepCompatibility: ['find_action_words', 'full_solve'],
   },
   // ========== 鸡兔同笼 ==========
   {
@@ -87,7 +95,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['假设全是鸡：35×2=70只脚', '实际差：94-70=24', '兔：24÷(4-2)=12', '鸡：35-12=23'],
     hints: ['假设法：先假设全是鸡，脚数少了的除以2就是兔！'],
     difficulty: 3, category: 'mixed', visualKey: 'rabbit', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+  stepCompatibility: ['full_solve'],
   },
   {
     id: 'oi_06', gradeBand: 'OlympiadIntro', domain: 'logic_reasoning',
@@ -103,7 +113,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['假设全是三轮车：3×20=60', '实际差：71-60=11', '汽车：11÷(4-3)=11', '三轮车：20-11=9'],
     hints: ['假设法：20辆如果一个轮子差，除一下就出来了！'],
     difficulty: 3, category: 'mixed', visualKey: 'toyCar', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+  stepCompatibility: ['full_solve'],
   },
   // ========== 盈亏问题 ==========
   {
@@ -120,7 +132,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['两种分法总差：4+6=10', '每人差：5-3=2', '人数：10÷2=5', '糖数：3×5+4=19'],
     hints: ['盈亏问题：(盈+亏)÷(两次每人差)=人数！'],
     difficulty: 3, category: 'mixed', visualKey: 'candy', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'add_action',
+  stepCompatibility: ['find_action_words', 'full_solve'],
   },
   // ========== 植树问题 ==========
   {
@@ -137,6 +151,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['间隔数：200÷5=40', '两端都种：40+1=41'],
     hints: ['两端都种树，棵数比间隔数多1！'],
     difficulty: 2, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -153,6 +169,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['圆形封闭路线：棵数=间隔数', '240÷6=40'],
     hints: ['圆形路线，棵数就等于间隔数！'],
     difficulty: 2, category: 'division', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   // ========== 等差数列 ==========
@@ -170,13 +188,15 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['公差：7-3=4', '第20项：3+19×4=79', '和：(首+末)×项数÷2=(3+79)×20÷2=820'],
     hints: ['等差数列第n项=首项+(n-1)×公差！求和=(首+末)×项数÷2。'],
     difficulty: 3, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   // ========== 周期问题 ==========
   {
     id: 'oi_11', gradeBand: 'OlympiadIntro', domain: 'pattern',
     cognitiveSkills: ['find_numbers', 'choose_operation', 'build_model'],
-    text: '节日彩灯按"红、黄、蓝、绿、紫"的顺序循环排列。第83盏灯是什么颜色？',
+    text: '节日彩灯按"红、黄、蓝、绿、紫"共5种颜色的顺序循环排列。第83盏灯是什么颜色？',
     numbers: [83, 5],
     keywords: [],
     noisePhrases: [], usefulPhrases: ['红黄蓝绿紫顺序循环', '第83盏灯是什么颜色'],
@@ -187,6 +207,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['周期长度：5', '83÷5=16余3', '余3→第3个颜色：蓝'],
     hints: ['找周期，看余数！余几就是第几个。'],
     difficulty: 1, category: 'division', visualKey: 'balloon', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   // ========== 方阵问题 ==========
@@ -204,6 +226,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['最外层：(12-1)×4=44', '总人数：12×12=144'],
     hints: ['方阵最外层=(每边人数-1)×4！注意角上的人不能重复算。'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  lessonType:'geometry_count',
+  keywordType:'add_action',
   stepCompatibility: ['find_action_words', 'full_solve'],
   },
   // ========== 逻辑推理 ==========
@@ -221,6 +245,7 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['小红不是第一也不是最后→第二', '小明不是第一→只能是第三', '剩下小华第一'],
     hints: ['画个表格，用排除法！'],
     difficulty: 1, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  lessonType:'logic_reasoning',
   stepCompatibility: ['full_solve'],
   },
   {
@@ -237,6 +262,7 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['从标"混合"的取', '取出苹果→此盒为苹果', '标"橘子"的不可能装橘子→装混合', '标"苹果"的装橘子'],
     hints: ['关键在于：标签全错！所以标"混合"的一定不是混合。'],
     difficulty: 3, category: 'mixed', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'logic_reasoning',
   stepCompatibility: ['full_solve'],
   },
   // ========== 行程问题 ==========
@@ -254,6 +280,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['总路程=桥长+车长=800+200=1000', '时间=1000÷20=50'],
     hints: ['火车过桥要走"桥长+车长"的路程！'],
     difficulty: 2, category: 'mixed', visualKey: 'toyCar', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -270,6 +298,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['设规定时间t分钟', '60(t+3)=80(t-1)', '60t+180=80t-80', '20t=260，t=13', '路程：60×16=960'],
     hints: ['用方程：两边都是路程，列出等量关系！'],
     difficulty: 4, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   // ========== 平均数问题 ==========
@@ -287,6 +317,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['需要总分：95×3=285', '已有：92+98=190', '英语：285-190=95'],
     hints: ['先求目标总分，再减去已知分数！'],
     difficulty: 2, category: 'mixed', visualKey: 'book', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   // ========== 浓度问题 ==========
@@ -304,6 +336,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['原水：200×75%=150克', '新盐水：150÷60%=250克', '加盐：250-200=50克'],
     hints: ['抓住不变量：水的重量不变！'],
     difficulty: 4, category: 'mixed', visualKey: 'cup', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
   },
   // ========== 页码问题 ==========
@@ -321,6 +355,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['1-9页：0个0', '10-99页：9个0', '100-109页：11个0（20个）', '110-119页：每个数1个0×10=10个，但119=1个，110有1个...一共到119累计27个'],
     hints: ['分段统计0的个数：1-9、10-99、100+分开算！'],
     difficulty: 4, category: 'mixed', visualKey: 'book', requiresAnswer: true,
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
   },
   // ========== 抽屉原理 ==========
@@ -338,7 +374,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['有3种颜色', '最坏情况：每种取1个=3个', '再取1个必同色：3+1=4'],
     hints: ['抽屉原理：考虑"最坏情况"——每种颜色一个！'],
     difficulty: 2, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'guarantee_worst_case',
+  stepCompatibility: ['find_action_words', 'full_solve'],
   },
   // ========== 数字谜 ==========
   {
@@ -355,7 +393,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['尝试组合相邻数字', '12-3-4+5：先12-3=9', '再9-4=5', '最后5+5=10'],
     hints: ['把相邻数字拼成两位数试试！12-3-4+5=10。'],
     difficulty: 3, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+  stepCompatibility: ['full_solve'],
   },
   // ========== 归一问题 ==========
   {
@@ -372,6 +412,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['1台1小时：72÷3÷4=6', '5台6小时：6×5×6=180'],
     hints: ['归一法：先求一台一小时耕多少！'],
     difficulty: 2, category: 'multiplication', visualKey: 'toyCar', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   // ========== 容斥问题 ==========
@@ -389,7 +431,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['至少参加一科：28+25-8=45', '都没参加：50-45=5'],
     hints: ['画两个圈（维恩图）！两科都参加的人被算了两次，要减去一次。'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+  stepCompatibility: ['full_solve'],
   },
   // ========== 乘法原理 ==========
   {
@@ -406,7 +450,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['每件上衣搭配4条裤子', '3件上衣×4=12'],
     hints: ['搭配问题：上衣数×裤子数=总搭配数！'],
     difficulty: 1, category: 'multiplication', visualKey: 'child', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+  stepCompatibility: ['full_solve'],
   },
   // ========== 找规律 ==========
   {
@@ -423,6 +469,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['找差：2-1=1，4-2=2，7-4=3，11-7=4', '规律：每次加的比上次多1', '11+5=16'],
     hints: ['看看相邻两个数的差有什么规律！'],
     difficulty: 1, category: 'addition', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
   },
   // ========== 一笔画 / 路线 ==========
@@ -440,6 +488,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['铁丝长（周长）：(8+6)×2=28', '正方形边长：28÷4=7'],
     hints: ['铁丝长度不变！先求长方形周长。'],
     difficulty: 1, category: 'mixed', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'geometry_count',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   // ========== 还原问题 ==========
@@ -457,7 +507,9 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['逆推最后：15×2=30', '逆推第三步：30+12=42', '逆推第二步：42÷3=14', '逆推第一步：14-5=9'],
     hints: ['倒推法：从结果倒着算，加减互逆，乘除互逆！'],
     difficulty: 3, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+  stepCompatibility: ['full_solve'],
   },
   // ========== 角度计算 ==========
   {
@@ -474,6 +526,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['内角和=180°', '总份数：2+3+4=9', '每份：180÷9=20°', '最大角(4份)：20×4=80°'],
     hints: ['三角形内角和是180°，按比例分配！'],
     difficulty: 2, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
+  keywordType:'number_extract',
+  lessonType:'geometry_count',
   stepCompatibility: ['full_solve'],
   },
   // ========== 定义新运算 ==========
@@ -491,6 +545,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['代入公式：5×3+5+3', '=15+5+3', '=23'],
     hints: ['按照定义的公式，把数字代进去算！'],
     difficulty: 1, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   // ========== 最不利原则 ==========
@@ -508,6 +564,8 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['有2种颜色', '最坏情况：先摸2只不同色', '第3只必定与某只同色'],
     hints: ['抽屉原理升级版：最坏情况下，每种颜色摸一只！'],
     difficulty: 2, category: 'mixed', visualKey: 'sticker', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'guarantee_worst_case',
+  stepCompatibility: ['find_action_words', 'full_solve'],
   },
 ];

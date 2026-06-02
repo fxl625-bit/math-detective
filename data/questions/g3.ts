@@ -15,6 +15,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['先算剩下：36-9=27', '再平均分：27÷3=9'],
     hints: ['分两步：先减后除！注意单位是米。'],
     difficulty: 2, category: 'mixed', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -31,6 +33,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['先算剩下：48-25=23', '再平均分：23÷5=4余3'],
     hints: ['先减后除，可能有剩余哦！'],
     difficulty: 2, category: 'mixed', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -47,6 +51,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['认清公式：周长=(长+宽)×2', '(8+6)=14', '14×2=28'],
     hints: ['周长就是绕一圈的长度！'],
     difficulty: 1, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'geometry_count',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -63,6 +69,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['总数120，每天15', '120÷15=8'],
     hints: ['120里面有几个15？'],
     difficulty: 1, category: 'division', visualKey: 'book', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -79,6 +87,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['先算总量：25×4=100', '再减去用掉：100-60=40'],
     hints: ['先乘后减，注意单位是千克！'],
     difficulty: 2, category: 'mixed', visualKey: 'egg', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -95,6 +105,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['分母=总份数8', '分子=吃的份数3', '写作3/8'],
     hints: ['分数：分母是总份数，分子是拿走的份数！'],
     difficulty: 1, category: 'mixed', visualKey: 'bun', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -111,6 +123,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['正方形周长=9×4=36米', '3圈：36×3=108米'],
     hints: ['先算一圈多长，再算3圈！'],
     difficulty: 2, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'geometry_count',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -127,6 +141,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['找到两个身高', '用大的减小的：135-128=7'],
     hints: ['比谁高多少，用减法！'],
     difficulty: 1, category: 'subtraction', visualKey: 'child', requiresAnswer: true,
+  lessonType:'compare_more_less',
+  keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -143,6 +159,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['先算总量：24×5=120', '再算剩下：120-68=52'],
     hints: ['先乘后减，先求总数再求剩余！'],
     difficulty: 2, category: 'mixed', visualKey: 'yogurt', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -159,6 +177,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['4:00往后推', '2:15到3:00是45分', '3:00到4:00是60分', '共105分=1时45分'],
     hints: ['可以用分段计算：先算到3点，再算到4点！'],
     difficulty: 2, category: 'subtraction', visualKey: 'child', requiresAnswer: true,
+  keywordType:'number_extract',
+  lessonType:'add_sub_action',
   stepCompatibility: ['simulation', 'full_solve'],
   },
   {
@@ -175,6 +195,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['总数96，每份8', '求份数：96÷8=12'],
     hints: ['96里面有多少个8？'],
     difficulty: 1, category: 'division', visualKey: 'candy', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -191,6 +213,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['比多少用减法：5-3=2', '求一共用加法：5+3=8'],
     hints: ['有两个问题，一个一个做！'],
     difficulty: 2, category: 'mixed', visualKey: 'egg', requiresAnswer: true,
+  lessonType:'compare_more_less',
+  keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -207,6 +231,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['平均分4份，每份1/4', '12÷4=3个'],
     hints: ['分数看份数，个数用除法！'],
     difficulty: 2, category: 'mixed', visualKey: 'strawberry', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -223,6 +249,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['树顶高8米', '飞下来3米', '8-3=5'],
     hints: ['飞下来就是高度减少了！'],
     difficulty: 1, category: 'subtraction', visualKey: 'bird', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -239,6 +267,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['总人数：4×36=144', '队数：144÷9=16'],
     hints: ['先求总人数，再分队伍！'],
     difficulty: 3, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -255,6 +285,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['足球：18×4=72', '共：72+18=90'],
     hints: ['倍用乘法，一共用加法！'],
     difficulty: 2, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'times_intro',
+  keywordType:'times_intro',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -272,6 +304,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['去掉风景描写', '先算中午：85-37=48', '再算下午：48+52=100'],
     hints: ['哪些话和数学有关？'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -288,6 +322,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['周长：(50+30)×2=160', '2圈：160×2=320'],
     hints: ['先算一圈的周长，再乘圈数！'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  lessonType:'geometry_count',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -304,6 +340,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['9只一天：3×9=27', '5天：27×5=135'],
     hints: ['先算一天的量，再算几天的量！'],
     difficulty: 2, category: 'multiplication', visualKey: 'carrot', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -321,6 +359,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['去掉季节描写', '总苹果：15×20=300', '剩余：300-180-95=25'],
     hints: ['先算一共有多少个苹果！'],
     difficulty: 3, category: 'mixed', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -338,6 +378,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['去掉春游和大巴车句子', '先算剩多少：48-12=36', '再平均分：36÷4=9'],
     hints: ['哪些句子在说春游？'],
     difficulty: 2, category: 'mixed', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -355,6 +397,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['去掉运动会和彩旗句子', '先减后加：256-89=167', '167+134=301'],
     hints: ['哪些是干扰信息？'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -372,6 +416,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['去掉整齐和安静的句子', '找到5层和每层18本', '用乘法：18×5=90'],
     hints: ['开头的描写和数学有关吗？'],
     difficulty: 1, category: 'multiplication', visualKey: 'book', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -389,6 +435,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['去掉妈妈哼歌的句子', '2千克500克=2.5千克', '5-2.5=2.5'],
     hints: ['第一句话需要看吗？'],
     difficulty: 2, category: 'subtraction', visualKey: 'cup', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
   },
   {
@@ -406,6 +454,8 @@ export const g3Questions: Question[] = [
     solutionSteps: ['去掉花和蝴蝶的描写', '先算总数：24×6=144', '再平分：144÷3=48'],
     hints: ['哪些句子只是描写景色？'],
     difficulty: 2, category: 'mixed', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   }
 ];

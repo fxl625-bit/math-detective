@@ -46,6 +46,78 @@ export type OperationType =
   | 'logic'
   | 'ratio';
 
+// ========== 统一题型体系 (v2.6 P0修复) ==========
+
+/** 关卡/教学目标类型 */
+export type LessonType =
+  | 'number_clue'           // 找到数字线索
+  | 'add_sub_action'        // 找到动作线索（加减）
+  | 'compare_more_less'     // 比较多少线索
+  | 'equal_groups_intro'    // 几个一样多
+  | 'times_intro'           // 认识倍
+  | 'guarantee_worst_case'  // 保证问题/最坏情况/抽屉原理
+  | 'irrelevant_info'       // 识别多余信息
+  | 'logic_reasoning'       // 逻辑推理（排序/排除/判断）
+  | 'planting_interval'     // 植树/间隔问题
+  | 'geometry_count';       // 图形计数
+
+/** 关键词类型 */
+export type KeywordType =
+  | 'add_action'            // 增加：来了、又来了、加入等
+  | 'subtract_action'       // 减少：走了、吃掉、用掉等
+  | 'compare'               // 比较：比……多、比……少、差几
+  | 'equal_groups'          // 一样多的份：每份、每组、每人
+  | 'times_intro'           // 倍：倍、几倍
+  | 'guarantee_worst_case'  // 保证/最坏情况：至少、保证、一定
+  | 'number_extract'        // 数字线索：题干中明确出现数字
+  | 'logic_condition'        // 逻辑条件：不是、比谁快、排第几
+  | 'irrelevant_info';      // 多余信息：年龄、颜色、编号等
+
+/** 数字角色分类 */
+export type NumberRole = 'useful_number' | 'background_number' | 'irrelevant_number';
+
+// LessonType -> LessonStepType 映射
+export const LESSON_TYPE_TO_STEP_TYPE: Record<LessonType, LessonStepType> = {
+  number_clue: 'find_numbers',
+  add_sub_action: 'find_action_words',
+  compare_more_less: 'find_compare_numbers',
+  equal_groups_intro: 'find_compare_numbers',
+  times_intro: 'find_compare_numbers',
+  guarantee_worst_case: 'find_action_words',  // 独立关卡类型
+  irrelevant_info: 'spot_extra_info',
+  logic_reasoning: 'full_solve',              // 独立推理关卡
+  planting_interval: 'full_solve',
+  geometry_count: 'full_solve',
+};
+
+// 每种 lessonType 允许的 keywordType
+export const ALLOWED_KEYWORD_TYPES: Record<LessonType, KeywordType[]> = {
+  number_clue: ['number_extract'],
+  add_sub_action: ['add_action', 'subtract_action'],
+  compare_more_less: ['compare', 'number_extract'],
+  equal_groups_intro: ['equal_groups'],
+  times_intro: ['times_intro'],
+  guarantee_worst_case: ['guarantee_worst_case'],
+  irrelevant_info: ['irrelevant_info', 'number_extract'],
+  logic_reasoning: ['logic_condition'],
+  planting_interval: ['number_extract'],
+  geometry_count: ['number_extract'],
+};
+
+// 每种 lessonType 禁止的 keywordType
+export const FORBIDDEN_KEYWORD_TYPES: Record<LessonType, KeywordType[]> = {
+  number_clue: ['logic_condition', 'guarantee_worst_case', 'times_intro'],
+  add_sub_action: ['guarantee_worst_case', 'times_intro', 'compare', 'equal_groups', 'logic_condition'],
+  compare_more_less: ['guarantee_worst_case', 'times_intro', 'logic_condition'],
+  equal_groups_intro: ['guarantee_worst_case', 'add_action', 'subtract_action'],
+  times_intro: ['guarantee_worst_case', 'add_action', 'subtract_action', 'logic_condition'],
+  guarantee_worst_case: ['add_action', 'subtract_action', 'times_intro', 'compare'],
+  irrelevant_info: ['guarantee_worst_case', 'logic_condition'],
+  logic_reasoning: ['number_extract', 'add_action', 'subtract_action', 'times_intro'],
+  planting_interval: ['guarantee_worst_case', 'logic_condition'],
+  geometry_count: ['guarantee_worst_case', 'logic_condition'],
+};
+
 // ========== 错误类型 ==========
 
 export type ErrorType =
@@ -72,6 +144,17 @@ export interface QuestionVisual {
 export interface KeywordItem {
   word: string;
   type: 'add' | 'subtract' | 'multiply' | 'divide';
+}
+
+/** 题目校验结果 */
+export interface QuestionValidationResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  questionId: string;
+  lessonType: LessonType | null;
+  keywordType: KeywordType | null;
+  grade: GradeBand;
 }
 
 export interface Question {
@@ -102,6 +185,16 @@ export interface Question {
   extraNumbers?: number[];
   isInsufficient?: boolean;
   gradeFriendlyEquation?: Partial<Record<GradeBand, string>>;
+  /** v2.6 P0修复：统一题型分类 */
+  lessonType?: LessonType;
+  /** v2.6 P0修复：关键词类型 */
+  keywordType?: KeywordType;
+  /** v2.6 P0修复：案件编号 */
+  caseId?: string;
+  /** v2.6 P0修复：关卡编号 */
+  levelId?: string;
+  /** v2.6 P0修复：故事标题 */
+  storyTitle?: string;
 }
 
 // ========== 关卡阶段 ==========

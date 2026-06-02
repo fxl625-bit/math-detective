@@ -4,6 +4,7 @@ import { loadState } from './storage';
 import { allStories } from '@/data/stories';
 import { getCaseStoryForDate, getRecentStoryIds, saveRecentStoryId } from './storySystem';
 import { classifyKeyword } from '@/data/keywordRules';
+import { inferLessonType, extractNumbers, classifyNumberRole } from './questionValidation';
 
 // ========== 关卡配置 ==========
 
@@ -355,13 +356,44 @@ export function getTodayLesson(): TodayLesson {
   return lesson;
 }
 
-// ========== 按关卡类型选题 ==========
+// ========== 按关卡类型选题（v2.6 P0修复：增加类型严格校验） ==========
+
+// 禁止出现在 find_numbers 关卡的关键词
+const FORBIDDEN_IN_NUMBER_CLUE = new Set([
+  '至少', '保证', '最少', '一定', '不管', '最坏', '摸出',
+  '倍', '倍的关系', '谁最快', '谁最慢', '第一名', '最后一名',
+]);
+
+// 禁止出现在 find_action_words 关卡的关键词
+const FORBIDDEN_IN_ACTION_WORDS = new Set([
+  '至少', '保证', '最少', '一定', '不管', '最坏', '摸出',
+  '倍', '几倍', '倍数',
+  '比', '多几', '少几', '差几',
+  '每份', '每组', '每人', '平均', '一样多',
+  '谁最快', '谁最慢', '不是最后一名', '第一名', '最后一名',
+]);
 
 const STEP_TYPE_REQUIREMENTS: Record<LessonStepType, (q: Question) => boolean> = {
-  find_numbers: (q) => q.numbers.length >= 2,
+  find_numbers: (q) => {
+    // P0修复：必须有数字，且不能是逻辑推理题
+    if (q.numbers.length === 0) return false;
+    // 禁止逻辑推理题进入数字线索关卡
+    const lessonType = inferLessonType(q);
+    if (lessonType === 'logic_reasoning' || lessonType === 'guarantee_worst_case') return false;
+    // 关键字检查
+    const hasForbidden = q.keywords.some(k => FORBIDDEN_IN_NUMBER_CLUE.has(k.word));
+    if (hasForbidden) return false;
+    // 数字必须是有效计算数字
+    const usefulCount = q.numbers.filter(n => classifyNumberRole(n, q.text, q.domain, q.operation) === 'useful_number').length;
+    if (usefulCount === 0) return false;
+    return q.numbers.length >= 1;
+  },
   find_action_words: (q) => {
     if (q.keywords.length === 0) return false;
-    // 关键词必须主要是加减类，不能是"倍"、"比"、"平均分"等非加减关键词
+    // P0修复：禁止"至少/保证/倍"等非加减关键词
+    const hasForbidden = q.keywords.some(k => FORBIDDEN_IN_ACTION_WORDS.has(k.word));
+    if (hasForbidden) return false;
+    // 必须是加减动作词
     return q.keywords.every(k => {
       const cls = classifyKeyword(k.word);
       if (!cls) return true; // 未分类的关键词放行
@@ -441,29 +473,17 @@ export function selectQuestionForStep(params: {
     }
   }
 
-  // Degrade: wider grade band
-  if (!result && stepType !== 'remove_noise') {
-    result = tryPool(allQuestions, true);
+  // Degrade: wider grade band (ONLY for specific types)
+  if (!result && stepType !== 'remove_noise' && stepType !== 'spot_extra_info' && stepType !== 'spot_missing_info') {
+    result = tryPool(allQuestions, stepType !== 'find_numbers');
   }
 
-  // Last resort for non-remove_noise: any question at all
-  if (!result && stepType !== 'remove_noise') {
-    const anyQ = allQuestions.filter(q => !usedSet.has(q.id));
-    if (anyQ.length > 0) {
-      console.warn(`[selectQuestionForStep] No suitable question for "${stepType}" (grade=${grade}), using fallback`);
-      result = anyQ[Math.floor(Math.random() * anyQ.length)];
-    }
-  }
-
-  // remove_noise: NEVER fallback
-  if (!result && stepType === 'remove_noise') {
-    console.warn(`[selectQuestionForStep] No remove_noise question available for grade=${grade}, step will be substituted`);
-    return null;
-  }
-
-  // spot_extra_info / spot_missing_info: no fallback to generic questions
-  if (!result && (stepType === 'spot_extra_info' || stepType === 'spot_missing_info')) {
-    console.warn(`[selectQuestionForStep] No ${stepType} question available for grade=${grade}`);
+  // P0修复：不再无差别fallback到任意题目。如果找不到匹配题，返回null让上层处理。
+  if (!result) {
+    console.warn(
+      `[selectQuestionForStep] No suitable question for stepType="${stepType}" ` +
+      `(grade=${grade}, maxDifficulty=${maxDifficulty}). Returning null.`
+    );
     return null;
   }
 

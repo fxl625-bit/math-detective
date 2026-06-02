@@ -15,6 +15,8 @@ export const extraInfoQuestions: Question[] = [
     solutionSteps: ['找到数字15和8', '问"比……多"用减法', '15-8=7', '多余信息：天气'],
     hints: ['哪个数字和问题无关？'],
     difficulty: 1, category: 'subtraction', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'irrelevant_info',
+  keywordType:'compare',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'spot_extra_info'],
   },
   {
@@ -31,6 +33,8 @@ export const extraInfoQuestions: Question[] = [
     solutionSteps: ['找到数字12、3和36', '问"苹果比梨多"，只需要苹果和梨的数量', '36元是多余信息', '12-3=9'],
     hints: ['花了多少钱和"多几个"有关系吗？'],
     difficulty: 2, category: 'subtraction', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'irrelevant_info',
+  keywordType:'compare',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
   },
   {
@@ -47,6 +51,8 @@ export const extraInfoQuestions: Question[] = [
     solutionSteps: ['找到184、4和50', '求每份数用除法', '50是书架容量，不需要', '184÷4=46'],
     hints: ['书架能放多少和年级分多少有关吗？'],
     difficulty: 2, category: 'division', visualKey: 'book', requiresAnswer: true,
+  lessonType:'irrelevant_info',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
   },
   {
@@ -63,6 +69,8 @@ export const extraInfoQuestions: Question[] = [
     solutionSteps: ['找到8、12和35', '每排人数×排数=总人数', '35岁是多余信息', '8×12=96'],
     hints: ['老师的年龄和方阵人数有关吗？'],
     difficulty: 2, category: 'multiplication', visualKey: 'student', requiresAnswer: true,
+  lessonType:'irrelevant_info',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
   },
   {
@@ -79,6 +87,8 @@ export const extraInfoQuestions: Question[] = [
     solutionSteps: ['找到5、3、15、12', '问题只问苹果', '3和12是关于梨的，不需要', '5×15=75'],
     hints: ['仔细看问题——问的是苹果还是全部水果？'],
     difficulty: 3, category: 'multiplication', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'irrelevant_info',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
   },
   {
@@ -95,6 +105,8 @@ export const extraInfoQuestions: Question[] = [
     solutionSteps: ['找到50、35和28', '问题只问小明', '35是小红带的钱，不需要', '50-28=22'],
     hints: ['小红带了多少钱和小明剩多少钱有关吗？'],
     difficulty: 2, category: 'subtraction', visualKey: 'money', requiresAnswer: true,
+  lessonType:'irrelevant_info',
+  keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
   },
   {
@@ -111,6 +123,8 @@ export const extraInfoQuestions: Question[] = [
     solutionSteps: ['找到200、0.8、150', '问题只问书包', '笔袋信息多余', '200×0.8=160'],
     hints: ['笔袋打折和书包价格有关吗？'],
     difficulty: 3, category: 'multiplication', visualKey: 'bag', requiresAnswer: true,
+  lessonType:'irrelevant_info',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
   },
   {
@@ -127,6 +141,8 @@ export const extraInfoQuestions: Question[] = [
     solutionSteps: ['找到7、3和5', '问题只问白鹅', '3只是鸭子，不需要', '7+5=12'],
     hints: ['鸭子数量和计算白鹅数量有关吗？'],
     difficulty: 2, category: 'addition', visualKey: 'bird', requiresAnswer: true,
+  lessonType:'irrelevant_info',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
   },
 ];

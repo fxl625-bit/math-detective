@@ -16,7 +16,9 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['去掉差：12-2=10', '10的一半=5（小红）', '5+2=7（小明）'],
     hints: ['先让小明和小红一样多（拿走小明的2颗），剩下平均分！'],
     difficulty: 2, category: 'mixed', visualKey: 'candy', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'compare',
+    stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
     id: 'g2o_02', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -32,7 +34,9 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['去掉差：18-4=14', '14÷2=7（弟弟）', '7+4=11（哥哥）'],
     hints: ['让哥哥和弟弟一样大（哥哥变小4岁），两个人就同岁了！'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'compare',
+    stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
     id: 'g2o_03', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -48,7 +52,9 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['最后一样重：每筐20÷2=10', '第一筐给了3千克：原来=10+3=13', '第二筐：20-13=7'],
     hints: ['倒着想：最后两筐各多少？第一筐是给了还是收到了？'],
     difficulty: 2, category: 'mixed', visualKey: 'apple', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'add_action',
+    stepCompatibility: ['find_action_words', 'remove_noise', 'full_solve'],
   },
   {
     id: 'g2o_04', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -64,7 +70,9 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['去掉多出的6人：62-6=56', '56÷2=28（二班）', '28+6=34（一班）'],
     hints: ['先假设两班一样多，去掉差再平均分！'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'compare',
+    stepCompatibility: ['find_action_words', 'full_solve'],
   },
 
   // ====== 周期问题（日历/星期）3题 ======
@@ -82,7 +90,9 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['过了几天：15-1=14天', '14÷7=2周（刚好）', '2周后还是星期三'],
     hints: ['从1号到15号过了几天？是几个完整星期？'],
     difficulty: 2, category: 'mixed', visualKey: 'book', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['full_solve'],
   },
   {
     id: 'g2o_06', gradeBand: 'G2', domain: 'pattern',
@@ -98,7 +108,9 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['20÷7=2周余6天', '周五往后数6天到周四'],
     hints: ['20天是几个星期多几天？多的天数从周五往后数！'],
     difficulty: 2, category: 'mixed', visualKey: 'book', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['full_solve'],
   },
   {
     id: 'g2o_07', gradeBand: 'G2', domain: 'pattern',
@@ -114,7 +126,9 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['过了几天：30-1=29', '29÷7=4周余1天', '星期一+1=星期二'],
     hints: ['从1号到30号过了多少天？余1天就是往后推一天。'],
     difficulty: 2, category: 'mixed', visualKey: 'book', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['full_solve'],
   },
 
   // ====== 植树问题（画图理解）3题 ======
@@ -132,6 +146,8 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['间隔数：20÷5=4段', '两端都种：4+1=5棵'],
     hints: ['画一条线，把树标在两端和中间，数一数！'],
     difficulty: 2, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
   },
   {
@@ -148,6 +164,8 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['间隔数：15÷3=5段', '两端都不放：5-1=4盆'],
     hints: ['只放中间，两端不要。画线看看哪几个位置可以放？'],
     difficulty: 2, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'remove_noise', 'full_solve'],
   },
   {
@@ -164,6 +182,8 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['圆形：棵数=间隔数', '24÷3=8棵'],
     hints: ['圆圈和直线的区别是什么？圆圈没有起点终点！'],
     difficulty: 2, category: 'division', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
   },
 
@@ -182,7 +202,9 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['最后18，除2：18÷2=9', '减5：9-5=4'],
     hints: ['从结果倒着走！乘2→除2，加5→减5。'],
     difficulty: 2, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'add_action',
+    stepCompatibility: ['full_solve'],
   },
   {
     id: 'g2o_12', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -198,7 +220,9 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['倒推买来：11-3=8', '倒推吃掉：8+4=12'],
     hints: ['从现在倒着退：没买3个之前是多少？没吃4个之前呢？'],
     difficulty: 2, category: 'mixed', visualKey: 'apple', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'add_action',
+    stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
     id: 'g2o_13', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -214,7 +238,9 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['倒推除3：6×3=18', '倒推减8：18+8=26'],
     hints: ['从后往前：除3→乘3，减8→加8。'],
     difficulty: 2, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'subtract_action',
+    stepCompatibility: ['full_solve'],
   },
 
   // ====== 数字谜（竖式推理，全数学验证）3题 ======
@@ -232,6 +258,8 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['30+24=54', '□=62-54=8'],
     hints: ['先把已知的30和24加起来，再看差多少到62。'],
     difficulty: 2, category: 'subtraction', visualKey: 'book', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -248,6 +276,8 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['□7 = 25+32 = 57', '□=5'],
     hints: ['先算出□7等于多少（25加32）！'],
     difficulty: 2, category: 'addition', visualKey: 'book', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -264,6 +294,8 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['个位：□+9=11→□=2', '验十位：2+2+进位1=5', '正确：22+29=51'],
     hints: ['先看个位：□+9的个位是1（要进位），□可能是几？'],
     difficulty: 3, category: 'mixed', visualKey: 'book', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['full_solve'],
   },
 
@@ -282,6 +314,8 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['凑10：9+1=10', '再凑10：8+2=10', '10+10=20'],
     hints: ['谁和谁是"好朋友"（加起来等于10）？'],
     difficulty: 1, category: 'addition', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
   },
   {
@@ -298,6 +332,8 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['凑整十：15+5=20', '凑10：7+3=10', '20+10=30'],
     hints: ['找"个位互补"的朋友：谁和15能凑20？谁和7能凑10？'],
     difficulty: 1, category: 'addition', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
   },
 
@@ -316,7 +352,9 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['十位是2：25、28', '十位是5：52、58', '十位是8：82、85', '共6个'],
     hints: ['固定十位，换个位。按顺序列就不会漏！'],
     difficulty: 2, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['full_solve'],
   },
   {
     id: 'g2o_20', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -332,6 +370,8 @@ export const g2OlympiadQuestions: Question[] = [
     solutionSteps: ['第1件上衣配2条裤子：2种', '第2件上衣配2条裤子：2种', '第3件上衣配2条裤子：2种', '共6种'],
     hints: ['一件上衣能配几条裤子？3件上衣呢？画线连一连！'],
     difficulty: 2, category: 'addition', visualKey: 'child', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['simulation', 'full_solve'],
   },
 ];

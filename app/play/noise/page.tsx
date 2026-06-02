@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Eraser, RotateCcw } from 'lucide-react';
@@ -38,6 +38,8 @@ export default function NoiseReductionPage() {
   const [phase, setPhase] = useState<'erasing' | 'done'>('erasing');
   const [gameOver, setGameOver] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
+  const mountedRef = useRef(true);
+  useEffect(() => { return () => { mountedRef.current = false; }; }, []);
 
   const currentQ = gameQuestions[round] || gameQuestions[0];
 
@@ -106,6 +108,7 @@ export default function NoiseReductionPage() {
     const remainingNoise = blocks.filter((b, i) => b.isNoise && !newErased.has(i));
     if (remainingNoise.length === 0 && newErased.size > 0) {
       setTimeout(() => {
+        if (!mountedRef.current) return;
         const gotWrong = blocks.some((b, i) => !b.isNoise && newErased.has(i));
         if (!gotWrong) {
           setCorrectCount((c) => c + 1);

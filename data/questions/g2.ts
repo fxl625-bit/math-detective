@@ -15,6 +15,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['理解：每盒6支，有4盒', '这是求4个6是多少', '用乘法：6×4=24'],
     hints: ['几个几，用乘法！4盒就是4个6。'],
     difficulty: 1, category: 'multiplication', visualKey: 'crayon', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -31,6 +33,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['找到总数12和份数3', '"平均分"表示用除法', '12÷3=4'],
     hints: ['平均分就是把总数分成相等的几份！'],
     difficulty: 1, category: 'division', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -47,6 +51,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['先算下车后：25-8=17', '再算上车后：17+6=23'],
     hints: ['分两步走：先算下车，再算上车！'],
     difficulty: 2, category: 'mixed', visualKey: 'passenger', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -63,6 +69,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['单价8元，数量5本', '总价=单价×数量', '8×5=40'],
     hints: ['每本都一样贵，几个几用乘法！'],
     difficulty: 1, category: 'multiplication', visualKey: 'book', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -79,6 +87,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['总数20，份数4', '平均分用除法', '20÷4=5'],
     hints: ['把总数分成相等的4份！'],
     difficulty: 1, category: 'division', visualKey: 'candy', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -95,6 +105,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['先算送走后：35-18=17', '再算买来后：17+12=29'],
     hints: ['先少后多，分两步算！'],
     difficulty: 2, category: 'mixed', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -111,6 +123,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['7:30出发', '加上15分钟', '30+15=45，所以是7:45'],
     hints: ['把分钟数加起来！注意超过60分钟要进位。'],
     difficulty: 1, category: 'addition', visualKey: 'child', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['simulation', 'full_solve'],
   },
   {
@@ -127,6 +141,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['先算总价：3×6=18元', '再算找回：20-18=2元'],
     hints: ['先算花了多少钱，再算找回！'],
     difficulty: 2, category: 'mixed', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -143,6 +159,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['每棵5只，有7棵', '这是求7个5', '5×7=35'],
     hints: ['每棵一样多，几个几用乘法！'],
     difficulty: 1, category: 'multiplication', visualKey: 'bird', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -159,6 +177,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['先算下层：28-9=19', '再算总数：28+19=47'],
     hints: ['分两问来做，先求下层，再求总数！'],
     difficulty: 2, category: 'mixed', visualKey: 'book', requiresAnswer: true,
+  lessonType:'compare_more_less',
+  keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -175,6 +195,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['找到12和7', '"比...多"用减法', '12-7=5'],
     hints: ['比多少，用大的减去小的！'],
     difficulty: 1, category: 'subtraction', visualKey: 'carrot', requiresAnswer: true,
+  lessonType:'compare_more_less',
+  keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -191,6 +213,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['总数18，份数6', '平均分：18÷6=3'],
     hints: ['把18分成相等的6份！'],
     difficulty: 1, category: 'division', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -207,6 +231,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['绳子36米', '剪下9米减少了', '36-9=27'],
     hints: ['注意单位是米！'],
     difficulty: 1, category: 'subtraction', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -224,6 +250,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['去掉无关的风景描写', '找到40和15', '"摘了"表示减少', '40-15=25'],
     hints: ['题目前面的话和数学有关吗？'],
     difficulty: 2, category: 'subtraction', visualKey: 'peach', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
   },
   {
@@ -240,6 +268,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['每朵5片，有8朵', '这是求8个5', '5×8=40'],
     hints: ['每朵一样多，几个几用乘法！'],
     difficulty: 1, category: 'multiplication', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -256,6 +286,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['先算捞出后：24-7=17', '再算放进后：17+11=28'],
     hints: ['分两步：先捞后放！'],
     difficulty: 2, category: 'mixed', visualKey: 'goldfish', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -272,6 +304,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['单价5元，数量4瓶', '总价=5×4=20'],
     hints: ['每瓶5元，4瓶就是4个5元！'],
     difficulty: 1, category: 'multiplication', visualKey: 'yogurt', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -288,6 +322,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['每节40分钟，有3节', '40×3=120'],
     hints: ['3个40是多少？'],
     difficulty: 1, category: 'multiplication', visualKey: 'child', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -305,6 +341,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['去掉无关信息', '先减门票：30-15=15', '再减零食：15-9=6'],
     hints: ['题目前面的话需要用到吗？'],
     difficulty: 2, category: 'mixed', visualKey: 'balloon', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -321,6 +359,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['总数30，每份6个', '求份数用除法：30÷6=5'],
     hints: ['30里面有几个6？就是30÷6！'],
     difficulty: 1, category: 'division', visualKey: 'egg', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -338,6 +378,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['去掉周末和球鞋的句子', '找到5盒和每盒8支', '5个8用乘法：5×8=40'],
     hints: ['哪些信息对解题没有帮助？'],
     difficulty: 1, category: 'multiplication', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -355,6 +397,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['去掉动物园描写和吃饱的描述', '找到28和13', '"吃了"表示减少', '28-13=15'],
     hints: ['题目开头的话和数学有关吗？'],
     difficulty: 2, category: 'subtraction', visualKey: 'peach', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
   },
   {
@@ -372,6 +416,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['去掉书架和爱读书的句子', '找到30和12', '"花了"表示减少', '30-12=18'],
     hints: ['第一句话需要算吗？'],
     difficulty: 2, category: 'subtraction', visualKey: 'book', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
   },
   {
@@ -389,6 +435,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['去掉星期和天气的句子', '找到40分钟和10分钟', '一共用加法：40+10=50'],
     hints: ['哪些信息不需要看？'],
     difficulty: 1, category: 'addition', visualKey: 'clock', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
   },
   {
@@ -406,6 +454,8 @@ export const g2Questions: Question[] = [
     solutionSteps: ['去掉春游和书包的句子', '找到24和4', '平均分用除法：24÷4=6'],
     hints: ['开头几句话需要看吗？'],
     difficulty: 1, category: 'division', visualKey: 'child', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   }
 ];

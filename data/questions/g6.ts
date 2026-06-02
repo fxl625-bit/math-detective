@@ -15,6 +15,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['整数6化成分数6/1', '6/1 × 2/3 = 12/3', '12/3 = 4'],
     hints: ['求一个数的几分之几，用这个数乘以分数！'],
     difficulty: 1, category: 'multiplication', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
@@ -31,6 +33,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['求3/4的1/2是多少', '3/4 × 1/2 = 3/8'],
     hints: ['分数乘分数：分子乘分子，分母乘分母！'],
     difficulty: 2, category: 'multiplication', visualKey: 'egg', requiresAnswer: true,
+  keywordType:'number_extract',
+  lessonType:'logic_reasoning',
   stepCompatibility: ['full_solve'],
   },
   {
@@ -47,6 +51,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['速度=路程÷时间', '40÷2/3=40×3/2', '40×3/2=120/2=60'],
     hints: ['除以一个分数等于乘它的倒数！'],
     difficulty: 2, category: 'division', visualKey: 'toyCar', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'equal_groups',
   stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
@@ -63,6 +69,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['比2:3，每份：400÷2=200', '水：200×3=600'],
     hints: ['比可以看作每份数：先求一份是多少！'],
     difficulty: 2, category: 'mixed', visualKey: 'cup', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
   },
   {
@@ -79,6 +87,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['总份数：2+3+5=10', '每份：200÷10=20', '水泥：20×2=40'],
     hints: ['按比例分配：先求总份数，再求每份重，最后求各部分！'],
     difficulty: 2, category: 'mixed', visualKey: 'egg', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
   },
   {
@@ -95,6 +105,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['达标率=达标数÷总数', '186÷200=0.93', '0.93×100%=93%'],
     hints: ['达标率=达标人数÷总人数×100%！'],
     difficulty: 1, category: 'division', visualKey: 'child', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -111,6 +123,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['八折=80%=0.8', '现价：4500×0.8=3600'],
     hints: ['几折就是原价的百分之几十！八折=80%。'],
     difficulty: 1, category: 'multiplication', visualKey: 'book', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
   },
   {
@@ -127,6 +141,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['一成五=15%', '今年=4800×(1+15%)', '4800×1.15=5520'],
     hints: ['一成=10%，一成五=15%！增产就是×(1+百分数)。'],
     difficulty: 2, category: 'mixed', visualKey: 'egg', requiresAnswer: true,
+  lessonType:'compare_more_less',
+  keywordType:'compare',
   stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
@@ -143,6 +159,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['利息=2000×2.5%×2=100', '合计=2000+100=2100'],
     hints: ['利息=本金×利率×时间！'],
     difficulty: 3, category: 'mixed', visualKey: 'candy', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -159,6 +177,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['周长：2×3.14×5=31.4', '面积：3.14×5×5=78.5'],
     hints: ['圆周长C=2πr，圆面积S=πr²！'],
     difficulty: 2, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
   },
   {
@@ -175,6 +195,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['C=2πr', 'r=C÷2÷π', '62.8÷3.14=20', '20÷2=10'],
     hints: ['已知周长求半径：r=C÷2÷π！'],
     difficulty: 2, category: 'division', visualKey: 'fish', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
   },
   {
@@ -191,6 +213,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['底面积：3.14×2²=12.56', '体积：12.56×5=62.8'],
     hints: ['圆柱体积=底面积×高=πr²h！1立方分米=1升。'],
     difficulty: 2, category: 'mixed', visualKey: 'cup', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -207,6 +231,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['实际=4×50000=200000cm', '换算：200000÷100=2000m', '2000m÷1000=2km'],
     hints: ['比例尺=图上距离:实际距离！注意单位换算。'],
     difficulty: 3, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
   },
   {
@@ -223,6 +249,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['甲效率：1÷10=1/10', '乙效率：1÷15=1/15', '合作效率：1/10+1/15=1/6', '合作天数：1÷1/6=6'],
     hints: ['工程问题：效率=1÷天数，合作天数=1÷(效率和)！'],
     difficulty: 3, category: 'mixed', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -239,6 +267,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['两次共倒出：1/4+1/3=7/12', '7/12对应35升', '原有：35÷7/12=35×12/7=60'],
     hints: ['已知部分和对应分率，求单位"1"用除法！'],
     difficulty: 3, category: 'mixed', visualKey: 'cup', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
@@ -255,6 +285,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['提价后：100×1.2=120', '降价后：120×0.8=96', '对比：96<100，比原价低'],
     hints: ['注意：两次变化的基数不一样！先算提价后的价，再算降价。'],
     difficulty: 3, category: 'mixed', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
   },
   {
@@ -272,6 +304,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['去掉天气描写', '总份数：5+3=8', '每份：240÷8=30', '爬山：30×5=150'],
     hints: ['按比例分配：找到总份数，求每份是多少！'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['remove_noise', 'full_solve'],
   },
   {
@@ -288,6 +322,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['甲效率：1÷6=1/6', '乙效率：1÷8=1/8', '合作效率：1/6+1/8=7/24', '时间：1÷7/24=24/7'],
     hints: ['进水管问题和工程问题一样，效率相加！'],
     difficulty: 3, category: 'mixed', visualKey: 'cup', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -304,6 +340,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['半径：12.56÷3.14÷2=2', '底面积：3.14×2²=12.56', '体积：12.56×3=37.68', '重量：37.68×550=20724kg≈20.724吨'],
     hints: ['先求半径，再求体积，最后求重量！单位换算：1000千克=1吨。'],
     difficulty: 4, category: 'mixed', visualKey: 'egg', requiresAnswer: true,
+  lessonType:'planting_interval',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -321,6 +359,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['去掉节日描写', '送：12÷3=4瓶，共16瓶', '花钱：12×4=48元', '实际每瓶：48÷16=3元', '省：4-3=1元'],
     hints: ['买3送1就是买3瓶得4瓶！先算共得几瓶。'],
     difficulty: 3, category: 'mixed', visualKey: 'yogurt', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'remove_noise', 'full_solve'],
   },
   {
@@ -338,13 +378,15 @@ export const g6Questions: Question[] = [
     solutionSteps: ['去掉颁奖典礼的句子', '达标率=达标数÷总数×100%', '230÷250=0.92', '0.92×100%=92%'],
     hints: ['哪些信息描述的是典礼？'],
     difficulty: 1, category: 'division', visualKey: 'child', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'remove_noise', 'full_solve'],
   },
   {
     id: 'g6_22', gradeBand: 'G6', domain: 'percent',
     cognitiveSkills: ['remove_noise', 'choose_operation'],
     text: '银行大厅里金碧辉煌，工作人员热情地接待每一位客户。小明把2000元压岁钱存入银行，年利率是3.5%，存一年后利息是多少元？',
-    numbers: [2000, 0.035],
+    numbers: [2000],
     keywords: [{ word: '利率', type: 'multiply' }],
     noisePhrases: ['银行大厅里金碧辉煌', '工作人员热情地接待每一位客户'],
     usefulPhrases: ['2000元存入银行', '年利率3.5%', '一年后利息是多少元'],
@@ -355,6 +397,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['去掉银行大厅的描写', '利息公式：本金×利率', '2000×0.035=70'],
     hints: ['开头的话和利息有关吗？'],
     difficulty: 2, category: 'multiplication', visualKey: 'adult', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -372,6 +416,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['去掉建筑工地的描写', '总份数：2+3+5=10', '每份：200÷10=20', '水泥：20×2=40'],
     hints: ['第一句话是数学信息吗？'],
     difficulty: 2, category: 'mixed', visualKey: 'toyCar', requiresAnswer: true,
+  lessonType:'compare_more_less',
+  keywordType:'compare',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -389,13 +435,15 @@ export const g6Questions: Question[] = [
     solutionSteps: ['去掉喷泉的描写', '周长公式：C=πd', 'C≈3.14×10=31.4', '面积公式：S=πr²', 'S≈3.14×25=78.5'],
     hints: ['第一句话是题目需要的吗？'],
     difficulty: 2, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['remove_noise', 'full_solve'],
   },
   {
     id: 'g6_25', gradeBand: 'G6', domain: 'percent',
     cognitiveSkills: ['remove_noise', 'multi_step_reasoning'],
     text: '同学们排着整齐的队伍走向操场，每个人脸上都写满了期待。学校图书馆去年有图书4800册，今年增加了15%，今年有图书多少册？',
-    numbers: [4800, 0.15],
+    numbers: [4800],
     keywords: [{ word: '增加', type: 'add' }],
     noisePhrases: ['同学们排着整齐的队伍走向操场', '每个人脸上都写满了期待'],
     usefulPhrases: ['去年有图书4800册', '今年增加了15%', '今年有图书多少册'],
@@ -406,6 +454,8 @@ export const g6Questions: Question[] = [
     solutionSteps: ['去掉队伍和表情的描写', '增加15%即变成原来的115%', '4800×1.15=5520'],
     hints: ['开头描写同学们在干什么？要算吗？'],
     difficulty: 2, category: 'mixed', visualKey: 'book', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   }
 ];

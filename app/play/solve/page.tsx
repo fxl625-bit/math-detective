@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
@@ -48,6 +48,8 @@ export default function FullSolvePage() {
   const [feedback, setFeedback] = useState<{ show: boolean; type: 'success' | 'hint' | 'info'; message: string }>({ show: false, type: 'info', message: '' });
   const [showConfetti, setShowConfetti] = useState(false);
   const [shakeInput, setShakeInput] = useState(false);
+  const mountedRef = useRef(true);
+  useEffect(() => { return () => { mountedRef.current = false; }; }, []);
   const [starsEarned, setStarsEarned] = useState(0);
 
   // Blocks for noise erasing
@@ -96,7 +98,7 @@ export default function FullSolvePage() {
         type: 'hint',
         message: getRandomHint(),
       });
-      setTimeout(() => setShakeInput(false), 500);
+      setTimeout(() => { if (mountedRef.current) setShakeInput(false); }, 500);
       completeQuestion(q.id, false, {
         questionId: q.id,
         questionText: q.text,

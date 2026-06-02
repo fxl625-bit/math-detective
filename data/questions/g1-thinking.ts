@@ -16,7 +16,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['小明比小红高→小明>小红', '小红比小华高→小红>小华', '从高到矮：小明、小红、小华'],
     hints: ['画一画：用">"把三个小朋友连起来看看！'],
     difficulty: 1, category: 'mixed', visualKey: 'child', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'compare',
+    stepCompatibility: ['find_action_words', 'full_solve'],
   },
   {
     id: 'g1t_02', gradeBand: 'G1', domain: 'logic_reasoning',
@@ -32,7 +34,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['小丽不是最后一名→可能是第1或第2', '小刚比小丽快→小刚在小丽前面', '小刚最快，小丽第二'],
     hints: ['用推理法：小丽可能在第几名？'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'compare',
+    stepCompatibility: ['find_action_words', 'full_solve'],
   },
   // ========== 找规律：数字序列 ==========
   {
@@ -49,6 +53,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['找相邻两数差：4-2=2，6-4=2，8-6=2', '每次加2', '8+2=10'],
     hints: ['看看每两个相邻的数相差多少？'],
     difficulty: 1, category: 'addition', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
   },
   {
@@ -65,6 +71,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['找差：3-1=2，5-3=2，7-5=2', '每次加2', '7+2=9，验证9+2=11'],
     hints: ['这些数都是单数！每次加几？'],
     difficulty: 1, category: 'addition', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
   },
   {
@@ -81,6 +89,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['找差：6-3=3，9-6=3，12-9=3', '每次加3', '12+3=15'],
     hints: ['和数"3"的口诀有关哦！每次加几？'],
     difficulty: 1, category: 'addition', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
   },
   // ========== 比多少进阶：推理数量 ==========
@@ -98,6 +108,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['剩下的：5颗', '给出的：2颗', '原来=5+2=7'],
     hints: ['把给出的糖果拿回来，就是原来的数量！'],
     difficulty: 2, category: 'addition', visualKey: 'candy', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -114,6 +126,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['小刚比小丽多→小丽比小刚少', '12-3=9'],
     hints: ['"小刚比小丽多"说明谁的贴纸少？'],
     difficulty: 2, category: 'subtraction', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'compare_more_less',
+  keywordType:'compare',
     stepCompatibility: ['find_numbers', 'find_action_words', 'find_compare_numbers', 'full_solve'],
   },
   // ========== 等量代换启蒙 ==========
@@ -131,7 +145,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['1个苹果换2个橘子', '2个苹果：2+2=4个橘子'],
     hints: ['用加法：1个苹果换2个橘子，2个苹果就是2个2！'],
     difficulty: 1, category: 'addition', visualKey: 'apple', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['simulation', 'full_solve'],
   },
   {
     id: 'g1t_09', gradeBand: 'G1', domain: 'logic_reasoning',
@@ -147,7 +163,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['1只兔子换3根胡萝卜', '2只兔子：3+3=6'],
     hints: ['用加法算：3加3等于几？'],
     difficulty: 1, category: 'addition', visualKey: 'carrot', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['simulation', 'full_solve'],
   },
   // ========== 分类计数 ==========
   {
@@ -164,6 +182,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['三角形：3条边', '正方形：4条边', '一共：3+4=7'],
     hints: ['把两个数加起来就行了！'],
     difficulty: 1, category: 'addition', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'geometry_count',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   // ========== 逻辑推理：排除法 ==========
@@ -182,6 +202,7 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['红不可能是铅笔→红是橡皮或尺子', '蓝不可能是尺子→蓝是铅笔或橡皮', '绿不可能是橡皮→绿是铅笔或尺子', '铅笔可能在蓝或绿，无法确定'],
     hints: ['试试列出每种文具可能在哪里，有没有唯一答案？'],
     difficulty: 3, category: 'mixed', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'logic_reasoning',
     stepCompatibility: ['full_solve', 'spot_missing_info'],
     isInsufficient: true,
   },
@@ -201,6 +222,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['去掉书包颜色和外表的句子', '找到数字：5和3', '5+3=8'],
     hints: ['第一句话和文具有关吗？'],
     difficulty: 1, category: 'addition', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
     extraNumbers: [],
   },
@@ -219,6 +242,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['现在架上有8本', '放回去5本', '8+5=13'],
     hints: ['直接在"还剩8本"的基础上加放回去的就行！'],
     difficulty: 2, category: 'addition', visualKey: 'book', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   // ========== 逻辑推理：年龄比较 ==========
@@ -236,7 +261,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['年龄差：9-5=4', '年龄差永远不变！'],
     hints: ['过2年两人都长大2岁，相差的岁数变不变？'],
     difficulty: 2, category: 'subtraction', visualKey: 'child', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'compare',
+    stepCompatibility: ['find_action_words', 'full_solve'],
   },
   // ========== 规律：图形推理 ==========
   {
@@ -253,7 +280,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['观察颜色：红蓝红蓝红', '发现规律：红蓝交替', '红色后面是蓝色'],
     hints: ['看看颜色是怎么循环的？'],
     difficulty: 1, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+  lessonType:'logic_reasoning',
+    stepCompatibility: ['simulation', 'full_solve'],
   },
   // ========== 简单的天平推理 ==========
   {
@@ -270,7 +298,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['右边比左边多：5-3=2', '左边加2个=右边5个', '天平平衡'],
     hints: ['右边比左边多了几个？补上就平衡了！'],
     difficulty: 1, category: 'subtraction', visualKey: 'apple', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'add_action',
+    stepCompatibility: ['find_action_words', 'simulation', 'full_solve'],
   },
   // ========== 逻辑推理：捉迷藏 ==========
   {
@@ -287,7 +317,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['负责找的：1个人', '躲起来的：10-1=9', '没被找到：9-4=5'],
     hints: ['有人是负责"捉"的，他不需要躲哦！'],
     difficulty: 2, category: 'subtraction', visualKey: 'child', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'subtract_action',
+    stepCompatibility: ['find_action_words', 'remove_noise', 'full_solve'],
   },
   // ========== 规律：倍数启蒙 ==========
   {
@@ -304,6 +336,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['找规律：每层多2瓶', '第4层：6+2=8', '第5层：8+2=10'],
     hints: ['每往下一层多几瓶？一层层加出来！'],
     difficulty: 2, category: 'addition', visualKey: 'yogurt', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
   },
 
@@ -322,6 +356,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['画一条10米的线段', '每2米标一个点：0,2,4,6,8,10', '数一数有6个点'],
     hints: ['画一条线段，从0开始，每隔2米画一朵花，数数看有几朵？'],
     difficulty: 2, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
   },
   {
@@ -338,6 +374,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['画8米的线段', '标点：0,2,4,6,8', '数出5个点'],
     hints: ['从起点0开始画，每2米做记号，数数几个记号？'],
     difficulty: 1, category: 'mixed', visualKey: 'balloon', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
   },
   {
@@ -348,12 +386,14 @@ export const g1ThinkingQuestions: Question[] = [
     keywords: [{ word: '每隔', type: 'add' }],
     noisePhrases: [], usefulPhrases: ['跑道长12米', '每隔3米插一面旗', '起点不插', '一共要插几面'],
     questionMeaningOptions: ['4面', '5面', '3面'],
-    correctMeaning: '4面', operation: 'division', equation: '12 ÷ 3 = ?', answer: 4,
+    correctMeaning: '4面', operation: 'addition', equation: '12 ÷ 3 = ?', answer: 4,
     answerSentence: '一共要插4面彩旗。',
     explanation: '起点不插，只在3、6、9、12的位置插旗。4段间隔=4面旗。和"两端都种"不一样哦！',
     solutionSteps: ['画12米线段', '标点：3,6,9,12（起点0不标）', '共4面'],
     hints: ['起点不插！从3米开始，每隔3米做记号。'],
     difficulty: 2, category: 'division', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'remove_noise', 'full_solve'],
   },
 
@@ -372,7 +412,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['一组3个：红黄蓝', '8个里有几组：8÷3=2组...余2', '余2对应第2个颜色：黄'],
     hints: ['3个一循环，第8个是第几个循环的第几个？'],
     difficulty: 2, category: 'mixed', visualKey: 'balloon', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['full_solve'],
   },
   {
     id: 'g1t_23', gradeBand: 'G1', domain: 'pattern',
@@ -388,7 +430,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['单数位置：男生', '双数位置：女生', '11是单数→男生'],
     hints: ['第1个男生，第2个女生...单数是什么？双数是什么？'],
     difficulty: 1, category: 'mixed', visualKey: 'child', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['full_solve'],
   },
   {
     id: 'g1t_24', gradeBand: 'G1', domain: 'pattern',
@@ -404,7 +448,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['一组：白白黑（3颗）', '12÷3=4组，没有余数', '刚好第4组最后=黑色'],
     hints: ['3颗一组，12里面有几组？余几颗？'],
     difficulty: 2, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['full_solve'],
   },
 
   // ========== 巧数图形 ==========
@@ -422,6 +468,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['先数小三角形：3个', '再数大三角形（整个外框）：1个', '共3+1=4个'],
     hints: ['除了3个小的，把它们包起来的那个大的算不算？'],
     difficulty: 2, category: 'addition', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'geometry_count',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'spot_extra_info', 'full_solve'],
   },
   {
@@ -438,6 +486,8 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['先数小正方形：4个', '外面的大正方形也算：1个', '4 + 1 = 5'],
     hints: ['除了4个小的，把它们包住的大正方形也不能漏！'],
     difficulty: 2, category: 'addition', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'geometry_count',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'spot_extra_info', 'full_solve'],
   },
 
@@ -456,7 +506,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['十位是1：12、13', '十位是2：21、23', '十位是3：31、32', '共6个'],
     hints: ['固定一个数字在十位，个位换着试。一一列出来！'],
     difficulty: 2, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['full_solve'],
   },
   {
     id: 'g1t_28', gradeBand: 'G1', domain: 'logic_reasoning',
@@ -472,7 +524,9 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['红上衣配2条裤子→2种', '蓝上衣配2条裤子→2种', '共2+2=4种'],
     hints: ['给每件上衣找"裤子朋友"，画线连一连！'],
     difficulty: 1, category: 'addition', visualKey: 'child', requiresAnswer: true,
-    stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+  lessonType:'logic_reasoning',
+  keywordType:'number_extract',
+    stepCompatibility: ['simulation', 'full_solve'],
   },
 
   // ========== 数字谜启蒙 ==========
@@ -490,22 +544,26 @@ export const g1ThinkingQuestions: Question[] = [
     solutionSteps: ['想：5+?=12', '反过来：12-5=7', '⭐=7'],
     hints: ['从12往回数5步，到几？'],
     difficulty: 2, category: 'subtraction', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
     id: 'g1t_30', gradeBand: 'G1', domain: 'addition_subtraction',
     cognitiveSkills: ['build_model', 'multi_step_reasoning'],
     text: '🔍 + 🔍 + 🔍 = 9，🔍代表同一个数字。🔍是几？',
-    numbers: [9, 3],
+    numbers: [9],
     keywords: [],
     noisePhrases: [], usefulPhrases: ['三个相同的🔍加起来等于9', '🔍是几'],
     questionMeaningOptions: ['3', '9', '1'],
-    correctMeaning: '3', operation: 'division', equation: '9 ÷ 3 = ?', answer: 3,
+    correctMeaning: '3', operation: 'addition', equation: '9 ÷ 3 = ?', answer: 3,
     answerSentence: '🔍等于3。',
     explanation: '三个一样的数加起来是9，这个数就是9÷3=3。验证：3+3+3=9。',
     solutionSteps: ['三个相同的数=9', '把9分成3份：9÷3=3', '🔍=3'],
     hints: ['三个相同的数相加得9，每个是几？想想乘法口诀！'],
     difficulty: 2, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'full_solve'],
   },
 ];

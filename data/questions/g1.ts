@@ -15,6 +15,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到数字6和3', '关键词"又跑来"表示增加', '用加法：6+3=9'],
     hints: ['看看小兔子是变多了还是变少了？'],
     difficulty: 1, category: 'addition', visualKey: 'rabbit', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -31,6 +33,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到数字5和4', '"又给了"表示增加', '5+4=9'],
     hints: ['苹果变多了还是变少了？'],
     difficulty: 1, category: 'addition', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -47,6 +51,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到数字7和2', '"又飞来"表示增加', '7+2=9'],
     hints: ['小鸟是飞来了还是飞走了？'],
     difficulty: 1, category: 'addition', visualKey: 'bird', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -63,6 +69,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到数字10和4', '"摘走了"表示减少', '10-4=6'],
     hints: ['桃子变多了还是变少了？"摘走了"是什么意思？'],
     difficulty: 1, category: 'subtraction', visualKey: 'peach', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -79,6 +87,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到数字8和3', '"吃掉了"表示减少', '8-3=5'],
     hints: ['包子变多了还是变少了？'],
     difficulty: 1, category: 'subtraction', visualKey: 'bun', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -95,6 +105,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到数字5和3', '"又开了"表示增加', '5+3=8'],
     hints: ['小花变多了还是变少了？'],
     difficulty: 1, category: 'addition', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -111,6 +123,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到9和4', '"游走了"表示减少', '9-4=5'],
     hints: ['鸭子变多了还是变少了？'],
     difficulty: 1, category: 'subtraction', visualKey: 'duck', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -127,6 +141,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到6和4', '"又进来"表示增加', '6+4=10'],
     hints: ['小朋友是变多了还是变少了？'],
     difficulty: 1, category: 'addition', visualKey: 'child', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -143,6 +159,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到7和3', '"用掉了"表示减少', '7-3=4'],
     hints: ['蜡笔变多了还是变少了？'],
     difficulty: 1, category: 'subtraction', visualKey: 'crayon', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -159,6 +177,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到4和3', '"又给了"表示增加', '4+3=7'],
     hints: ['糖果变多了还是变少了？'],
     difficulty: 1, category: 'addition', visualKey: 'candy', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -175,6 +195,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到6和2', '"吃掉了"表示减少', '6-2=4'],
     hints: ['饼干变多了还是变少了？'],
     difficulty: 1, category: 'subtraction', visualKey: 'cookie', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -191,6 +213,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到5和3', '"又加了"表示增加', '5+3=8'],
     hints: ['小鱼变多了还是变少了？'],
     difficulty: 1, category: 'addition', visualKey: 'fish', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -207,6 +231,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到8和5', '"比...多"要用减法', '8-5=3'],
     hints: ['比多少的时候，用减法求相差！'],
     difficulty: 1, category: 'subtraction', visualKey: 'candy', requiresAnswer: true,
+  lessonType:'compare_more_less',
+  keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -223,6 +249,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到9和4', '"又开来"表示增加', '9+4=13'],
     hints: ['玩具车变多了还是变少了？'],
     difficulty: 1, category: 'addition', visualKey: 'toyCar', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -239,6 +267,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到10和4', '"喝掉了"表示减少', '10-4=6'],
     hints: ['酸奶变多了还是变少了？'],
     difficulty: 1, category: 'subtraction', visualKey: 'yogurt', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -255,6 +285,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到8和3', '"又拿来"表示增加', '8+3=11'],
     hints: ['皮球变多了还是变少了？'],
     difficulty: 1, category: 'addition', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -271,6 +303,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到8和3', '"飞走了"表示减少', '8-3=5'],
     hints: ['蝴蝶变多了还是变少了？'],
     difficulty: 1, category: 'subtraction', visualKey: 'butterfly', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -287,6 +321,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到11和5', '"吃掉了"表示减少', '11-5=6'],
     hints: ['草莓变多了还是变少了？'],
     difficulty: 1, category: 'subtraction', visualKey: 'strawberry', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -303,6 +339,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到15和6', '"走了"表示减少', '15-6=9'],
     hints: ['小朋友变多了还是变少了？'],
     difficulty: 1, category: 'subtraction', visualKey: 'child', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -320,6 +358,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['找到数字6和4', '去掉无关信息', '"又跑来"表示增加', '6+4=10'],
     hints: ['题目有些句子和数学无关哦！'],
     difficulty: 2, category: 'addition', visualKey: 'rabbit', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
   },
   {
@@ -337,6 +377,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['去掉天气和书包的句子', '找到数字9和5', '"又跑来"表示增加', '9+5=14'],
     hints: ['题目里哪些句子和数学无关？'],
     difficulty: 1, category: 'addition', visualKey: 'rabbit', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
   },
   {
@@ -354,6 +396,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['去掉妈妈衣服的句子', '找到数字8和3', '"又拿来"表示增加', '8+3=11'],
     hints: ['第一句话和数学有关吗？'],
     difficulty: 1, category: 'addition', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
   },
   {
@@ -371,6 +415,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['去掉教室和小鸟的句子', '找到数字6和2', '"用掉了"表示减少', '6-2=4'],
     hints: ['前两句话和铅笔有关吗？'],
     difficulty: 1, category: 'subtraction', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
   },
   {
@@ -388,6 +434,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['去掉衣服和帅气的句子', '找到数字7和4', '"又买了"表示增加', '7+4=11'],
     hints: ['哪些句子在说衣服？'],
     difficulty: 1, category: 'addition', visualKey: 'fish', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
   },
   {
@@ -405,6 +453,8 @@ export const g1Questions: Question[] = [
     solutionSteps: ['去掉花和蝴蝶的句子', '找到数字10和3', '"飞走了"表示减少', '10-3=7'],
     hints: ['哪些句子在说花园的景色？'],
     difficulty: 1, category: 'subtraction', visualKey: 'bird', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
   }
 ];

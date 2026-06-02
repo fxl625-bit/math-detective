@@ -12,6 +12,7 @@ import { getVisual } from '@/data/visualItems';
 import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/types';
 import type { Question, KeywordItem } from '@/lib/types';
 import { needsAddSubtractPrompt, getKeywordTypeDescription, classifyKeyword } from '@/data/keywordRules';
+import { inferLessonType, extractNumbers, classifyNumberRole } from '@/lib/questionValidation';
 import AppButton from '@/components/ui/AppButton';
 import AppCard from '@/components/ui/AppCard';
 import PageContainer from '@/components/layout/PageContainer';
@@ -341,9 +342,22 @@ export default function PlayPage() {
 
     const caseStory = getCaseStoryForLesson(lesson!);
     const stepNarrative = getStepNarrative(caseStory, currentStep.type);
+    const isDebugMode = typeof window !== 'undefined' && localStorage.getItem('mathDetectiveDebug') === '1';
+    const inferredLessonType = question ? (question.lessonType || inferLessonType(question)) : null;
 
   return (
     <PageContainer bottomPadding={false}>
+      {/* v2.6 P0修复：开发调试信息 */}
+      {isDebugMode && question && (
+        <div className="mb-2 p-2 bg-gray-100 rounded-lg text-xs font-mono text-gray-600 border border-gray-300">
+          <div>questionId=<span className="text-blue-600">{question.id}</span></div>
+          <div>lessonType=<span className="text-green-600">{String(inferredLessonType || 'unknown')}</span></div>
+          <div>keywordType=<span className="text-purple-600">{String(question.keywordType || 'auto')}</span></div>
+          <div>numbers.length=<span className="text-amber-600">{question.numbers.length}</span></div>
+          <div>keywords=<span className="text-orange-600">{question.keywords.map(k => k.word).join(', ') || '(none)'}</span></div>
+        </div>
+      )}
+
       {/* Header with story context */}
       {caseStory && (
         <div className="text-center mb-1">
@@ -376,10 +390,10 @@ export default function PlayPage() {
         <DetectiveMascot mood="thinking" size="sm" message={stepNarrative.instruction} />
       </div>
 
-      {/* Phase-aware step content */}
+      {/* Phase-aware step content (v2.6 P0修复: 加 question.id 防状态残留) */}
       <AnimatePresence mode="wait">
         <PhaseAwareStep
-          key={`${currentStep.id}-${currentStep.currentPhaseIndex}`}
+          key={`${currentStep.id}-${question.id}-${currentStep.currentPhaseIndex}`}
           step={currentStep}
           phase={currentPhase}
           question={question}
@@ -567,6 +581,8 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
   const [answered, setAnswered] = useState(false);
   const [wrongFeedback, setWrongFeedback] = useState<string | null>(null);
   const [showClues, setShowClues] = useState(true);
+  const mountedRef = useRef(true);
+  useEffect(() => { return () => { mountedRef.current = false; }; }, []);
 
   function handleSubmit() {
     const input = userAnswer.trim();
@@ -581,7 +597,7 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
       onCorrect();
     } else {
       setShakeInput(true);
-      setTimeout(() => setShakeInput(false), 500);
+      setTimeout(() => { if (mountedRef.current) setShakeInput(false); }, 500);
       onWrongAnswer(input);
       // 温和反馈
       const op = question.operation;
@@ -714,7 +730,7 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
   );
 }
 
-// ========== Step 1: Find Numbers (Phased) ==========
+// ========== Step 1: Find Numbers (Phased) (v2.6 P0修复) ==========
 // Phases: read → find_numbers → [equation+answer] → completed
 
 function FindNumbersPhased({
@@ -722,7 +738,18 @@ function FindNumbersPhased({
 }: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [found, setFound] = useState<Set<number>>(new Set());
-  const allFound = found.size === question.numbers.length;
+
+  // P0修复：检测invalid question（numbers.length === 0 或 逻辑推理题）
+  const lessonType = inferLessonType(question);
+  const isInvalidForNumbers = question.numbers.length === 0 ||
+    lessonType === 'logic_reasoning' ||
+    lessonType === 'guarantee_worst_case';
+
+  const numbersToFind = question.numbers.filter(n =>
+    classifyNumberRole(n, question.text) !== 'background_number'
+  );
+  const effectiveNumbers = numbersToFind.length > 0 ? numbersToFind : question.numbers;
+  const allFound = effectiveNumbers.length > 0 && found.size === effectiveNumbers.length;
 
   if (phase === 'read') {
     return (
@@ -744,6 +771,35 @@ function FindNumbersPhased({
   }
 
   if (phase === 'find_numbers') {
+    // P0修复：数字线索题无效时显示错误兜底
+    if (isInvalidForNumbers) {
+      const isDebug = typeof window !== 'undefined' && localStorage.getItem('mathDetectiveDebug') === '1';
+      return (
+        <div className="space-y-4">
+          <AppCard variant="amber">
+            <div className="text-center py-6">
+              <div className="text-4xl mb-3">🔧</div>
+              <h3 className="font-extrabold text-amber-800 text-lg mb-2">
+                这道题不适合数字线索关卡
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                正在换一题...
+              </p>
+              {isDebug && (
+                <div className="mt-3 p-2 bg-red-50 rounded-lg text-xs text-red-600 text-left font-mono">
+                  [DEBUG] questionId={question.id}, numbers.length={question.numbers.length},
+                  lessonType={lessonType || 'unknown'}
+                </div>
+              )}
+              <AppButton variant="primary" size="md" onClick={onPhaseAdvance}>
+                跳过本关（自动换题）
+              </AppButton>
+            </div>
+          </AppCard>
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-4">
         <AppCard variant="blue">
@@ -756,7 +812,7 @@ function FindNumbersPhased({
         </AppCard>
 
         <div className="grid grid-cols-4 gap-3">
-          {question.numbers.map((n, i) => (
+          {effectiveNumbers.map((n, i) => (
             <motion.button
               key={i}
               className={`py-5 rounded-2xl font-extrabold text-2xl border-2 transition-all min-h-[64px] ${
@@ -776,7 +832,7 @@ function FindNumbersPhased({
             </motion.button>
           ))}
           {/* Distractors */}
-          {Array.from({ length: Math.max(0, 4 - question.numbers.length) }).map((_, i) => (
+          {Array.from({ length: Math.max(0, 4 - effectiveNumbers.length) }).map((_, i) => (
             <div key={`fake-${i}`} className="py-5 rounded-2xl font-extrabold text-2xl border-2 border-gray-200 bg-gray-50 text-gray-300 flex items-center justify-center min-h-[64px]">
               —
             </div>
@@ -792,7 +848,7 @@ function FindNumbersPhased({
             <div className="text-center">
               <p className="font-extrabold text-green-700 mb-1">✅ 找到了所有数字！</p>
               <p className="text-sm text-gray-600">
-                这 {question.numbers.length} 个数字代表了{visual.itemEmoji} {visual.itemName}的数量信息
+                这 {effectiveNumbers.length} 个数字代表了{visual.itemEmoji} {visual.itemName}的数量信息
               </p>
             </div>
           </AppCard>
@@ -811,7 +867,7 @@ function FindNumbersPhased({
   return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
 }
 
-// ========== Step 2: Find Action Words (Phased) ==========
+// ========== Step 2: Find Action Words (Phased) (v2.6 P0修复) ==========
 // Phases: read → find_keywords → choose_operation → [equation+answer] → completed
 
 function FindActionWordsPhased({
@@ -820,6 +876,17 @@ function FindActionWordsPhased({
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [found, setFound] = useState<Set<number>>(new Set());
   const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
+
+  // P0修复：检测是否包含禁止关键词（至少/保证/倍等）
+  const lessonType = inferLessonType(question);
+  const isInvalidForAction = lessonType === 'guarantee_worst_case' ||
+    lessonType === 'times_intro' ||
+    lessonType === 'logic_reasoning' ||
+    question.keywords.some(k =>
+      k.word.includes('至少') || k.word.includes('保证') ||
+      k.word.includes('倍') || k.word.includes('最坏')
+    );
+
   const allFound = found.size === question.keywords.length;
   const correctOp = question.operation === 'addition' ? 'add' : question.operation === 'subtraction' ? 'subtract' : null;
 
@@ -889,6 +956,36 @@ function FindActionWordsPhased({
   }
 
     if (phase === 'choose_operation') {
+    // P0修复：无效题目显示错误兜底
+    if (isInvalidForAction) {
+      const isDebug = typeof window !== 'undefined' && localStorage.getItem('mathDetectiveDebug') === '1';
+      return (
+        <div className="space-y-4">
+          <AppCard variant="amber">
+            <div className="text-center py-6">
+              <div className="text-4xl mb-3">🔧</div>
+              <h3 className="font-extrabold text-amber-800 text-lg mb-2">
+                这道题不适合动作线索关卡
+              </h3>
+              <p className="text-sm text-gray-600 mb-2">
+                关键词"{question.keywords.map(k => k.word).join('、')}"不是加减动作词
+              </p>
+              {isDebug && (
+                <div className="mt-3 p-2 bg-red-50 rounded-lg text-xs text-red-600 text-left font-mono">
+                  [DEBUG] questionId={question.id}, lessonType={lessonType || 'unknown'},
+                  keywords={question.keywords.map(k => k.word).join(', ')}
+                </div>
+              )}
+              <p className="text-sm text-gray-500 mt-2">正在换一题...</p>
+              <AppButton variant="primary" size="md" onClick={onPhaseAdvance}>
+                跳过本关（自动换题）
+              </AppButton>
+            </div>
+          </AppCard>
+        </div>
+      );
+    }
+
     const isAddSubtractOnly = needsAddSubtractPrompt(question.keywords);
     const hasMultiplicative = question.keywords.some(k => classifyKeyword(k.word)?.category === 'multiplicative_comparison');
     const hasComparison = question.keywords.some(k => classifyKeyword(k.word)?.category === 'comparison');
@@ -896,7 +993,7 @@ function FindActionWordsPhased({
     const hasGrouping = question.keywords.some(k => classifyKeyword(k.word)?.category === 'multiplication_groups');
 
     const promptTitle = hasMultiplicative
-      ? '🤔 “倍”可以先怎么理解？'
+      ? '🤔 "倍"可以先怎么理解？'
       : hasComparison ? '🤔 这些词在说什么关系？'
       : hasDivision ? '🤔 “平均分”是什么意思？'
       : '🤔 关键词表示什么变化？';

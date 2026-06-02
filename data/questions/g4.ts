@@ -15,6 +15,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['速度60，时间3', '路程=速度×时间', '60×3=180'],
     hints: ['速度×时间=路程！'],
     difficulty: 1, category: 'multiplication', visualKey: 'toyCar', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -31,6 +33,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['面积=长×宽', '12×8=96'],
     hints: ['面积用乘法，长乘以宽！'],
     difficulty: 1, category: 'multiplication', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'geometry_count',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -47,6 +51,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['单价12.5，数量4', '12.5×4=50'],
     hints: ['小数乘法：按整数计算后点小数点！'],
     difficulty: 1, category: 'multiplication', visualKey: 'book', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -63,6 +69,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['梨树：120÷3=40', '一共：120+40=160'],
     hints: ['已知几倍求一份用除法！'],
     difficulty: 2, category: 'mixed', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'times_intro',
+  keywordType:'times_intro',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -79,6 +87,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['比多少：15.6-8.9=6.7', '一共：15.6+8.9=24.5'],
     hints: ['小数点要对齐哦！'],
     difficulty: 1, category: 'mixed', visualKey: 'candy', requiresAnswer: true,
+  lessonType:'compare_more_less',
+  keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -95,6 +105,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['单块面积：30×30=900', '统一单位：3m=300cm，2m=200cm', '地面面积：300×200=60000', '块数：60000÷900≈67'],
     hints: ['注意单位！米和厘米要先统一！'],
     difficulty: 3, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
+  lessonType:'geometry_count',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -111,6 +123,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['已修：85×12=1020', '全长：1020+320=1340'],
     hints: ['全长=已修+未修，先算已修！'],
     difficulty: 2, category: 'mixed', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -127,6 +141,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['面积：200×150=30000', '总数：30000×4=120000'],
     hints: ['先求面积，再求棵数！'],
     difficulty: 2, category: 'multiplication', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -143,6 +159,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['总量：250×24=6000ml', '换算：6000÷1000=6升'],
     hints: ['注意单位换算！1000毫升=1升。'],
     difficulty: 2, category: 'multiplication', visualKey: 'yogurt', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -160,6 +178,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['去掉环境描写', '每班人数：4+4=8', '总人数：8×6=48'],
     hints: ['先算一班多少人，再算6个班！'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -176,6 +196,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['销售额：2×128=256', '每支利润：2-1.2=0.8', '总利润：0.8×128=102.4'],
     hints: ['利润=售价-成本，先求每支利润！'],
     difficulty: 3, category: 'mixed', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -192,6 +214,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['面积：10×6÷2=30', '棵数：30×3=90'],
     hints: ['三角形面积别忘了除以2！'],
     difficulty: 2, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
+  lessonType:'planting_interval',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -208,6 +232,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['总座位：45×12=540', '所需：520÷45=11...25', '有余数要加1：11+1=12'],
     hints: ['有余数时要多准备一辆！'],
     difficulty: 3, category: 'mixed', visualKey: 'toyCar', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -224,6 +250,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['2.5-0.8=1.7'],
     hints: ['小数减法，小数点对齐！'],
     difficulty: 1, category: 'subtraction', visualKey: 'cup', requiresAnswer: true,
+  lessonType:'add_sub_action',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
   },
   {
@@ -240,6 +268,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['统一单位：4m=400cm', '400÷25=16'],
     hints: ['注意单位！先把米换算成厘米。'],
     difficulty: 2, category: 'division', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -256,6 +286,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['苹果花费：3×8=24', '草莓花费：2×15=30', '合计：24+30=54'],
     hints: ['两种水果分开算，再加起来！'],
     difficulty: 2, category: 'mixed', visualKey: 'apple', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -272,6 +304,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['现有能喂：180÷15=12天', '3天需要：15×3=45千克'],
     hints: ['先求能吃几天，再求追加量！'],
     difficulty: 3, category: 'mixed', visualKey: 'carrot', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
   },
   {
@@ -289,6 +323,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['去掉风景描写', '语文：25+8=33', '英语：33-5=28'],
     hints: ['一步一步来，比谁多就加，比谁少就减！'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  lessonType:'compare_more_less',
+  keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -305,6 +341,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['效率60字/分，时间45分', '总量：60×45=2700'],
     hints: ['总量=每分钟打的×分钟数！'],
     difficulty: 1, category: 'multiplication', visualKey: 'book', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
   },
   {
@@ -322,6 +360,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['去掉无关描写', '总花费：25+8+12=45', '剩余：50-45=5'],
     hints: ['先算一共要花多少钱！'],
     difficulty: 2, category: 'mixed', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -339,6 +379,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['去掉义卖和家长的句子', '先算总量：24×5=120', '再平分：120÷6=20'],
     hints: ['开头两句话要算吗？'],
     difficulty: 2, category: 'mixed', visualKey: 'cup', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -356,6 +398,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['去掉菜园描写的句子', '长方形面积公式：长×宽', '15×8=120'],
     hints: ['哪些信息描述了菜园但不需要计算？'],
     difficulty: 1, category: 'multiplication', visualKey: 'sticker', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'remove_noise', 'full_solve'],
   },
   {
@@ -373,6 +417,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['去掉橱窗和小朋友的描写', '先算花了多少：18+12=30', '再算剩多少：50-30=20'],
     hints: ['哪些句子和花钱无关？'],
     difficulty: 2, category: 'mixed', visualKey: 'pencil', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -390,6 +436,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['去掉游泳馆描写的句子', '一个来回：50×2=100米', '4个来回：100×4=400米'],
     hints: ['第一句在说游泳的环境，要算吗？'],
     difficulty: 2, category: 'multiplication', visualKey: 'fish', requiresAnswer: true,
+  lessonType:'number_clue',
+  keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   },
   {
@@ -407,6 +455,8 @@ export const g4Questions: Question[] = [
     solutionSteps: ['去掉国庆和红旗的句子', '速度×时间=路程', '80×3=240'],
     hints: ['题目开头在讲什么节日？需要算吗？'],
     difficulty: 1, category: 'multiplication', visualKey: 'toyCar', requiresAnswer: true,
+  lessonType:'equal_groups_intro',
+  keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
   }
 ];

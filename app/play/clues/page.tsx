@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Check, X, Star } from 'lucide-react';
@@ -57,6 +57,8 @@ export default function FindCluesPage() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [phase, setPhase] = useState<'find' | 'numbers' | 'equation' | 'done'>('find');
   const [shakeInput, setShakeInput] = useState(false);
+  const mountedRef = useRef(true);
+  useEffect(() => { return () => { mountedRef.current = false; }; }, []);
 
   const allCluesFound = blocks.filter((b) => b.type !== 'normal').every((_b, i) => {
     const globalIdx = blocks.findIndex(
@@ -140,7 +142,7 @@ export default function FindCluesPage() {
         type: 'hint',
         message: `不太对哦～再想一想：${q.explanation}`,
       });
-      setTimeout(() => setShakeInput(false), 500);
+      setTimeout(() => { if (mountedRef.current) setShakeInput(false); }, 500);
     }
   }
 
