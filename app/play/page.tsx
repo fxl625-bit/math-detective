@@ -35,6 +35,7 @@ export default function PlayPage() {
 
   const [lesson, setLesson] = useState<TodayLesson | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [isAdvancing, setIsAdvancing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [feedback, setFeedback] = useState<{ show: boolean; type: 'success' | 'hint' | 'info'; message: string }>({ show: false, type: 'info', message: '' });
 
@@ -72,13 +73,19 @@ export default function PlayPage() {
     : null;
   const visual = question ? getVisual(question.visualKey) : null;
 
-  // Phase advancement (does NOT complete the step)
+  // Phase advancement (does NOT complete the step) — with anti-double-click lock
   const handlePhaseAdvance = useCallback(() => {
-    if (!lesson) return;
-    const updated = advancePhase(lesson);
-    saveTodayLesson(updated);
-    setLesson(updated);
-  }, [lesson]);
+    if (!lesson || isAdvancing) return;
+    setIsAdvancing(true);
+    try {
+      const updated = advancePhase(lesson);
+      saveTodayLesson(updated);
+      setLesson(updated);
+    } finally {
+      // 短延迟防止连续点击
+      setTimeout(() => setIsAdvancing(false), 300);
+    }
+  }, [lesson, isAdvancing]);
 
   // Phase back (go to previous phase in current step)
   const handlePhaseBack = useCallback(() => {
