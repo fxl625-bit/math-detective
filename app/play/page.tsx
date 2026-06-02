@@ -79,6 +79,21 @@ export default function PlayPage() {
     setLesson(updated);
   }, [lesson]);
 
+  // Phase back (go to previous phase in current step)
+  const handlePhaseBack = useCallback(() => {
+    if (!lesson || !currentStep) return;
+    const steps = [...lesson.steps];
+    const idx = lesson.currentStepIndex;
+    const step = { ...steps[idx] };
+    if (step.currentPhaseIndex > 0) {
+      step.currentPhaseIndex = step.currentPhaseIndex - 1;
+      steps[idx] = step;
+      const updated = { ...lesson, steps };
+      saveTodayLesson(updated);
+      setLesson(updated);
+    }
+  }, [lesson, currentStep]);
+
   // Step completion (called from explain phase "完成本关" button)
   const handleStepComplete = useCallback((correct: boolean) => {
     if (!lesson || !currentStep || !question) return;
@@ -333,6 +348,7 @@ export default function PlayPage() {
           visual={visual}
           onPhaseAdvance={handlePhaseAdvance}
           onStepComplete={handleStepComplete}
+          onPhaseBack={handlePhaseBack}
         />
       </AnimatePresence>
 
@@ -351,7 +367,7 @@ export default function PlayPage() {
 
 function PhaseAwareStep({
   step, phase, question, visual,
-  onPhaseAdvance, onStepComplete,
+  onPhaseAdvance, onStepComplete, onPhaseBack,
 }: {
   step: LessonStep;
   phase: StepPhase | null;
@@ -359,43 +375,117 @@ function PhaseAwareStep({
   visual: ReturnType<typeof getVisual>;
   onPhaseAdvance: () => void;
   onStepComplete: (correct: boolean) => void;
+  onPhaseBack: () => void;
 }) {
   if (!phase) return null;
 
   switch (step.type) {
     case 'find_numbers':
-      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
     case 'find_action_words':
-      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
     case 'simulation':
-      return <SimulationPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+      return <SimulationPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
     case 'remove_noise':
-      return <RemoveNoisePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+      return <RemoveNoisePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
     case 'full_solve':
-      return <FullSolvePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+      return <FullSolvePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
     case 'find_compare_numbers':
-      return <CompareNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+      return <CompareNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
     case 'spot_extra_info':
-      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
     case 'spot_missing_info':
-      return <SpotMissingInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} />;
+      return <SpotMissingInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} />;
     default:
       return null;
   }
 }
 
+// ========== Shared: Clue Summary ==========
+
+function ClueSummary({ question }: { question: Question }) {
+  const opLabel: Record<string, string> = {
+    addition: '变多了 ➕（加法）',
+    subtraction: '变少了 ➖（减法）',
+    multiplication: '变多了 ✖️（乘法）',
+    division: '平均分 ➗（除法）',
+    comparison: '比多少（减法）',
+    mixed: '多步计算',
+    logic: '逻辑推理',
+  };
+
+  return (
+    <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200 space-y-2">
+      <h4 className="text-sm font-extrabold text-blue-700 flex items-center gap-1">
+        <Lightbulb size={16} /> 回看一下我们找到的线索
+      </h4>
+      {/* 原题 */}
+      <div className="bg-white rounded-lg p-3 text-sm text-gray-700 leading-relaxed">
+        <span className="font-bold text-blue-600">📋 案件卷宗：</span>
+        {question.text}
+      </div>
+      {/* 数字线索 */}
+      {question.numbers.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="font-bold text-blue-600">🔢 数字线索：</span>
+          {question.numbers.map((n, i) => (
+            <span key={i} className="px-2 py-0.5 bg-amber-100 rounded-lg font-bold text-amber-700">{n}</span>
+          ))}
+        </div>
+      )}
+      {/* 关键词 */}
+      {question.keywords.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="font-bold text-blue-600">🏷️ 动作线索：</span>
+          {question.keywords.map((kw, i) => (
+            <span key={i} className="px-2 py-0.5 bg-green-100 rounded-lg font-medium text-green-700">
+              {kw.word}
+            </span>
+          ))}
+        </div>
+      )}
+      {/* 有用信息（去噪后） */}
+      {question.usefulPhrases.length > 0 && (
+        <div className="bg-white rounded-lg p-2 text-sm text-gray-600">
+          <span className="font-bold text-blue-600">📝 有用信息：</span>
+          {question.usefulPhrases.map((p, i) => (
+            <span key={i}>「{p}」{i < question.usefulPhrases.length - 1 ? ' / ' : ''}</span>
+          ))}
+        </div>
+      )}
+      {/* 运算关系 */}
+      <div className="text-sm">
+        <span className="font-bold text-blue-600">🧮 数量关系：</span>
+        <span className="text-gray-700">{opLabel[question.operation] || '分析中...'}</span>
+      </div>
+      {/* 提示 */}
+      {question.hints.length > 0 && (
+        <details className="text-sm">
+          <summary className="text-amber-600 font-medium cursor-pointer">💡 小提示</summary>
+          <p className="mt-1 text-gray-600 pl-4">{question.hints[0]}</p>
+        </details>
+      )}
+    </div>
+  );
+}
+
 // ========== Shared: Equation + Answer Phase ==========
 
-function EquationAnswerPhase({ question, visual, onCorrect }: { question: Question; visual: ReturnType<typeof getVisual>; onCorrect: () => void }) {
+function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack }: {
+  question: Question;
+  visual: ReturnType<typeof getVisual>;
+  onCorrect: () => void;
+  onPhaseBack?: () => void;
+}) {
   const [userAnswer, setUserAnswer] = useState('');
   const [shakeInput, setShakeInput] = useState(false);
   const [answered, setAnswered] = useState(false);
+  const [showClues, setShowClues] = useState(true);
 
   function handleSubmit() {
     const input = userAnswer.trim();
     if (!input) return;
 
-    // Compare as string or number
     const correctStr = String(question.answer);
     const isCorrect = input === correctStr || parseFloat(input) === question.answer;
 
@@ -443,6 +533,17 @@ function EquationAnswerPhase({ question, visual, onCorrect }: { question: Questi
 
   return (
     <div className="space-y-4">
+      {/* 线索摘要（默认展开） */}
+      {showClues && <ClueSummary question={question} />}
+      {!showClues && (
+        <button
+          onClick={() => setShowClues(true)}
+          className="w-full text-sm text-blue-600 font-bold py-2 hover:text-blue-800 underline"
+        >
+          👁️ 展开线索摘要
+        </button>
+      )}
+
       <AppCard variant="amber">
         <div className="text-center">
           <Calculator size={32} className="mx-auto mb-2 text-amber-600" />
@@ -472,11 +573,18 @@ function EquationAnswerPhase({ question, visual, onCorrect }: { question: Questi
         </div>
       </AppCard>
 
-      <BottomActionBar>
-        <AppButton variant="success" size="lg" fullWidth disabled={!userAnswer.trim()} onClick={handleSubmit}>
-          提交答案
-        </AppButton>
-      </BottomActionBar>
+      <div className="flex items-center gap-2">
+        {onPhaseBack && (
+          <AppButton variant="secondary" size="md" onClick={onPhaseBack}>
+            ⬅️ 上一步
+          </AppButton>
+        )}
+        <div className="flex-1">
+          <AppButton variant="success" size="md" fullWidth disabled={!userAnswer.trim()} onClick={handleSubmit}>
+            提交答案
+          </AppButton>
+        </div>
+      </div>
     </div>
   );
 }
@@ -485,8 +593,9 @@ function EquationAnswerPhase({ question, visual, onCorrect }: { question: Questi
 // Phases: read → find_numbers → [equation+answer] → completed
 
 function FindNumbersPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [found, setFound] = useState<Set<number>>(new Set());
   const allFound = found.size === question.numbers.length;
 
@@ -574,15 +683,16 @@ function FindNumbersPhased({
   }
 
   // phases after find_numbers → equation + answer
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
 }
 
 // ========== Step 2: Find Action Words (Phased) ==========
 // Phases: read → find_keywords → choose_operation → [equation+answer] → completed
 
 function FindActionWordsPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [found, setFound] = useState<Set<number>>(new Set());
   const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
   const allFound = found.size === question.keywords.length;
@@ -713,15 +823,16 @@ function FindActionWordsPhased({
   }
 
   // Final phase: equation + answer
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
 }
 
 // ========== Step 3: Simulation (Phased) ==========
 // Phases: read → simulation → choose_operation → answer → completed
 
 function SimulationPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [animationShown, setAnimationShown] = useState(false);
   const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
   const [showHandsOn, setShowHandsOn] = useState(false);
@@ -869,15 +980,16 @@ function SimulationPhased({
   }
 
   // answer phase
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
 }
 
 // ========== Step 4: Remove Noise (Phased) ==========
 // Phases: read → remove_noise → build_equation → answer → completed
 
 function RemoveNoisePhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [erased, setErased] = useState<Set<number>>(new Set());
   const [noiseDone, setNoiseDone] = useState(false);
 
@@ -981,15 +1093,16 @@ function RemoveNoisePhased({
   }
 
   // Final phases: build_equation → answer
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
 }
 
 // ========== Step 5: Full Solve (Phased) ==========
 // Phases: read → find_numbers → find_keywords → choose_operation → build_equation → answer → explain → completed
 
 function FullSolvePhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
 
   if (phase === 'read') {
@@ -1126,7 +1239,7 @@ function FullSolvePhased({
   }
 
   if (phase === 'answer') {
-    return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+    return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
   }
 
   // explain phase
@@ -1159,8 +1272,9 @@ function FullSolvePhased({
 // ========== Step 6: Find Compare Numbers (Phased) ==========
 
 function CompareNumbersPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  // silence unused onPhaseBack warning — used by EquationAnswerPhase
 
   if (phase === 'read') {
     return (
@@ -1221,14 +1335,15 @@ function CompareNumbersPhased({
     );
   }
 
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
 }
 
 // ========== Step 7: Spot Extra Info (Phased) ==========
 
 function SpotExtraInfoPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [foundExtra, setFoundExtra] = useState<Set<number>>(new Set());
   const extraNumbers = question.extraNumbers ?? [];
   const allExtraFound = extraNumbers.length > 0 && foundExtra.size === extraNumbers.length;
@@ -1298,14 +1413,15 @@ function SpotExtraInfoPhased({
     );
   }
 
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
 }
 
 // ========== Step 8: Spot Missing Info (Phased) ==========
 
 function SpotMissingInfoPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void }) {
+  // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [choice, setChoice] = useState<boolean | null>(null);
   const isInsufficient = question.isInsufficient === true;
 
@@ -1395,5 +1511,5 @@ function SpotMissingInfoPhased({
     );
   }
 
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} />;
 }
