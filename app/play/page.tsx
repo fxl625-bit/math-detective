@@ -430,18 +430,46 @@ function PhaseAwareStep({
   }
 }
 
+// ========== Shared: Grade-Aware Equation Display ==========
+
+function isComplexEquation(eq: string): boolean {
+  return /[×÷*\/]/.test(eq) || /\(.*\)/.test(eq);
+}
+
+function getDisplayEquation(question: Question): string {
+  // 复杂公式 → 用 gradeFriendlyEquation 兜底
+  if (isComplexEquation(question.equation) && question.gradeFriendlyEquation) {
+    // 尝试 G1 解释优先
+    const friendly = question.gradeFriendlyEquation.G1
+      || question.gradeFriendlyEquation.G2
+      || question.gradeFriendlyEquation.G3;
+    if (friendly) return friendly;
+  }
+  return question.equation.replace('?', '___');
+}
+
 // ========== Shared: Clue Summary ==========
 
 function ClueSummary({ question }: { question: Question }) {
+  const hasAge = question.text.includes('年龄') || question.text.includes('岁') || question.text.includes('爸爸') || question.text.includes('妈妈');
+  const hasBei = question.keywords.some(k => k.word === '倍');
+
   const opLabel: Record<string, string> = {
-    addition: '变多了 ➕（加法）',
-    subtraction: '变少了 ➖（减法）',
-    multiplication: '变多了 ✖️（乘法）',
-    division: '平均分 ➗（除法）',
-    comparison: '比多少（减法）',
-    mixed: '多步计算',
+    addition: '变多了（加法）',
+    subtraction: '变少了（减法）',
+    multiplication: '变多了（乘法）',
+    division: '平均分（除法）',
+    comparison: '比多少（用减法求差）',
+    mixed: hasAge ? '年龄差不变，一年一年试' : hasBei ? '几份一样多合起来' : '多步计算，分步来想',
     logic: '逻辑推理',
   };
+
+  // 对"倍"生成低年级友好解释
+  const beiHint = hasBei
+    ? question.numbers.filter(n => n !== 0).length >= 2
+      ? `${question.numbers[0]}的${question.numbers[1]}倍 = ${question.numbers[0]} + ${question.numbers[0]}（${question.numbers[1]}个${question.numbers[0]}合起来）`
+      : '"倍"就是几份一样多，可以先看成重复相加'
+    : null;
 
   return (
     <div className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200 space-y-2">
@@ -487,6 +515,13 @@ function ClueSummary({ question }: { question: Question }) {
         <span className="font-bold text-blue-600">🧮 数量关系：</span>
         <span className="text-gray-700">{opLabel[question.operation] || '分析中...'}</span>
       </div>
+      {/* "倍"的低年级友好解释 */}
+      {beiHint && (
+        <div className="text-sm bg-amber-50 rounded-lg p-2 border border-amber-200">
+          <span className="font-bold text-amber-700">💡 关于"倍"：</span>
+          <span className="text-amber-800">{beiHint}</span>
+        </div>
+      )}
       {/* 提示 */}
       {question.hints.length > 0 && (
         <details className="text-sm">
@@ -543,13 +578,17 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
     const opT = question.operation === 'addition' ? 'add' : 'subtract' as const;
     const res = typeof question.answer === 'number' ? question.answer : undefined;
 
+    const displayEq = isComplexEquation(question.equation) && question.gradeFriendlyEquation
+      ? (question.gradeFriendlyEquation.G1 || question.gradeFriendlyEquation.G2 || question.gradeFriendlyEquation.G3)
+      : question.equation.replace('?', String(question.answer));
+
     return (
       <AppCard variant="green">
         <div className="text-center py-4">
           <div className="text-4xl mb-2">✅</div>
           <h3 className="font-extrabold text-green-700 text-lg">回答正确！</h3>
-          <div className="mt-3 p-3 bg-white rounded-xl text-lg font-extrabold text-amber-600">
-            {question.equation.replace('?', String(question.answer))}
+          <div className="mt-3 p-3 bg-white rounded-xl text-lg font-extrabold text-amber-600 whitespace-pre-line">
+            {displayEq}
           </div>
           <p className="text-sm text-gray-600 mt-2">{question.answerSentence}</p>
           {showNumLine && res !== undefined && (
@@ -587,10 +626,10 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
           <Calculator size={32} className="mx-auto mb-2 text-amber-600" />
           <h3 className="font-extrabold text-amber-800 text-lg mb-2">🧮 列算式，算答案！</h3>
           <p className="text-sm text-gray-600 mb-3">
-            根据找到的线索，列出算式并算出{visual.itemName}的{question.correctMeaning.replace('问', '')}
+            根据线索，一步一步算出答案
           </p>
-          <div className="text-2xl font-extrabold text-gray-700 mb-4 p-3 bg-amber-50 rounded-xl">
-            {question.equation.replace('?', '___')}
+          <div className="text-lg font-extrabold text-gray-700 mb-4 p-3 bg-amber-50 rounded-xl whitespace-pre-line">
+            {getDisplayEquation(question)}
           </div>
         </div>
       </AppCard>

@@ -101,6 +101,7 @@ export interface Question {
   isExtendedThinking?: boolean;
   extraNumbers?: number[];
   isInsufficient?: boolean;
+  gradeFriendlyEquation?: Partial<Record<GradeBand, string>>;
 }
 
 // ========== 关卡阶段 ==========

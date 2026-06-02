@@ -129,6 +129,30 @@ export function validateQuestions(): string[] {
         }
       }
     }
+
+    // 检查复杂公式是否适合低年级
+    const eq = q.equation || '';
+    const hasComplex = /[×÷]/.test(eq) || (/\(/.test(eq) && /\)/.test(eq));
+    const isOly = q.isExtendedThinking || q.gradeBand === 'OlympiadIntro';
+
+    if (hasComplex && isOly) {
+      if (!q.gradeFriendlyEquation || (!q.gradeFriendlyEquation.G1 && !q.gradeFriendlyEquation.G2)) {
+        const msg = `题目 ${q.id}: 含复杂公式，但缺少 G1/G2 gradeFriendlyEquation`;
+        warnings.push(msg);
+        console.warn(`[validateQuestions] ${msg}`);
+      }
+    }
+
+    // 检查 find_action_words 兼容性
+    if (q.stepCompatibility?.includes('find_action_words')) {
+      for (const kw of q.keywords) {
+        if (kw.type === 'multiply' || kw.type === 'divide') {
+          const msg = `题目 ${q.id}: stepCompatibility 含 find_action_words 但关键词类型为 multiply/divide`;
+          warnings.push(msg);
+          console.warn(`[validateQuestions] ${msg}`);
+        }
+      }
+    }
   }
 
   if (warnings.length === 0) {

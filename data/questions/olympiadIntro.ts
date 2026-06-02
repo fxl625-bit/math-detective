@@ -49,7 +49,12 @@ export const olympiadIntroQuestions: Question[] = [
     solutionSteps: ['年龄差：35-7=28不变', '3倍时年龄差对应2份', '1份：28÷2=14', '儿子14岁时，即14-7=7年后'],
     hints: ['年龄差永远不变，这是解题关键！'],
     difficulty: 3, category: 'mixed', visualKey: 'adult', requiresAnswer: true,
-  stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+  stepCompatibility: ['find_numbers', 'full_solve'],
+  gradeFriendlyEquation: {
+    G1: '爸爸一直比儿子大28岁。\n一年一年试：第7年爸爸42岁，儿子14岁，14+14+14=42，正好是3倍！',
+    G2: '年龄差28岁不变。3倍时年龄差对应2份：28÷2=14。儿子14岁时是7年后。',
+    G3: '(35 - 3×7) ÷ (3 - 1) = 7',
+  },
   },
   {
     id: 'oi_04', gradeBand: 'OlympiadIntro', domain: 'logic_reasoning',
