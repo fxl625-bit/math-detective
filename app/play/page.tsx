@@ -151,14 +151,15 @@ export default function PlayPage() {
       setFeedback({
         show: true,
         type: 'success',
-        message: getCompletionMessage(4, 5),
+        message: '🎉 今天的侦探任务完成！你获得了今日宝箱！',
       });
     } else if (afterAdvance.currentStepIndex !== lesson.currentStepIndex) {
-      // Step changed (completed a step)
+      const steps = afterAdvance.steps;
+      const completedCount = steps.filter(s => s.status === 'completed').length;
       setFeedback({
         show: true,
         type: 'success',
-        message: getCompletionMessage(afterAdvance.currentStepIndex - 1, 5),
+        message: `✅ 很好，下一条线索出现了！已完成 ${completedCount}/${steps.length} 关，继续破案！`,
       });
     }
   }, [lesson, currentStep, question, completeQuestion]);

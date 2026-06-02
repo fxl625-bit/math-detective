@@ -201,6 +201,18 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
     };
   }
 
+  // 12. 检查是否所有 steps 都已完成
+  const allDone = steps.every(s => s.status === 'completed');
+  if (allDone) {
+    return {
+      date: today,
+      steps,
+      currentStepIndex: 0,
+      completed: true,
+      caseStoryId: lesson.caseStoryId,
+    };
+  }
+
   return {
     date: today,
     steps,
