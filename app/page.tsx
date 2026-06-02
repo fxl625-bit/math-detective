@@ -64,14 +64,19 @@ export default function DashboardPage() {
 
   useEffect(() => setMounted(true), []);
 
-  // 检查签到
+  // 检查签到（每天最多自动弹一次，关闭后不再弹）
   useEffect(() => {
     if (!mounted) return;
     const today = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date()).padStart(2, '0')}`;
-    if (state.lastCheckinDate !== today) {
-      const timer = setTimeout(() => setShowCheckin(true), 600);
-      return () => clearTimeout(timer);
-    }
+    // 已签到 → 不弹
+    if (state.lastCheckinDate === today) return;
+    // 今天已关过 → 不弹
+    try {
+      const dismissed = localStorage.getItem(`math-detective-checkin-dismissed-${today}`);
+      if (dismissed) return;
+    } catch { /* ignore */ }
+    const timer = setTimeout(() => setShowCheckin(true), 600);
+    return () => clearTimeout(timer);
   }, [mounted, state.lastCheckinDate]);
 
   const handleFlip = (cardIndex: number) => {
@@ -84,7 +89,11 @@ export default function DashboardPage() {
     }, 400);
   };
 
-  const handleCloseCheckin = () => setShowCheckin(false);
+  const handleCloseCheckin = () => {
+    setShowCheckin(false);
+    const today = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date()).padStart(2, '0')}`;
+    try { localStorage.setItem(`math-detective-checkin-dismissed-${today}`, '1'); } catch { /* ignore */ }
+  };
 
   if (!mounted) {
     return (

@@ -3,6 +3,7 @@ import { getQuestionById, allQuestions, questionsByGrade, getQuestionsByFilter }
 import { loadState } from './storage';
 import { allStories } from '@/data/stories';
 import { getCaseStoryForDate, getRecentStoryIds, saveRecentStoryId } from './storySystem';
+import { classifyKeyword } from '@/data/keywordRules';
 
 // ========== 关卡配置 ==========
 
@@ -346,7 +347,15 @@ export function getTodayLesson(): TodayLesson {
 
 const STEP_TYPE_REQUIREMENTS: Record<LessonStepType, (q: Question) => boolean> = {
   find_numbers: (q) => q.numbers.length >= 2,
-  find_action_words: (q) => q.keywords.length > 0,
+  find_action_words: (q) => {
+    if (q.keywords.length === 0) return false;
+    // 关键词必须主要是加减类，不能是"倍"、"比"、"平均分"等非加减关键词
+    return q.keywords.every(k => {
+      const cls = classifyKeyword(k.word);
+      if (!cls) return true; // 未分类的关键词放行
+      return cls.category === 'addition_change' || cls.category === 'subtraction_change';
+    });
+  },
   simulation: (q) => (q.operation === 'addition' || q.operation === 'subtraction') && !!q.visualKey,
   remove_noise: (q) => Array.isArray(q.noisePhrases) && q.noisePhrases.length > 0,
   full_solve: () => true,

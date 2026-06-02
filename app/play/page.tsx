@@ -95,6 +95,19 @@ export default function PlayPage() {
     }
   }, [lesson, currentStep]);
 
+  // Back to previous level (or home if on first level)
+  const handleBackToPrevLevel = useCallback(() => {
+    if (!lesson) { router.push('/'); return; }
+    if (lesson.currentStepIndex <= 0) { router.push('/'); return; }
+    const steps = [...lesson.steps];
+    const idx = lesson.currentStepIndex;
+    steps[idx] = { ...steps[idx], status: 'locked' as const, currentPhaseIndex: 0 };
+    steps[idx - 1] = { ...steps[idx - 1], status: 'current' as const, currentPhaseIndex: 0 };
+    const updated = { ...lesson, steps, currentStepIndex: idx - 1 };
+    saveTodayLesson(updated);
+    setLesson(updated);
+  }, [lesson, router]);
+
   // Record wrong answer (答错记录到错题本和统计)
   const handleWrongAnswer = useCallback((input: string) => {
     if (!question) return;
@@ -329,9 +342,9 @@ export default function PlayPage() {
         </div>
       )}
       <div className="flex items-center gap-3">
-        <Link href="/" className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 transition-colors flex-shrink-0">
+        <button onClick={handleBackToPrevLevel} className="p-2 rounded-xl bg-amber-100 hover:bg-amber-200 transition-colors flex-shrink-0" aria-label="返回上一关">
           <ArrowLeft size={20} className="text-amber-700" />
-        </Link>
+        </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-lg font-extrabold text-amber-800 truncate">
             {getStepLabel(currentStep)}
@@ -813,7 +826,7 @@ function FindActionWordsPhased({
     const optionList = isAddSubtractOnly
       ? [{ v:'add', l:'变多了，用加法', i:'📈', m:['addition'] }, { v:'subtract', l:'变少了，用减法', i:'📉', m:['subtraction'] }]
       : hasMultiplicative || hasGrouping
-        ? [{ v:'group_add', l:'几个一样多合起来', i:'➕', m:['mixed','addition'] }, { v:'multiply', l:'几份一样多（倍的关系）', i:'✖️', m:['multiplication','mixed'] }]
+        ? [{ v:'misconception_more', l:'比小猫多几个', i:'➕', m:[] }, { v:'equal_groups', l:'有几份，每份一样多', i:'📦', m:['multiplication','mixed','addition'] }]
         : hasComparison
           ? [{ v:'compare', l:'比一比谁多谁少', i:'🔍', m:['comparison','subtraction'] }, { v:'add', l:'数量合起来', i:'📈', m:['addition'] }]
           : hasDivision
