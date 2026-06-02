@@ -11,6 +11,7 @@ import { getStepNarrative } from '@/lib/storySystem';
 import { getVisual } from '@/data/visualItems';
 import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/types';
 import type { Question, KeywordItem } from '@/lib/types';
+import { needsAddSubtractPrompt, getKeywordTypeDescription, classifyKeyword } from '@/data/keywordRules';
 import AppButton from '@/components/ui/AppButton';
 import AppCard from '@/components/ui/AppCard';
 import PageContainer from '@/components/layout/PageContainer';
@@ -796,59 +797,69 @@ function FindActionWordsPhased({
     );
   }
 
-  if (phase === 'choose_operation') {
+    if (phase === 'choose_operation') {
+    const isAddSubtractOnly = needsAddSubtractPrompt(question.keywords);
+    const hasMultiplicative = question.keywords.some(k => classifyKeyword(k.word)?.category === 'multiplicative_comparison');
+    const hasComparison = question.keywords.some(k => classifyKeyword(k.word)?.category === 'comparison');
+    const hasDivision = question.keywords.some(k => classifyKeyword(k.word)?.category === 'division_share');
+    const hasGrouping = question.keywords.some(k => classifyKeyword(k.word)?.category === 'multiplication_groups');
+
+    const promptTitle = hasMultiplicative
+      ? '🤔 “倍”可以先怎么理解？'
+      : hasComparison ? '🤔 这些词在说什么关系？'
+      : hasDivision ? '🤔 “平均分”是什么意思？'
+      : '🤔 关键词表示什么变化？';
+
+    const optionList = isAddSubtractOnly
+      ? [{ v:'add', l:'变多了，用加法', i:'📈', m:['addition'] }, { v:'subtract', l:'变少了，用减法', i:'📉', m:['subtraction'] }]
+      : hasMultiplicative || hasGrouping
+        ? [{ v:'group_add', l:'几个一样多合起来', i:'➕', m:['mixed','addition'] }, { v:'multiply', l:'几份一样多（倍的关系）', i:'✖️', m:['multiplication','mixed'] }]
+        : hasComparison
+          ? [{ v:'compare', l:'比一比谁多谁少', i:'🔍', m:['comparison','subtraction'] }, { v:'add', l:'数量合起来', i:'📈', m:['addition'] }]
+          : hasDivision
+            ? [{ v:'share', l:'每份一样多（平均分）', i:'➗', m:['division'] }, { v:'add', l:'数量合起来', i:'📈', m:['addition'] }]
+            : [{ v:'add', l:'数量变多，用加法', i:'📈', m:['addition'] }, { v:'subtract', l:'数量变少，用减法', i:'📉', m:['subtraction'] }];
+
+    const checkOk = (v:string) => optionList.find(o=>o.v===v)?.m.includes(question.operation) ?? false;
+
     return (
       <div className="space-y-4">
         <AppCard variant="amber">
           <h3 className="font-extrabold text-amber-800 mb-3 text-center">
-            🤔 这些关键词让{visual.itemName}变多还是变少？
+            {promptTitle}
           </h3>
           <p className="text-sm text-gray-600 text-center mb-3">
-            关键词：{question.keywords.map(k => `"${k.word}"`).join('、')}
+            关键词：{question.keywords.map(k => '"' + k.word + '"').join('、')}
           </p>
         </AppCard>
-        <div className="grid grid-cols-2 gap-3">
-          <motion.button
-            className={`py-5 rounded-2xl font-extrabold text-lg border-2 flex flex-col items-center gap-2 ${
-              opChoice === 'add'
-                ? opChoice === correctOp
-                  ? 'bg-green-100 border-green-400 text-green-700'
-                  : 'bg-red-100 border-red-400 text-red-700'
-                : 'bg-white border-gray-200 text-gray-700 hover:border-green-300'
-            }`}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setOpChoice('add')}
-          >
-            <ArrowUpRight size={32} />
-            <span>变多了（加法 ➕）</span>
-          </motion.button>
-          <motion.button
-            className={`py-5 rounded-2xl font-extrabold text-lg border-2 flex flex-col items-center gap-2 ${
-              opChoice === 'subtract'
-                ? opChoice === correctOp
-                  ? 'bg-green-100 border-green-400 text-green-700'
-                  : 'bg-red-100 border-red-400 text-red-700'
-                : 'bg-white border-gray-200 text-gray-700 hover:border-red-300'
-            }`}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setOpChoice('subtract')}
-          >
-            <ArrowDownRight size={32} />
-            <span>变少了（减法 ➖）</span>
-          </motion.button>
+        <div className="grid grid-cols-1 gap-3">
+          {optionList.map(opt => {
+            const correct = opChoice === opt.v ? checkOk(opt.v) : null;
+            return (
+              <motion.button key={opt.v}
+                className={'py-4 rounded-2xl font-extrabold text-base border-2 flex items-center gap-3 px-4 ' + (
+                  opChoice === opt.v
+                    ? (correct ? 'bg-green-100 border-green-400 text-green-700' : 'bg-red-100 border-red-400 text-red-700')
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-amber-300'
+                )}
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                onClick={() => setOpChoice(opt.v as any)}
+              >
+                <span className="text-2xl">{opt.i}</span><span className="text-left">{opt.l}</span>
+              </motion.button>
+            );
+          })}
         </div>
-        {opChoice && opChoice !== correctOp && (
+        {opChoice && checkOk(opChoice) === false && (
           <AppCard variant="amber">
-            <p className="text-center text-amber-700">
-              💡 再想想：{question.keywords.map(k => k.word).join('、')} 意味着什么变化？
+            <p className="text-center text-amber-700 text-sm">
+              💡 再想想：{hasMultiplicative ? '提示：想想几个一样多合起来' : '提示：它表示什么变化？'}
             </p>
           </AppCard>
         )}
         <BottomActionBar>
           <AppButton variant="success" size="lg" fullWidth disabled={!opChoice} onClick={onPhaseAdvance}>
-            判断完毕，去列算式算答案 →
+            判断完毕，去算答案 →
           </AppButton>
         </BottomActionBar>
       </div>
