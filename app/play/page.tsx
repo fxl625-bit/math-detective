@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Check, X, ArrowUpRight, ArrowDownRight, ShieldCheck, Lightbulb, Calculator } from 'lucide-react';
 import { useGameState } from '@/hooks/useGameState';
-import { getTodayLesson, normalizeLesson, getCurrentStep, getCurrentPhase, advancePhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson } from '@/lib/lessonPlanner';
+import { getTodayLesson, normalizeLesson, safeNormalizeLesson, getCurrentStep, getCurrentPhase, advancePhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson } from '@/lib/lessonPlanner';
 import { getStepNarrative } from '@/lib/storySystem';
 import { getVisual } from '@/data/visualItems';
 import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/types';
@@ -40,15 +40,27 @@ export default function PlayPage() {
   useEffect(() => {
     setMounted(true);
     const raw = getTodayLesson();
-    const normalized = normalizeLesson(raw);
-    setLesson(normalized);
+    const validated = safeNormalizeLesson(raw);
+    setLesson(validated);
+
+    // 开发环境调试日志
+    if (typeof window !== 'undefined' && (localStorage.getItem('mathDetectiveDebug') === '1')) {
+      if (validated) {
+        console.debug('[Lesson Debug]', {
+          date: validated.date,
+          currentStepIndex: validated.currentStepIndex,
+          stepStatuses: validated.steps.map(s => s.status),
+          completed: validated.completed,
+        });
+      }
+    }
   }, []);
 
   const handleRegenerateLesson = useCallback(() => {
     clearTodayLesson();
     const fresh = getTodayLesson();
-    const normalized = normalizeLesson(fresh);
-    setLesson(normalized);
+    const validated = safeNormalizeLesson(fresh);
+    setLesson(validated);
     setFeedback({ show: false, type: 'info', message: '' });
   }, []);
 
@@ -67,7 +79,7 @@ export default function PlayPage() {
     setLesson(updated);
   }, [lesson]);
 
-  // Step completion (only called after correct answer)
+  // Step completion (called from explain phase "完成本关" button)
   const handleStepComplete = useCallback((correct: boolean) => {
     if (!lesson || !currentStep || !question) return;
 
@@ -80,20 +92,8 @@ export default function PlayPage() {
       retriedCorrect: false,
     });
 
-    // advancePhase already completed the step internally; now check if lesson is done
-    const updated = advancePhase(lesson);
-    // After advancePhase completes the last phase, it calls completeCurrentStep internally
-    // Actually, let's re-read: advancePhase moves to next phase; if at last phase, it calls completeCurrentStep
-    // But wait - my advancePhase already calls completeCurrentStep when phases are done.
-    // So after advancePhase, if all phases in this step are done, the step completes.
-    // Let me re-check the logic...
-
-    // Actually the flow is: advancePhase → if more phases, advance; else completeCurrentStep
-    // So we need to call advancePhase once more IF the answer phase isn't the last phase.
-    // Actually, answer is the second-to-last phase usually. Let me restructure:
-
-    // After correct answer, we force-complete the step
-    const afterAdvance = advancePhase(lesson); // may advance phase OR complete step
+    // 单次推进：从 explain → completed → next step
+    const afterAdvance = advancePhase(lesson);
     saveTodayLesson(afterAdvance);
     setLesson(afterAdvance);
 

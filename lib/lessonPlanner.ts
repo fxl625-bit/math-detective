@@ -112,6 +112,103 @@ export function normalizeLesson(lesson: TodayLesson | null): TodayLesson | null 
   };
 }
 
+// ========== 合法性校验 + 自动修复 ==========
+
+export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | null {
+  // 1. 空数据 → 重新生成
+  if (!lesson) return null;
+
+  const today = getDateStr();
+
+  // 2. 日期不是今天 → 丢弃，重新生成
+  if (lesson.date !== today) {
+    if (typeof window !== 'undefined') {
+      try { localStorage.removeItem('math-detective-today-lesson'); } catch { /* ignore */ }
+    }
+    return null;
+  }
+
+  // 3. 没有步骤 → 重新生成
+  if (!Array.isArray(lesson.steps) || lesson.steps.length === 0) return null;
+
+  // 4. 已完成 → 保留
+  if (lesson.completed) {
+    return normalizeLesson(lesson);
+  }
+
+  // 5. 标准化所有 step
+  const steps = lesson.steps.map(normalizeStep);
+  const n = steps.length;
+
+  // 6. 修正 currentStepIndex
+  let currentIdx = typeof lesson.currentStepIndex === 'number'
+    && lesson.currentStepIndex >= 0
+    && lesson.currentStepIndex < n
+    ? lesson.currentStepIndex
+    : 0;
+
+  // 7. 核心校验：currentStepIndex 不能指向 locked step（除非用户真的在那里）
+  // 如果 currentIdx > 0，前面的 step 必须都是 completed
+  let valid = true;
+  for (let i = 0; i < currentIdx; i++) {
+    if (steps[i].status !== 'completed') {
+      valid = false;
+      if (typeof window !== 'undefined') {
+        console.warn(`[safeNormalizeLesson] step[${i}].status=${steps[i].status} but currentStepIndex=${currentIdx}. Auto-fixing.`);
+      }
+      break;
+    }
+  }
+
+  // 8. 如果发现异常，回退到第一个未完成的 step
+  if (!valid) {
+    currentIdx = 0;
+    for (let i = 0; i < n; i++) {
+      if (steps[i].status !== 'completed') {
+        currentIdx = i;
+        break;
+      }
+    }
+  }
+
+  // 9. 确保只有一个 current step，且位置 = currentIdx
+  for (let i = 0; i < n; i++) {
+    if (i < currentIdx) {
+      steps[i] = { ...steps[i], status: 'completed' as const, currentPhaseIndex: 0 };
+    } else if (i === currentIdx) {
+      steps[i] = { ...steps[i], status: 'current' as const };
+      // 确保 currentPhaseIndex 不越界
+      if (steps[i].currentPhaseIndex >= (steps[i].phases?.length || 0)) {
+        steps[i] = { ...steps[i], currentPhaseIndex: 0 };
+      }
+    } else {
+      steps[i] = { ...steps[i], status: 'locked' as const, currentPhaseIndex: 0 };
+    }
+  }
+
+  // 10. 如果 current step 没有 questionId → 需要重新选题
+  // （这种情况 buildDailyLesson 已处理，这里是安全网）
+
+  // 11. 没有 current step → 说明全部完成
+  if (currentIdx >= n) {
+    return {
+      date: today,
+      steps,
+      currentStepIndex: 0,
+      completed: true,
+      caseStoryId: lesson.caseStoryId,
+    };
+  }
+
+  return {
+    date: today,
+    steps,
+    currentStepIndex: currentIdx,
+    completed: false,
+    caseStoryId: lesson.caseStoryId,
+  };
+}
+
 // ========== 每日进度辅助 ==========
 
 function getDateStr(): string {
@@ -224,11 +321,14 @@ export function getTodayLesson(): TodayLesson {
       const saved = localStorage.getItem('math-detective-today-lesson');
       if (saved) {
         const parsed: TodayLesson = JSON.parse(saved);
-        if (parsed.date === today) {
-          const normalized = normalizeLesson(parsed);
-          if (normalized && normalized.steps.length > 0) {
-            return normalized;
+        // 先用 safeNormalizeLesson 校验，异常数据自动修复
+        const safe = safeNormalizeLesson(parsed);
+        if (safe) {
+          // 自动修复后重新保存
+          if (JSON.stringify(safe) !== saved) {
+            saveTodayLesson(safe);
           }
+          return safe;
         }
       }
     } catch { /* ignore */ }
