@@ -5,6 +5,7 @@
  */
 import { APP_VERSION, LAST_VERSION_KEY } from './appVersion';
 import { migrateGameState } from './migrations';
+import { migrateRewardFlags } from './rewardSystem';
 import type { GameState, TodayLesson } from './types';
 
 /**
@@ -106,13 +107,18 @@ export function handleAppVersionUpgrade(
   try {
     const raw = localStorage.getItem(lessonKey);
     if (raw) {
-      const lesson = JSON.parse(raw) as TodayLesson;
+      let lesson = JSON.parse(raw) as TodayLesson;
       const { wasRepaired } = repairInvalidTodayLesson(lesson, getQuestionById);
       if (wasRepaired) {
         console.info('[Upgrade] Invalid todayLesson detected, needs rebuild');
         needsLessonRebuild = true;
-        // 清除旧课程数据
         localStorage.removeItem(lessonKey);
+      } else {
+        // v2.6.3: 奖励幂等迁移 — 修复旧 completed lesson 的 rewardClaimed/rewardShown
+        const migrated = migrateRewardFlags(lesson);
+        if (migrated !== lesson) {
+          localStorage.setItem(lessonKey, JSON.stringify(migrated));
+        }
       }
     }
   } catch (e) {

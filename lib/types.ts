@@ -253,6 +253,16 @@ export interface TodayLesson {
   currentStepIndex: number;
   completed: boolean;
   caseStoryId?: string;
+  /** v2.6.3: 完成时间 */
+  completedAt?: string;
+  /** v2.6.3: 奖励是否已发放（防重复加星） */
+  rewardClaimed?: boolean;
+  /** v2.6.3: 奖励弹窗是否已展示（防重复弹） */
+  rewardShown?: boolean;
+  /** v2.6.3: 奖励发放时间 */
+  rewardClaimedAt?: string;
+  /** v2.6.3: 奖励弹窗展示时间 */
+  rewardShownAt?: string;
 }
 
 // ========== 错题记录 ==========

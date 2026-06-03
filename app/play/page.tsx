@@ -13,6 +13,7 @@ import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/t
 import type { Question, KeywordItem } from '@/lib/types';
 import { needsAddSubtractPrompt, getKeywordTypeDescription, classifyKeyword } from '@/data/keywordRules';
 import { inferLessonType, extractNumbers, classifyNumberRole } from '@/lib/questionValidation';
+import { grantDailyRewardOnce, markDailyRewardShown } from '@/lib/rewardSystem';
 import AppButton from '@/components/ui/AppButton';
 import AppCard from '@/components/ui/AppCard';
 import PageContainer from '@/components/layout/PageContainer';
@@ -159,6 +160,24 @@ export default function PlayPage() {
       setLesson(afterAdvance);
 
       if (afterAdvance.completed) {
+        // v2.6.3: 课程完成时发放每日奖励 + 标记已展示
+        const now = new Date().toISOString();
+        let completedLesson: TodayLesson = {
+          ...afterAdvance,
+          completedAt: afterAdvance.completedAt || now,
+        };
+        
+        // 发放奖励（仅第一次）
+        const { lesson: rewardedLesson } = grantDailyRewardOnce(state, completedLesson);
+        completedLesson = rewardedLesson;
+        
+        // 标记弹窗已展示（发放 + 展示一起处理，防止返回首页重复弹）
+        const { lesson: shownLesson } = markDailyRewardShown(state, completedLesson);
+        completedLesson = shownLesson;
+        
+        saveTodayLesson(completedLesson);
+        setLesson(completedLesson);
+        
         setShowConfetti(true);
         setFeedback({
           show: true,
