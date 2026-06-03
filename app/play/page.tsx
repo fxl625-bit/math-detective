@@ -133,40 +133,52 @@ export default function PlayPage() {
 
   // Step completion (called from explain phase "完成本关" button)
   const handleStepComplete = useCallback((correct: boolean) => {
-    const currentLesson = lessonRef.current;
-    if (!currentLesson || !currentStep || !question) return;
+    // v2.6.2: 防重复提交锁
+    if (isAdvancing) return;
+    setIsAdvancing(true);
 
-    completeQuestion(question.id, correct, correct ? undefined : {
-      questionId: question.id,
-      questionText: question.text,
-      myAnswer: '未正确完成',
-      correctAnswer: question.answer,
-      errorType: `关卡"${currentStep.title}"未通过`,
-      retriedCorrect: false,
-    });
+    try {
+      const currentLesson = lessonRef.current;
+      if (!currentLesson || !currentStep || !question) {
+        setIsAdvancing(false);
+        return;
+      }
 
-    // 单次推进：从 explain → completed → next step
-    const afterAdvance = advancePhase(currentLesson);
-    saveTodayLesson(afterAdvance);
-    setLesson(afterAdvance);
-
-    if (afterAdvance.completed) {
-      setShowConfetti(true);
-      setFeedback({
-        show: true,
-        type: 'success',
-        message: '🎉 今天的侦探任务完成！你获得了今日宝箱！',
+      completeQuestion(question.id, correct, correct ? undefined : {
+        questionId: question.id,
+        questionText: question.text,
+        myAnswer: '未正确完成',
+        correctAnswer: question.answer,
+        errorType: `关卡"${currentStep.title}"未通过`,
+        retriedCorrect: false,
       });
-    } else if (afterAdvance.currentStepIndex !== currentLesson.currentStepIndex) {
-      const steps = afterAdvance.steps;
-      const completedCount = steps.filter(s => s.status === 'completed').length;
-      setFeedback({
-        show: true,
-        type: 'success',
-        message: `✅ 很好，下一条线索出现了！已完成 ${completedCount}/${steps.length} 关，继续破案！`,
-      });
+
+      // 单次推进：从 explain → completed → next step
+      const afterAdvance = advancePhase(currentLesson);
+      saveTodayLesson(afterAdvance);
+      setLesson(afterAdvance);
+
+      if (afterAdvance.completed) {
+        setShowConfetti(true);
+        setFeedback({
+          show: true,
+          type: 'success',
+          message: '🎉 今天的侦探任务完成！你获得了今日宝箱！',
+        });
+      } else if (afterAdvance.currentStepIndex !== currentLesson.currentStepIndex) {
+        const steps = afterAdvance.steps;
+        const completedCount = steps.filter(s => s.status === 'completed').length;
+        setFeedback({
+          show: true,
+          type: 'success',
+          message: `✅ 很好，下一条线索出现了！已完成 ${completedCount}/${steps.length} 关，继续破案！`,
+        });
+      }
+    } finally {
+      // 延迟解锁，确保 React 批处理完成
+      setTimeout(() => setIsAdvancing(false), 300);
     }
-  }, [currentStep, question, completeQuestion]);
+  }, [currentStep, question, completeQuestion, isAdvancing]);
 
   if (!mounted) {
     return (
@@ -1331,6 +1343,21 @@ function RemoveNoisePhased({
 // ========== Step 5: Full Solve (Phased) ==========
 // Phases: read → find_numbers → find_keywords → choose_operation → build_equation → answer → explain → completed
 
+// v2.6.2: 孩子端友好的运算标签
+function getOperationLabel(operation: string): string {
+  switch (operation) {
+    case 'addition': return '这道题要把数字加起来。';
+    case 'subtraction': return '这道题要用减法来算。';
+    case 'multiplication': return '这道题要用乘法来算。';
+    case 'division': return '这道题要分一分，用除法来算。';
+    case 'mixed': return '这道题要分几步来想，一步一步算。';
+    case 'comparison': return '这道题要比一比数字的大小。';
+    case 'fraction': return '这道题和分数有关。';
+    case 'logic': return '这道题需要动脑筋推理。';
+    default: return '动脑筋想一想，找到答案！';
+  }
+}
+
 function FullSolvePhased({
   phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
 }: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
@@ -1369,7 +1396,12 @@ function FullSolvePhased({
               <div key={i} className="px-6 py-4 bg-amber-50 rounded-2xl font-extrabold text-2xl border-2 border-amber-300 text-amber-700">{n}</div>
             ))}
           </div>
-          <p className="text-sm text-gray-600 mt-3">数量分别是 {question.numbers.join(' 和 ')}，代表{visual.itemEmoji} {visual.itemName}</p>
+          <p className="text-sm text-gray-600 mt-3">
+            {question.domain === 'geometry' || question.domain === 'ratio'
+              ? `这些数字是题目里的重要线索（${question.numbers.join('、')}），它们代表份数或角度关系。`
+              : `数量分别是 ${question.numbers.join(' 和 ')}，代表${visual.itemEmoji} ${visual.itemName}`
+            }
+          </p>
         </AppCard>
         <BottomActionBar>
           <AppButton variant="success" size="lg" fullWidth onClick={onPhaseAdvance}>
@@ -1381,10 +1413,13 @@ function FullSolvePhased({
   }
 
   if (phase === 'find_keywords') {
+    const isGeometryOrRatio = question.domain === 'geometry' || question.domain === 'ratio';
     return (
       <div className="space-y-4">
         <AppCard variant="purple">
-          <h3 className="font-extrabold text-purple-800 mb-2">🔑 第2步：找到关键词/动作词</h3>
+          <h3 className="font-extrabold text-purple-800 mb-2">
+            {isGeometryOrRatio ? '🔑 第2步：找到关系线索' : '🔑 第2步：找到关键词/动作词'}
+          </h3>
         </AppCard>
         <AppCard>
           <div className="flex flex-wrap gap-2 mb-3">
@@ -1394,11 +1429,15 @@ function FullSolvePhased({
                     &ldquo;{kw.word}&rdquo;
                   </span>
                 ))
-              : <p className="text-gray-500 text-sm">这道题没有明显的动作关键词，需要理解题意来判断</p>
+              : <p className="text-gray-500 text-sm">
+                  {isGeometryOrRatio ? '这道题不是动作词题，需要用份数和比例关系来理解。' : '这道题没有明显的动作关键词，需要理解题意来判断'}
+                </p>
             }
           </div>
           {question.keywords.length > 0 && (
-            <p className="text-sm text-gray-600">这些词提示了{visual.itemName}的数量变化方向</p>
+            <p className="text-sm text-gray-600">
+              {isGeometryOrRatio ? '这些词提示了数字之间的份数和大小关系' : `这些词提示了${visual.itemName}的数量变化方向`}
+            </p>
           )}
         </AppCard>
         <BottomActionBar>
@@ -1458,7 +1497,7 @@ function FullSolvePhased({
             <div className="text-2xl font-extrabold text-gray-700">
               {question.equation.replace('?', '___')}
             </div>
-            <p className="text-sm text-gray-500 mt-2">用 {question.operation} 运算</p>
+            <p className="text-sm text-gray-500 mt-2">{getOperationLabel(question.operation)}</p>
           </div>
         </AppCard>
         <BottomActionBar>
