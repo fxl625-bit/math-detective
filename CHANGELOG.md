@@ -1,5 +1,35 @@
 # Math Detective Changelog
 
+## v2.6.8 — P0 修复：统计正确率 BUG（显示 17% 实际接近 100%）
+
+### 根因
+1. **`clearLearningProgress` 遗漏重置 `answerAttempts`**：清空进度时 `correctCount` 归零但 `answerAttempts` 保留旧值，导致分母膨胀（如 30次旧提交 + 6次新正确 → 6/36 ≈ 17%）
+2. **7日正确率 = 总体正确率（完全相同公式）**：`recentAccuracyRate` 和 `correctRate` 都使用 `correctCount / attempts * 100`，7日正确率从未按时间过滤
+3. **无按时间戳的答题记录**：`correctCount` 只是累加计数器，无法按日期/7天窗口统计
+
+### 修复
+- `hooks/useGameState.ts`: `clearLearningProgress` 增加 `answerAttempts: 0` + `attemptRecords: []` 重置
+- `lib/types.ts`: 新增 `AttemptRecord` 接口和 `AccuracyStats` 接口，`GameState` 新增 `attemptRecords` 字段
+- `lib/storage.ts`:
+  - `completeQuestion()` 每次提交记录 `AttemptRecord`（按题目去重只保留最新，最多 200 条）
+  - 新增 `getAccuracyStats()` 统一统计函数：
+    - 总体正确率 = 每道题最新提交的正确数 / 总提交题数（未作答不计入分母）
+    - 7日正确率 = 最近7天内提交的正确数 / 7天内提交题数
+    - 今日完成 = 今日首次答对的题目数
+- `app/parent-report/page.tsx`: 使用 `getAccuracyStats()` 替代手动计算
+- `app/play/page.tsx`: 完成页面使用 `getAccuracyStats().overallAccuracy`
+- `lib/lessonPlanner.ts`: `getLearningProfile()` 使用 `getAccuracyStats()`
+- 更新版本 v2.6.7 → v2.6.8
+
+### 测试验证
+| 场景 | 预期结果 |
+|------|---------|
+| 总题库30题，今日完成5题全对 | 今日完成=5, 总体=100%, 7日=100% |
+| 总题库30题，今日完成5题4对1错 | 正确率=80% |
+| 30题只做5题，未做25题 | 不影响正确率分母 |
+| 7日前错题 | 不影响7日正确率 |
+| 总体 != 7日 | 两个指标独立计算 |
+
 ## v2.6.7 — P0 修复：提示提前泄露答案
 
 - **修复"📝 一步一步想"默认展示完整推导和答案的严重BUG**

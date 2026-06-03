@@ -165,6 +165,18 @@ export function completeQuestion(
   // 每次提交答案都计入 answerAttempts
   const newAttempts = (state.answerAttempts || 0) + 1;
 
+  // v2.6.8: 记录每次提交的详情，用于精准统计
+  const newRecord: import('./types').AttemptRecord = {
+    questionId,
+    isCorrect: correct,
+    submittedAt: new Date().toISOString(),
+    attemptType: 'final_answer',
+  };
+  const existingRecords = state.attemptRecords || [];
+  // 按题目去重：保留最近一次提交，旧记录替换（每道题只保留最新状态）
+  const filtered = existingRecords.filter(r => r.questionId !== questionId);
+  const attemptRecords = [...filtered, newRecord].slice(-200); // 最多 200 条
+
   // 答错：只记录 attempt 和复习日期，不改变 totalCompleted 和 correctCount
   if (!correct) {
     return {
@@ -172,6 +184,7 @@ export function completeQuestion(
       answerAttempts: newAttempts,
       questionReviewDates: reviewDates,
       questionReviewCounts: reviewCounts,
+      attemptRecords,
     };
   }
 
@@ -182,6 +195,7 @@ export function completeQuestion(
       answerAttempts: newAttempts,
       questionReviewDates: reviewDates,
       questionReviewCounts: reviewCounts,
+      attemptRecords,
     };
   }
 
@@ -207,6 +221,7 @@ export function completeQuestion(
     weeklySnapshots: newSnapshots,
     questionReviewDates: reviewDates,
     questionReviewCounts: reviewCounts,
+    attemptRecords,
   };
 }
 
@@ -312,6 +327,68 @@ export function calculateAccuracy(state: { correctCount: number; answerAttempts:
   if (attempts <= 0) return 0;
   const safeCorrect = Math.min(correct, attempts);
   return Math.round((safeCorrect / attempts) * 100);
+}
+
+/**
+ * v2.6.8: 统一正确率统计函数
+ *
+ * 口径说明:
+ * - 总体正确率 = 所有 attemptRecords 中正确数 / 总数（按题目去重：每道题只取最近一次提交）
+ * - 7日正确率 = 最近7天内的 attemptRecords 中正确数 / 总数（同上口径）
+ * - 今日完成 = 今日 attemptRecords 中首次答对的去重题目数
+ * - 未作答题目不计入分母，未完成关卡不计入错误
+ * - 如果 totalAttempts = 0，正确率返回 0
+ */
+export function getAccuracyStats(state: GameState): import('./types').AccuracyStats {
+  const records = state.attemptRecords || [];
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const todayStr = getDateString();
+
+  // 按题目去重：每道题只保留最近一次提交记录
+  const latestMap = new Map<string, import('./types').AttemptRecord>();
+  for (const r of records) {
+    const existing = latestMap.get(r.questionId);
+    if (!existing || new Date(r.submittedAt) > new Date(existing.submittedAt)) {
+      latestMap.set(r.questionId, r);
+    }
+  }
+  const latestRecords = Array.from(latestMap.values());
+
+  // 总体统计：所有 latestRecords
+  const totalAttempts = latestRecords.length;
+  const correctAttempts = latestRecords.filter(r => r.isCorrect).length;
+  const overallAccuracy = totalAttempts > 0
+    ? Math.round((correctAttempts / totalAttempts) * 100)
+    : 0;
+
+  // 7日统计：过滤最近7天的记录
+  const last7DaysRecords = latestRecords.filter(r => {
+    const d = new Date(r.submittedAt);
+    return d >= sevenDaysAgo && d <= now;
+  });
+  const last7DaysTotalAttempts = last7DaysRecords.length;
+  const last7DaysCorrectAttempts = last7DaysRecords.filter(r => r.isCorrect).length;
+  const last7DaysAccuracy = last7DaysTotalAttempts > 0
+    ? Math.round((last7DaysCorrectAttempts / last7DaysTotalAttempts) * 100)
+    : 0;
+
+  // 今日完成：今日首次答对的题目数（从 attemptRecords 统计）
+  const todayCompleted = records.filter(r => {
+    const d = new Date(r.submittedAt);
+    const recordDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    return recordDate === todayStr && r.isCorrect;
+  }).length;
+
+  return {
+    todayCompleted: Math.max(state.completedToday, todayCompleted), // 兼容旧数据
+    overallAccuracy,
+    last7DaysAccuracy,
+    totalAttempts,
+    correctAttempts,
+    last7DaysTotalAttempts,
+    last7DaysCorrectAttempts,
+  };
 }
 
 export function normalizeStats(state: GameState): GameState {

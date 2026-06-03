@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ArrowLeft, Check, X, ArrowUpRight, ArrowDownRight, ShieldCheck, Lightbulb, Calculator } from 'lucide-react';
 import LogicRankingGuide from '@/components/LogicRankingGuide';
 import { useGameState } from '@/hooks/useGameState';
+import { loadState, getAccuracyStats } from '@/lib/storage';
 import { getTodayLesson, normalizeLesson, safeNormalizeLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson } from '@/lib/lessonPlanner';
 import { getStepNarrative } from '@/lib/storySystem';
 import { getVisual } from '@/data/visualItems';
@@ -299,8 +300,7 @@ export default function PlayPage() {
   if (lesson.completed) {
     const profile = getLearningProfile();
     const tomorrowPreview = getTomorrowLessonPreview(profile, state);
-    const attempts = state.answerAttempts || 0;
-    const todayAccuracy = attempts > 0 ? Math.round((state.correctCount / attempts) * 100) : 0;
+    const { overallAccuracy: todayAccuracy, todayCompleted } = getAccuracyStats(state);
     const starsEarned = state.level >= 5 ? 15 : state.level >= 3 ? 10 : 5;
     const completeCaseStory = getCaseStoryForLesson(lesson);
 

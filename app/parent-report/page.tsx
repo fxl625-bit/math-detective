@@ -12,7 +12,7 @@ import ProgressBar from '@/components/ProgressBar';
 import AppCard from '@/components/ui/AppCard';
 import AppButton from '@/components/ui/AppButton';
 import PageContainer from '@/components/layout/PageContainer';
-import { getLevelInfo } from '@/lib/storage';
+import { getLevelInfo, getAccuracyStats } from '@/lib/storage';
 
 const GRADE_OPTIONS: { value: GradeBand; label: string }[] = [
   { value: 'G1', label: '一年级' },
@@ -52,10 +52,14 @@ export default function ParentReportPage() {
   if (!mounted) return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl mb-4 animate-bounce-gentle">📊</div><p className="text-green-600 font-bold">正在加载报告...</p></div></div>;
 
   const levelInfo = getLevelInfo(state.level);
-  const attempts = state.answerAttempts || 0;
-  const correctRate = attempts > 0 ? Math.round((state.correctCount / attempts) * 100) : 0;
 
-  // Error type analysis
+  // v2.6.8: 使用统一统计函数 getAccuracyStats()
+  // 统计口径：
+  //   - 总体正确率 = 每道题最新提交的正确数 / 总提交题数（未作答不计入分母）
+  //   - 7日正确率 = 最近7天内的正确数 / 7天内提交题数
+  //   - 今日完成 = 今日首次答对的题目数
+  const accuracyStats = getAccuracyStats(state);
+  const { todayCompleted, overallAccuracy, last7DaysAccuracy, totalAttempts, correctAttempts, last7DaysTotalAttempts, last7DaysCorrectAttempts } = accuracyStats;
   const errorTypes = state.mistakes.reduce<Record<string, number>>((acc, m) => {
     acc[m.errorType] = (acc[m.errorType] || 0) + 1;
     return acc;
@@ -64,18 +68,9 @@ export default function ParentReportPage() {
   // Skill-based error tracking
   const skillMistakes = state.skillMistakes || {};
 
-  // Last 7 days accuracy: based on mistakes count vs total attempts
-  const recentMistakes = state.mistakes.filter(m => {
-    const d = new Date(m.date);
-    const weekAgo = new Date(Date.now() - 7 * 86400000);
-    return d >= weekAgo;
-  });
-  const recentCorrect = Math.max(0, state.correctCount - 0); // Use global accuracy as fallback
-  const recentAccuracyRate = attempts > 0 ? Math.round((state.correctCount / attempts) * 100) : 0;
-
-  // Suggestions
+  // Suggestions (v2.6.8: 使用 overallAccuracy 替代旧 correctRate)
   const suggestions: string[] = [];
-  if (correctRate < 60 && state.totalCompleted >= 5) suggestions.push('建议从基础关卡重新巩固，降低难度后再逐步提升。');
+  if (overallAccuracy < 60 && state.totalCompleted >= 5) suggestions.push('建议从基础关卡重新巩固，降低难度后再逐步提升。');
   if (errorTypes['动作词识别错误'] && errorTypes['动作词识别错误'] > 2) suggestions.push('孩子在"加减法关键词"识别上需要加强，可以多做"找动作词"关卡。');
   if (errorTypes['干扰信息判断错误'] && errorTypes['干扰信息判断错误'] > 1) suggestions.push('孩子容易被题目的无关信息干扰，建议多练习"擦掉废话"关卡。');
   if (state.streak < 3 && state.totalCompleted >= 5) suggestions.push('建议鼓励孩子每天坚持完成关卡任务，养成习惯比数量更重要。');
@@ -169,15 +164,15 @@ export default function ParentReportPage() {
         </h2>
         <div className="grid grid-cols-3 gap-3">
           <div className="text-center p-3 bg-amber-50 rounded-xl">
-            <div className="text-3xl font-extrabold text-amber-600">{state.completedToday}</div>
+            <div className="text-3xl font-extrabold text-amber-600">{todayCompleted}</div>
             <div className="text-xs text-gray-500">今日完成</div>
           </div>
           <div className="text-center p-3 bg-green-50 rounded-xl">
-            <div className="text-3xl font-extrabold text-green-600">{correctRate}%</div>
+            <div className="text-3xl font-extrabold text-green-600">{overallAccuracy}%</div>
             <div className="text-xs text-gray-500">总体正确率</div>
           </div>
           <div className="text-center p-3 bg-blue-50 rounded-xl">
-            <div className="text-3xl font-extrabold text-blue-600">{recentAccuracyRate}%</div>
+            <div className="text-3xl font-extrabold text-blue-600">{last7DaysAccuracy}%</div>
             <div className="text-xs text-gray-500">7日正确率</div>
           </div>
         </div>
@@ -196,7 +191,7 @@ export default function ParentReportPage() {
           <Row label="累计完成关数" value={`${state.totalCompleted} 关`} />
           <Row label="正确 / 错误" value={<span><span className="text-green-600">{state.correctCount}</span> / <span className="text-red-400">{state.wrongCount}</span></span>} />
           <Row label="连续打卡" value={<StreakDisplay streak={state.streak} size="sm" />} />
-          <Row label="提交次数" value={`${state.answerAttempts || 0} 次`} />
+          <Row label="提交次数" value={`${totalAttempts} 题`} />
           <Row label="侦探等级" value={<LevelBadge level={state.level} name={levelInfo.name} icon={levelInfo.icon} size="sm" />} />
           <Row label="拥有星星" value={<StarDisplay count={state.stars} size="sm" />} />
           <Row label="获得徽章" value={<span className="font-extrabold text-purple-600">{state.badges.length} 枚</span>} />

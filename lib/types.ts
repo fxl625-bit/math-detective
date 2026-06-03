@@ -485,6 +485,29 @@ export interface LearningProfile {
   skillLevel: number;
 }
 
+// ========== 答题记录 ==========
+
+/** 每次提交答案的记录，用于精准统计正确率 */
+export interface AttemptRecord {
+  questionId: string;
+  isCorrect: boolean;
+  submittedAt: string;    // ISO 8601 时间戳
+  attemptType: 'final_answer' | 'step_answer';
+}
+
+// ========== 正确率统计结果 ==========
+
+/** 统一统计口径的输出 */
+export interface AccuracyStats {
+  todayCompleted: number;
+  overallAccuracy: number;           // 0-100，基于所有已作答记录
+  last7DaysAccuracy: number;         // 0-100，基于最近7天记录
+  totalAttempts: number;
+  correctAttempts: number;
+  last7DaysTotalAttempts: number;
+  last7DaysCorrectAttempts: number;
+}
+
 // ========== 全局状态 ==========
 
 export interface GameState {
@@ -514,6 +537,8 @@ export interface GameState {
   collectibleCards: string[];
   questionReviewDates: Record<string, string>;
   questionReviewCounts: Record<string, number>;
+  /** v2.6.8: 每次提交答案的详细记录（用于精准正确率统计），最多保留200条 */
+  attemptRecords: AttemptRecord[];
 }
 
 export const DEFAULT_GAME_STATE: GameState = {
@@ -547,4 +572,5 @@ export const DEFAULT_GAME_STATE: GameState = {
   collectibleCards: [],
   questionReviewDates: {},
   questionReviewCounts: {},
+  attemptRecords: [],
 };

@@ -254,6 +254,8 @@ export function useGameState() {
       totalCompleted: 0,
       correctCount: 0,
       wrongCount: 0,
+      answerAttempts: 0,       // v2.6.8: 修复遗漏重置，根除正确率分母膨胀
+      attemptRecords: [],       // v2.6.8: 清空答题记录
       level: 1,
       badges: [],
       completedQuestions: [],

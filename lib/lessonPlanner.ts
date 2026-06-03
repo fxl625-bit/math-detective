@@ -1,6 +1,6 @@
 import { Question, MistakeRecord, GradeBand, CognitiveSkill, LessonStepType, StepPhase, LessonStep, TodayLesson, LearningProfile, TomorrowLessonPreview, VirtualReward } from './types';
 import { getQuestionById, allQuestions, questionsByGrade, getQuestionsByFilter } from '@/data/questions';
-import { loadState } from './storage';
+import { loadState, getAccuracyStats } from './storage';
 import { allStories } from '@/data/stories';
 import { getCaseStoryForDate, getRecentStoryIds, saveRecentStoryId } from './storySystem';
 import { classifyKeyword } from '@/data/keywordRules';
@@ -275,8 +275,9 @@ function getDateStr(): string {
  */
 export function getLearningProfile(): LearningProfile {
   const state = loadState();
-  const attempts = state.answerAttempts || 0;
-  const recentAccuracy = attempts > 0 ? Math.round((state.correctCount / attempts) * 100) : 100;
+  // v2.6.8: 使用统一的 getAccuracyStats 获取近期正确率
+  const stats = getAccuracyStats(state);
+  const recentAccuracy = stats.totalAttempts > 0 ? stats.overallAccuracy : 100;
 
   const skillMistakes = state.skillMistakes || {};
   const weakSkills: CognitiveSkill[] = [];
