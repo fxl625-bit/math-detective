@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Edit, Trash2, Check, X, Plus, ShieldCheck, ShieldOff, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Star, Edit, Trash2, Check, X, Plus, ShieldCheck, ShieldOff, RefreshCw, AlertTriangle, Info, Zap, RotateCw, Trash } from 'lucide-react';
 import { useGameState } from '@/hooks/useGameState';
 import StarDisplay from '@/components/StarDisplay';
 import DetectiveMascot from '@/components/DetectiveMascot';
@@ -13,6 +13,9 @@ import ParentRewardForm from '@/components/ParentRewardForm';
 import RedeemConfirmModal from '@/components/RedeemConfirmModal';
 import CostumeShop from '@/components/CostumeShop';
 import { badges as badgeData } from '@/data/badges';
+import { APP_VERSION, APP_BUILD_TIME, APP_COMMIT_SHA, refreshToLatestVersion, clearPageCacheAndRefresh } from '@/lib/appVersion';
+import { LEARNING_STATE_VERSION } from '@/lib/migrations';
+import { getDateString } from '@/lib/storage';
 import { getVirtualRewards } from '@/lib/lessonPlanner';
 import { ParentReward, DEFAULT_PARENT_REWARDS } from '@/lib/types';
 
@@ -691,6 +694,10 @@ export default function RewardsPage() {
             )}
           </div>
 
+          {/* ========== v2.6.1: 版本与缓存 ========== */}
+          <VersionAndCacheSection />
+          {/* =================================== */}
+
           {/* Reset Tools */}
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-gray-500">🛠️ 重置与测试工具</h3>
@@ -787,5 +794,110 @@ export default function RewardsPage() {
         onCancel={() => setConfirmOpen(false)}
       />
     </PageContainer>
+  );
+}
+
+// ========== v2.6.1: 版本与缓存组件 ==========
+
+function VersionAndCacheSection() {
+  const [todayInfo, setTodayInfo] = useState<{
+    date?: string; completed?: boolean; stepsLen?: number; stepIdx?: number;
+  }>({});
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('math-detective-today-lesson');
+      if (raw) {
+        const lesson = JSON.parse(raw);
+        setTodayInfo({
+          date: lesson.date,
+          completed: lesson.completed,
+          stepsLen: lesson.steps?.length,
+          stepIdx: lesson.currentStepIndex,
+        });
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  function rebuildTodayLesson() {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('math-detective-today-lesson');
+      alert('今日任务已重建。返回首页将自动生成新任务。');
+      window.location.href = '/';
+    }
+  }
+
+  function clearAllCaches() {
+    import('@/lib/appVersion').then(({ clearOldCachesSafely }) => {
+      clearOldCachesSafely().then(() => {
+        alert('缓存已清理。建议刷新页面。');
+      });
+    });
+  }
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-bold text-gray-500">📋 版本与缓存</h3>
+
+      <AppCard variant="gray">
+        <div className="space-y-2 text-xs font-mono text-gray-600">
+          <div className="flex justify-between">
+            <span>当前版本</span>
+            <span className="font-bold text-amber-600">v{APP_VERSION}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>构建时间</span>
+            <span>{APP_BUILD_TIME || '-'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Commit</span>
+            <span>{APP_COMMIT_SHA.slice(0, 7)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>数据版本</span>
+            <span>v{LEARNING_STATE_VERSION}</span>
+          </div>
+          <hr className="border-gray-200" />
+          <div className="flex justify-between">
+            <span>今日任务</span>
+            <span className={todayInfo.date ? 'text-green-600' : 'text-gray-400'}>
+              {todayInfo.date || '无'}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>任务完成</span>
+            <span>{todayInfo.completed ? '✅ 是' : '⏳ 否'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>关卡</span>
+            <span>
+              {todayInfo.stepsLen != null ? `${todayInfo.stepsLen} 关` : '-'}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>当前关卡</span>
+            <span>
+              {todayInfo.stepIdx != null ? `第 ${todayInfo.stepIdx + 1} 关` : '-'}
+            </span>
+          </div>
+        </div>
+      </AppCard>
+
+      <div className="grid grid-cols-2 gap-2">
+        <AppButton variant="ghost" size="sm" onClick={async () => { await refreshToLatestVersion(); }}>
+          <Zap size={14} /> 刷新到最新版本
+        </AppButton>
+        <AppButton variant="ghost" size="sm" onClick={async () => { await clearPageCacheAndRefresh(); }}>
+          <Trash size={14} /> 清除缓存并刷新
+        </AppButton>
+      </div>
+
+      <AppButton
+        variant="ghost" size="sm" fullWidth
+        onClick={() => { if (confirm('确定重建今日任务吗？当前进度会丢失，但星星和奖励保留。')) rebuildTodayLesson(); }}
+      >
+        <RotateCw size={14} /> 重建今日任务
+      </AppButton>
+    </div>
   );
 }

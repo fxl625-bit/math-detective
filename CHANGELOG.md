@@ -1,4 +1,22 @@
-# 文字侦探 v1.0 — 更新日志
+# 文字侦探 — 更新日志
+
+## v2.6.1 - P0 修复：版本确认、缓存刷新与多余信息关卡防御 (2026-06-03)
+
+- 增加 APP_VERSION / BUILD_TIME / COMMIT_SHA（lib/appVersion.ts）
+- 启动时 console.info 输出版本信息
+- localStorage 记录上一次运行版本（math-detective-app-version）
+- 版本变化后自动 migration 和修复 todayLesson（lib/versionUpgrade.ts）
+- 增加清理 Cache Storage / Service Worker 更新能力
+- 家长设置新增「版本与缓存」区域，显示版本号、构建时间、commit、数据版本、今日任务状态
+- 家长设置新增按钮：刷新到最新版本、清除页面缓存并刷新、重建今日任务
+- 修复旧 localStorage 中 identify_extra_info 无效 step 残留
+- SpotExtraInfoPhased 运行时检测 expectedIrrelevantItems，非法题目自动跳过不卡住
+- lessonPlanner 再次强制校验 hasExtraInfo / noisePhrases / irrelevantNumbers
+- 新增 lib/questionGuards.ts：getExpectedIrrelevantItems / isValidForExtraInfoStep / isValidForRemoveNoiseStep
+- 部署后输出版本号、commit、Production URL
+
+## v2.6 - P0/P1 全修复 (2026-06-02)
+详见 VERSION.md
 
 ## v1.0 已完成功能
 

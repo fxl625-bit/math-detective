@@ -17,6 +17,9 @@ import {
   normalizeStats,
 } from '@/lib/storage';
 import { getAvatarItemById } from '@/data/avatarItems';
+import { logAppVersion } from '@/lib/appVersion';
+import { handleAppVersionUpgrade, UPGRADE_TOAST_MESSAGE } from '@/lib/versionUpgrade';
+import { questions as allQuestions } from '@/data/questions';
 
 let globalState: GameState | null = null;
 let listeners: Array<(s: GameState) => void> = [];
@@ -36,6 +39,10 @@ function update(updater: (s: GameState) => GameState) {
 export function useGameState() {
   const [state, setState] = useState<GameState>(() => {
     if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] init start');
+    
+    // v2.6.1: 版本检测与升级
+    logAppVersion();
+    
     if (globalState) {
       if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] using cached globalState');
       return globalState;
@@ -43,6 +50,23 @@ export function useGameState() {
     try {
       const loaded = loadState();
       const normalized = normalizeStats(loaded);
+      
+      // v2.6.1: 版本升级处理
+      const { needsLessonRebuild, wasUpgraded } = handleAppVersionUpgrade(
+        normalized,
+        (id) => allQuestions.find(q => q.id === id)
+      );
+      if (wasUpgraded) {
+        if (typeof window !== 'undefined' && (window as any).__debugLog) {
+          (window as any).__debugLog('[useGameState] version upgraded, needsLessonRebuild=' + needsLessonRebuild);
+        }
+        // 标记需要显示 toast（由页面层处理）
+        (window as any).__upgradeToast = UPGRADE_TOAST_MESSAGE;
+      }
+      if (needsLessonRebuild) {
+        (window as any).__needsLessonRebuild = true;
+      }
+      
       const daily = checkDailyReset(normalized);
       const weekly = checkWeeklyCard(daily);
       const leveled = { ...weekly, level: calculateLevel(weekly.stars) };

@@ -1575,9 +1575,38 @@ function CompareNumbersPhased({
 function SpotExtraInfoPhased({
   phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
 }: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
+  // v2.6.1: 运行时防御 — 非法题目不得卡住
+  const extraNumbers = question.extraNumbers ?? [];
+  const noiseCount = question.noisePhrases?.length ?? 0;
+  
+  // 如果题目没有任何多余信息，自动跳过并报告
+  if (extraNumbers.length === 0 && noiseCount === 0) {
+    console.error(
+      '[P0] spot_extra_info received question without extra info',
+      { questionId: question.id, text: question.text.slice(0, 60) }
+    );
+    return (
+      <div className="space-y-4">
+        <AppCard variant="amber">
+          <h3 className="font-extrabold text-amber-800 mb-2">🔧 系统修复</h3>
+          <p className="text-sm text-gray-600">
+            这道题没有多余信息，系统已为你换一道题。
+          </p>
+        </AppCard>
+        <AppCard>
+          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+        </AppCard>
+        <BottomActionBar>
+          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+            已自动修复，继续 →
+          </AppButton>
+        </BottomActionBar>
+      </div>
+    );
+  }
+  
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [foundExtra, setFoundExtra] = useState<Set<number>>(new Set());
-  const extraNumbers = question.extraNumbers ?? [];
   const allExtraFound = extraNumbers.length > 0 && foundExtra.size === extraNumbers.length;
 
   if (phase === 'read') {

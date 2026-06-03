@@ -3,14 +3,39 @@
 | 项目 | 内容 |
 |------|------|
 | **项目名称** | 文字侦探（Math Detective） |
-| **当前版本** | v2.6 |
-| **版本历史** | v1.0: 04-29 / v2.0: 04-30 / v2.1: 05-08 / v2.2: 05-08 / v2.3: 05-11 / v2.4: 05-29 / v2.5: 05-29 / v2.6: 06-02 |
+| **当前版本** | v2.6.1 |
+| **版本历史** | v1.0: 04-29 / v2.0: 04-30 / v2.1: 05-08 / v2.2: 05-08 / v2.3: 05-11 / v2.4: 05-29 / v2.5: 05-29 / v2.6: 06-02 / v2.6.1: 06-03 |
 | **项目定位** | 小学低年级数学应用题阅读理解小游戏（奥数渐进体系） |
 | **技术栈** | Next.js 16 (webpack) + React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + localStorage |
 | **部署方式** | Vercel（海外架构，大陆建议 VPN） |
 | **GitHub** | （本仓库） |
 | **Vercel** | https://math-detective.vercel.app |
-| **当前状态** | ✅ v2.6 封版，P0/P1 全修复，342题全校验，G3-G6故事补齐 |
+| **当前状态** | ✅ v2.6.1 封版，版本确认、缓存刷新、多余信息关卡运行时防御 |
+
+---
+
+## v2.6.1 - P0修复：版本确认、缓存刷新与多余信息关卡防御 (2026-06-03)
+
+### 新增功能
+| 功能 | 文件 | 说明 |
+|------|------|------|
+| 版本系统 | `lib/appVersion.ts` | APP_VERSION/BUILD_TIME/COMMIT_SHA + logAppVersion() |
+| 版本升级 | `lib/versionUpgrade.ts` | 启动时检测版本变化，自动迁移+修复todayLesson |
+| 缓存控制 | `lib/appVersion.ts` | clearOldCachesSafely/refreshToLatestVersion/clearPageCacheAndRefresh |
+| 家长设置 | `app/rewards/page.tsx` | 版本与缓存区域：版本号/构建信息/本地数据版本/今日任务状态 |
+| 运行时防御 | `app/play/page.tsx` | SpotExtraInfoPhased 检测非法题目，自动跳过不卡住 |
+| 题库守卫 | `lib/questionGuards.ts` | getExpectedIrrelevantItems/isValidForExtraInfoStep/isValidForRemoveNoiseStep |
+
+### 按钮
+- **刷新到最新版本**：清理CacheStorage + SW update + reload
+- **清除页面缓存并刷新**：清理缓存 + 带版本参数reload（保留学习数据）
+- **重建今日任务**：清除todayLesson重新生成（保留星星/奖励/错题本/装扮）
+
+### 启动流程
+1. console.info 输出版本/构建/commit
+2. 检测 localStorage 上一次版本
+3. 版本不一致时自动 migration + repairInvalidTodayLesson
+4. 写入新版本号 + 清理旧缓存
 
 ---
 
