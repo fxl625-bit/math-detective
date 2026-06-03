@@ -55,6 +55,15 @@ export default function PlayPage() {
     lessonRef.current = validated;
     setLesson(validated);
 
+    // v2.6.9: 版本迁移检测
+    if (typeof window !== 'undefined') {
+      const lastVersion = localStorage.getItem('math-detective-app-version');
+      if (lastVersion !== '2.6.9') {
+        console.log('[v2.6.9] Version migration triggered. safeNormalizeLesson handles repair automatically.');
+        localStorage.setItem('math-detective-app-version', '2.6.9');
+      }
+    }
+
     // 开发环境调试日志
     if (typeof window !== 'undefined' && (localStorage.getItem('mathDetectiveDebug') === '1')) {
       if (validated) {
@@ -222,25 +231,7 @@ export default function PlayPage() {
     runLessonAction('complete_step', {}, 'StepComplete');
   }, [runLessonAction]);
 
-  // 修复后继续（v2.6.4: 一次事务跳过无效题）
-  const handleContinueRepair = useCallback(() => {
-    runLessonAction('continue_after_repair', {}, 'ContinueRepair');
-  }, [runLessonAction]);
-
-  // v2.6.8: 真正的换题修复 — 替换不兼容的题目而不是跳过
-  const handleRepairStepQuestion = useCallback((reason: string) => {
-    const currentLesson = lessonRef.current;
-    if (!currentLesson) return;
-    const step = getCurrentStep(currentLesson);
-    if (!step) return;
-
-    runLessonAction('repair_step_question', {
-      reason,
-      stepType: step.type,
-      questionId: step.questionId,
-      gradeBand: state.parentSettings.gradeBand,
-    }, 'RepairStepQuestion');
-  }, [runLessonAction, state.parentSettings.gradeBand]);
+  // (v2.6.9: repair now happens in data layer via safeNormalizeLesson)
 
   const currentStep = lesson ? getCurrentStep(lesson) : null;
   const currentPhase = lesson ? getCurrentPhase(lesson) : null;
@@ -539,8 +530,6 @@ export default function PlayPage() {
           onPhaseBack={handlePhaseBack}
           onWrongAnswer={handleWrongAnswer}
           onSubmitAnswer={handleSubmitAnswer}
-          onContinueRepair={handleContinueRepair}
-          onRepairStepQuestion={handleRepairStepQuestion}
         />
       </AnimatePresence>
 
@@ -641,7 +630,7 @@ function normalizeRankingInput(input: string): string[] | null {
 function PhaseAwareStep({
   step, phase, question, visual,
   onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
-  onSubmitAnswer, onContinueRepair, onRepairStepQuestion,
+  onSubmitAnswer,
 }: {
   step: LessonStep;
   phase: StepPhase | null;
@@ -652,8 +641,6 @@ function PhaseAwareStep({
   onPhaseBack: () => void;
   onWrongAnswer: (input: string) => void;
   onSubmitAnswer: (inputAnswer: string, questionId: string) => void;
-  onContinueRepair: () => void;
-  onRepairStepQuestion: (reason: string) => void;
 }) {
   if (!phase) return null;
 
@@ -691,9 +678,9 @@ function PhaseAwareStep({
 
   switch (step.type) {
     case 'find_numbers':
-      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} onRepairStepQuestion={onRepairStepQuestion} />;
+      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     case 'find_action_words':
-      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} onRepairStepQuestion={onRepairStepQuestion} />;
+      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     case 'simulation':
       return <SimulationPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     case 'remove_noise':
@@ -703,7 +690,7 @@ function PhaseAwareStep({
     case 'find_compare_numbers':
       return <CompareNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     case 'spot_extra_info':
-      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} onRepairStepQuestion={onRepairStepQuestion} />;
+      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     case 'spot_missing_info':
       return <SpotMissingInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     default:
@@ -1099,36 +1086,15 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
 // Phases: read → find_numbers → [equation+answer] → completed
 
 function FindNumbersPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair, onRepairStepQuestion,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void; onRepairStepQuestion?: (reason: string) => void }) {
-  // silence unused onPhaseBack warning — used by EquationAnswerPhase
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
   const [found, setFound] = useState<Set<number>>(new Set());
 
-  // v2.6.8: Auto-repair state
-  const [repairState, setRepairState] = useState<'idle' | 'repairing' | 'timed_out'>('idle');
-  const repairTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // P0修复：检测invalid question
+  // v2.6.9: data-layer repair means this should never happen, but keep safety net
   const lessonType = inferLessonType(question);
   const isInvalidForNumbers = question.numbers.length === 0 ||
     lessonType === 'logic_reasoning' ||
     lessonType === 'guarantee_worst_case';
-
-  // v2.6.8: Auto-trigger repair on mount
-  useEffect(() => {
-    if (isInvalidForNumbers && onRepairStepQuestion && repairState === 'idle') {
-      setRepairState('repairing');
-      // Set timeout for fallback
-      repairTimerRef.current = setTimeout(() => {
-        setRepairState('timed_out');
-      }, 1500);
-      // Trigger repair
-      onRepairStepQuestion(`find_numbers: numbers.length=${question.numbers.length}, lessonType=${lessonType}`);
-    }
-    return () => {
-      if (repairTimerRef.current) clearTimeout(repairTimerRef.current);
-    };
-  }, [isInvalidForNumbers, onRepairStepQuestion, repairState, question.numbers.length, lessonType]);
 
   const numbersToFind = question.numbers.filter(n =>
     classifyNumberRole(n, question.text) !== 'background_number'
@@ -1156,57 +1122,20 @@ function FindNumbersPhased({
   }
 
   if (phase === 'find_numbers') {
-    // v2.6.8: 自动修复 + 超时兜底
+    // v2.6.9: Data-layer repair ensures this never renders. Safety net only.
     if (isInvalidForNumbers) {
-      const isDebug = typeof window !== 'undefined' && localStorage.getItem('mathDetectiveDebug') === '1';
-
       return (
         <div className="space-y-4">
           <AppCard variant="amber">
             <div className="text-center py-6">
-              <div className="text-4xl mb-3">🔧</div>
-              <h3 className="font-extrabold text-amber-800 text-lg mb-2">
-                这道题不适合数字线索关卡
-              </h3>
-              {isDebug && (
-                <div className="mt-3 p-2 bg-red-50 rounded-lg text-xs text-red-600 text-left font-mono">
-                  [DEBUG] questionId={question.id}, numbers.length={question.numbers.length},
-                  lessonType={lessonType || 'unknown'}
-                </div>
-              )}
-              {repairState === 'repairing' && (
-                <p className="text-sm text-gray-600 mt-3 animate-pulse">
-                  正在自动修复，替换为合法题目...
-                </p>
-              )}
-              {repairState === 'timed_out' && (
-                <div className="space-y-3 mt-3">
-                  <p className="text-sm text-red-600">⚠️ 自动修复超时，请手动选择：</p>
-                  <div className="flex flex-col gap-2 max-w-xs mx-auto">
-                    <AppButton variant="primary" size="md" onClick={() => {
-                      setRepairState('idle'); // 重试
-                      if (onRepairStepQuestion) onRepairStepQuestion('find_numbers: retry after timeout');
-                    }}>
-                      重新生成这一关
-                    </AppButton>
-                    <AppButton variant="secondary" size="md" onClick={onContinueRepair || (() => onStepComplete(true))}>
-                      跳过这一关
-                    </AppButton>
-                    <AppButton variant="ghost" size="md" onClick={() => { window.location.href = '/'; }}>
-                      返回首页
-                    </AppButton>
-                  </div>
-                </div>
-              )}
-              {repairState === 'idle' && (
-                <div className="space-y-3 mt-3">
-                  <AppButton variant="primary" size="md" onClick={() => {
-                    if (onRepairStepQuestion) onRepairStepQuestion('find_numbers: manual repair trigger');
-                  }}>
-                    自动修复题目
-                  </AppButton>
-                </div>
-              )}
+              <div className="text-4xl mb-3">⚠️</div>
+              <h3 className="font-extrabold text-amber-800 text-lg mb-2">关卡数据异常</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                系统检测到当前关卡数据不兼容，已自动生成新任务。
+              </p>
+              <AppButton variant="primary" size="md" onClick={() => { window.location.href = '/'; }}>
+                返回首页重新开始
+              </AppButton>
             </div>
           </AppCard>
         </div>
@@ -1284,17 +1213,12 @@ function FindNumbersPhased({
 // Phases: read → find_keywords → choose_operation → [equation+answer] → completed
 
 function FindActionWordsPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair, onRepairStepQuestion,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void; onRepairStepQuestion?: (reason: string) => void }) {
-  // silence unused onPhaseBack warning — used by EquationAnswerPhase
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
   const [found, setFound] = useState<Set<number>>(new Set());
   const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
 
-  // v2.6.8: Auto-repair state
-  const [repairState, setRepairState] = useState<'idle' | 'repairing' | 'timed_out'>('idle');
-  const repairTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // P0修复：检测是否包含禁止关键词
+  // v2.6.9: data-layer repair ensures this never happens, safety net only
   const lessonType = inferLessonType(question);
   const isInvalidForAction = lessonType === 'guarantee_worst_case' ||
     lessonType === 'times_intro' ||
@@ -1303,24 +1227,6 @@ function FindActionWordsPhased({
       k.word.includes('至少') || k.word.includes('保证') ||
       k.word.includes('倍') || k.word.includes('最坏')
     );
-
-  // v2.6.8: Auto-trigger repair on mount
-  useEffect(() => {
-    if (isInvalidForAction && onRepairStepQuestion && repairState === 'idle') {
-      setRepairState('repairing');
-      repairTimerRef.current = setTimeout(() => {
-        setRepairState('timed_out');
-      }, 1500);
-      const forbiddenKw = question.keywords.filter(k =>
-        k.word.includes('至少') || k.word.includes('保证') ||
-        k.word.includes('倍') || k.word.includes('最坏')
-      ).map(k => k.word).join(', ');
-      onRepairStepQuestion(`find_action_words: keywords=[${forbiddenKw}], lessonType=${lessonType}`);
-    }
-    return () => {
-      if (repairTimerRef.current) clearTimeout(repairTimerRef.current);
-    };
-  }, [isInvalidForAction, onRepairStepQuestion, repairState, lessonType, question.keywords]);
 
   const allFound = found.size === question.keywords.length;
   const correctOp = question.operation === 'addition' ? 'add' : question.operation === 'subtraction' ? 'subtract' : null;
@@ -1391,59 +1297,20 @@ function FindActionWordsPhased({
   }
 
     if (phase === 'choose_operation') {
-    // v2.6.8: 自动修复 + 超时兜底
+    // v2.6.9: Data-layer repair ensures this never renders. Safety net only.
     if (isInvalidForAction) {
-      const isDebug = typeof window !== 'undefined' && localStorage.getItem('mathDetectiveDebug') === '1';
       return (
         <div className="space-y-4">
           <AppCard variant="amber">
             <div className="text-center py-6">
-              <div className="text-4xl mb-3">🔧</div>
-              <h3 className="font-extrabold text-amber-800 text-lg mb-2">
-                这道题不适合动作线索关卡
-              </h3>
-              <p className="text-sm text-gray-600 mb-2">
-                关键词"{question.keywords.map(k => k.word).join('、')}"不是加减动作词
+              <div className="text-4xl mb-3">⚠️</div>
+              <h3 className="font-extrabold text-amber-800 text-lg mb-2">关卡数据异常</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                检测到动作词关卡数据不兼容（含倍/年龄/逻辑等非加减词），系统已自动处理。
               </p>
-              {isDebug && (
-                <div className="mt-3 p-2 bg-red-50 rounded-lg text-xs text-red-600 text-left font-mono">
-                  [DEBUG] questionId={question.id}, lessonType={lessonType || 'unknown'},
-                  keywords={question.keywords.map(k => k.word).join(', ')}
-                </div>
-              )}
-              {repairState === 'repairing' && (
-                <p className="text-sm text-gray-600 mt-3 animate-pulse">
-                  正在自动修复，替换为合法题目...
-                </p>
-              )}
-              {repairState === 'timed_out' && (
-                <div className="space-y-3 mt-3">
-                  <p className="text-sm text-red-600">⚠️ 自动修复超时，请手动选择：</p>
-                  <div className="flex flex-col gap-2 max-w-xs mx-auto">
-                    <AppButton variant="primary" size="md" onClick={() => {
-                      setRepairState('idle');
-                      if (onRepairStepQuestion) onRepairStepQuestion('find_action_words: retry after timeout');
-                    }}>
-                      重新生成这一关
-                    </AppButton>
-                    <AppButton variant="secondary" size="md" onClick={onContinueRepair || (() => onStepComplete(true))}>
-                      跳过这一关
-                    </AppButton>
-                    <AppButton variant="ghost" size="md" onClick={() => { window.location.href = '/'; }}>
-                      返回首页
-                    </AppButton>
-                  </div>
-                </div>
-              )}
-              {repairState === 'idle' && (
-                <div className="space-y-3 mt-3">
-                  <AppButton variant="primary" size="md" onClick={() => {
-                    if (onRepairStepQuestion) onRepairStepQuestion('find_action_words: manual repair trigger');
-                  }}>
-                    自动修复题目
-                  </AppButton>
-                </div>
-              )}
+              <AppButton variant="primary" size="md" onClick={() => { window.location.href = '/'; }}>
+                返回首页重新开始
+              </AppButton>
             </div>
           </AppCard>
         </div>
@@ -2076,46 +1943,32 @@ function CompareNumbersPhased({
 // ========== Step 7: Spot Extra Info (Phased) ==========
 
 function SpotExtraInfoPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair, onRepairStepQuestion,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void; onRepairStepQuestion?: (reason: string) => void }) {
-  // v2.6.1: 运行时防御 — 非法题目不得卡住
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
+  // v2.6.9: data-layer repair ensures valid questions. Safety net only.
   const extraNumbers = question.extraNumbers ?? [];
   const noiseCount = question.noisePhrases?.length ?? 0;
   
-  // 如果题目没有任何多余信息，自动跳过并报告
+  // Safety net: if somehow still invalid, show fallback
   if (extraNumbers.length === 0 && noiseCount === 0) {
     console.error(
-      '[P0] spot_extra_info received question without extra info',
+      '[P0] spot_extra_info received question without extra info (should have been repaired in safeNormalizeLesson)',
       { questionId: question.id, text: question.text.slice(0, 60) }
     );
     return (
       <div className="space-y-4">
         <AppCard variant="amber">
-          <h3 className="font-extrabold text-amber-800 mb-2">🔧 系统修复</h3>
-          <p className="text-sm text-gray-600">
-            这道题没有多余信息，系统正在自动替换为有干扰信息的题目。
-          </p>
-        </AppCard>
-        <AppCard>
-          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
-        </AppCard>
-        <BottomActionBar>
-          <div className="flex flex-col gap-2 w-full">
-            <AppButton variant="primary" size="lg" fullWidth onClick={() => {
-              if (onRepairStepQuestion) onRepairStepQuestion('spot_extra_info: no extra info');
-            }}>
-              自动修复题目
+          <div className="text-center py-6">
+            <div className="text-4xl mb-3">⚠️</div>
+            <h3 className="font-extrabold text-amber-800 text-lg mb-2">关卡数据异常</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              该题目缺少多余信息，不适合当前关卡。系统已记录并自动处理。
+            </p>
+            <AppButton variant="primary" size="md" onClick={() => { window.location.href = '/'; }}>
+              返回首页重新开始
             </AppButton>
-            <div className="flex gap-2">
-              <AppButton variant="secondary" size="md" onClick={onContinueRepair || (() => onStepComplete(true))}>
-                跳过这一关
-              </AppButton>
-              <AppButton variant="ghost" size="md" onClick={() => { window.location.href = '/'; }}>
-                返回首页
-              </AppButton>
-            </div>
           </div>
-        </BottomActionBar>
+        </AppCard>
       </div>
     );
   }

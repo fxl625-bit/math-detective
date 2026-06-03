@@ -1,6 +1,55 @@
 # Math Detective Changelog
 
-## v2.6.9 — P0 修复：validateQuestions 增强 + 家长调试页 step/question/theme 匹配信息
+## v2.6.9 — P0 修复：渲染前修复 + 安全降级课程 + 禁止孩子端卡死
+
+### 根本原因
+1. **修复发生在渲染后，不是渲染前**：Phase 组件通过 `useEffect` 触发 repair，此时 UI 已显示"正在自动修复"
+2. **修复失败无退路**：当找不到合法替换题时，`repair_step_question` 只跳过 step，不重建课程，导致无限卡死
+3. **旧 localStorage 卡死状态未迁移**：已损坏的 todayLesson 每次加载都触发同样的 repair 流程
+4. **孩子端看到永久 repair 页面**：`FindActionWordsPhased` / `FindNumbersPhased` 在 `choose_operation` / `find_numbers` phase 渲染完整 repair UI
+
+### 核心修复：渲染前修复管道
+
+**`safeNormalizeLesson` (lessonPlanner.ts) — 加载时自动修复**
+- 新增步骤 #12：加载课程后，验证当前 step 的 questionId 与 stepType 兼容性
+- 不兼容 → 选合法替换题 → 重建 step metadata → 保存 → 返回
+- 找不到替换题 → 生成 `generateSafeFallbackLesson()` → 保存 → 返回
+- **关键：修复发生在 React 渲染前，孩子看不到任何 repair 页面**
+
+**`generateSafeFallbackLesson()` (lessonPlanner.ts) — 新增**
+- 当 repair 找不到合法题时，生成保证可玩的安全课程
+- 安全规则：
+  - 仅使用 `basic_arithmetic` 题型
+  - `find_action_words` 仅用明确加减动作词（addition_change / subtraction_change）
+  - 禁止：倍 / 年龄 / 比例 / 逻辑 / 图形 / 植树 / 至少 / 保证
+- 如果安全池不足 4 道题，降级到紧急池（所有有数字的非倍题）
+
+### 孩子端 UI 清理
+
+**移除所有永久 repair 页面：**
+- `FindNumbersPhased`：移除 `repairState`、`repairTimerRef`、useEffect repair 触发、repair UI 三态（repairing / timed_out / idle）
+- `FindActionWordsPhased`：同上，移除整个 "正在自动修复" 卡死页
+- `SpotExtraInfoPhased`：移除 "系统正在自动替换" 页面，改为简单 fallback
+- `PhaseAwareStep`：移除 `onContinueRepair` / `onRepairStepQuestion` props
+- PlayPage：移除 `handleContinueRepair` / `handleRepairStepQuestion` callbacks
+
+**Safety net：** 如果数据层修复失败（不应发生），Phase 组件显示简单"关卡数据异常，返回首页重新开始"，不卡死。
+
+### 修复循环保护增强
+
+**`handleRepairStepQuestion` (lessonTransaction.ts)**
+- `MAX_REPAIR_ATTEMPTS` 从 2 → 1：一次失败直接重建安全课程
+- 无替换题 → 生成 `generateSafeFallbackLesson()`（原来只跳过 step）
+- 循环检测 → 生成 `generateSafeFallbackLesson()`（原来只跳过 step）
+
+### 新增导出
+- `generateSafeFallbackLesson(gradeBand)` 从 `lessonPlanner.ts` 导出
+- `lessonTransaction.ts` 引入并使用
+
+### 版本
+- v2.6.9（保持不变，功能增强）
+
+## v2.6.9 — P0 修复：validateQuestions 增强 + 家长调试页 step/question/theme 匹配信息 (已合并)
 
 ### 根因
 1. 题目含"倍/几倍"关键词时 `keywordType` 未强制为 `times_intro`，可能被分配到错误关卡

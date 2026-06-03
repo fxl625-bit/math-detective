@@ -242,7 +242,67 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
     };
   }
 
-  // 12. 检查是否所有 steps 都已完成
+  // 12. v2.6.9: 验证当前 step 的题目兼容性并自动修复
+  const currentStepIdx = currentIdx;
+  if (currentStepIdx < n) {
+    const current = steps[currentStepIdx];
+    if (current.questionId) {
+      const q = getQuestionById(current.questionId);
+      if (q) {
+        const compatError = validateStepQuestionCompatibility(current, q);
+        if (compatError) {
+          if (typeof window !== 'undefined') {
+            console.warn(`[safeNormalizeLesson] step[${currentStepIdx}].question incompatible: ${compatError}. Auto-repairing.`);
+          }
+          // 尝试选合法替换题
+          const state = loadState();
+          const profile = getLearningProfile();
+          const usedIds = lesson.steps
+            .filter(s => s.questionId && s.questionId !== current.questionId)
+            .map(s => s.questionId);
+          let replacementQ = selectQuestionForStep({
+            stepType: current.type,
+            profile,
+            usedQuestionIds: usedIds,
+          });
+          if (!replacementQ && current.type !== 'full_solve') {
+            replacementQ = selectQuestionForStep({
+              stepType: 'full_solve',
+              profile,
+              usedQuestionIds: usedIds,
+            });
+          }
+          if (replacementQ) {
+            const stepMeta = buildStepFromQuestion({
+              question: replacementQ,
+              stepType: replacementQ.stepCompatibility?.includes(current.type) ? current.type : 'full_solve',
+              gradeBand: profile.gradeBand,
+            });
+            steps[currentStepIdx] = {
+              ...stepMeta,
+              status: 'current' as const,
+              currentPhaseIndex: 0,
+            };
+            saveTodayLesson({
+              date: today,
+              steps,
+              currentStepIndex: currentStepIdx,
+              completed: false,
+              caseStoryId: lesson.caseStoryId,
+            });
+          } else {
+            // 找不到替换题 → 生成安全降级课程
+            console.error(`[safeNormalizeLesson] No replacement found for step ${currentStepIdx}, generating safe fallback.`);
+            const fallback = generateSafeFallbackLesson(state.parentSettings.gradeBand);
+            saveTodayLesson(fallback);
+            return fallback;
+          }
+        }
+      }
+    }
+  }
+
+  // 13. 检查是否所有 steps 都已完成
   const allDone = steps.every(s => s.status === 'completed');
   if (allDone) {
     return {
@@ -724,6 +784,113 @@ function buildDailyLesson(
     completed: false,
     caseStoryId,
   };
+}
+
+// ========== v2.6.9: 安全降级课程生成器 ==========
+
+/**
+ * 当 repair 找不到合法题时，生成一个保证可玩的安全课程。
+ *
+ * 安全规则：
+ * - 只使用 basic_arithmetic 题型
+ * - find_action_words 只用明确加减动作词（addition_change / subtraction_change）
+ * - 禁止：倍 / 年龄 / 比例 / 逻辑 / 图形 / 植树 / 至少 / 保证
+ */
+export function generateSafeFallbackLesson(gradeBand: GradeBand): TodayLesson {
+  const today = getDateStr();
+  const pool = questionsByGrade[gradeBand] || allQuestions;
+
+  // 筛选安全题目：必须包含加减动作词，且不包含任何禁止词
+  const SAFE_FORBIDDEN = new Set([
+    ...FORBIDDEN_IN_ACTION_WORDS,
+    '倍', '岁', '年龄', '再过', '年龄是',
+  ]);
+
+  const safePool = pool.filter(q => {
+    // 只接受 basic_arithmetic
+    if (q.problemType && q.problemType !== 'basic_arithmetic') return false;
+    // 禁止词检查
+    const hasForbiddenKw = q.keywords.some(k => SAFE_FORBIDDEN.has(k.word));
+    if (hasForbiddenKw) return false;
+    // 文本检查
+    if (q.text.includes('倍') || q.text.includes('岁') || q.text.includes('年龄')
+      || q.text.includes('至少') || q.text.includes('保证')) return false;
+    // 必须有关键词
+    if (q.keywords.length === 0) return false;
+    // 关键词必须是加减动作词
+    return q.keywords.every(k => {
+      const cls = classifyKeyword(k.word);
+      if (!cls) return true;
+      return cls.category === 'addition_change' || cls.category === 'subtraction_change';
+    });
+  });
+
+  // 至少需要 4 道题才能组成安全课程
+  if (safePool.length < 4) {
+    // 极度降级：从全题库选任何有数字的非倍题
+    const emergencyPool = pool.filter(q => {
+      if (q.text.includes('倍') || q.text.includes('岁') || q.text.includes('年龄')) return false;
+      if (q.problemType === 'age_problem' || q.problemType === 'ratio_distribution') return false;
+      return q.numbers.length >= 2 && q.keywords.length > 0;
+    });
+    return buildSafeLessonFromPool(emergencyPool, today, gradeBand);
+  }
+
+  return buildSafeLessonFromPool(safePool, today, gradeBand);
+}
+
+function buildSafeLessonFromPool(pool: Question[], today: string, gradeBand: GradeBand): TodayLesson {
+  // Shuffle
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  const usedIds = new Set<string>();
+  const stepTypes = getStepTypesForGrade(gradeBand);
+  const steps: LessonStep[] = [];
+
+  for (let i = 0; i < Math.min(stepTypes.length, shuffled.length, 6); i++) {
+    const q = shuffled[i];
+    if (usedIds.has(q.id)) continue;
+    usedIds.add(q.id);
+
+    const st = stepTypes[i] || 'full_solve';
+    // 如果是 find_action_words 但题不合适，降为 full_solve
+    const actualType = (st === 'find_action_words' && !isSafeForActionWords(q)) ? 'full_solve' : st;
+
+    const phases = [...getDefaultPhasesForStepType(actualType, q)];
+    steps.push({
+      id: `${today}_safe_${i}_${q.id}`,
+      type: actualType,
+      title: getDynamicStepTitle(actualType, q),
+      description: getDynamicStepDescription(actualType, q),
+      questionId: q.id,
+      phases,
+      currentPhaseIndex: 0,
+      status: i === 0 ? 'current' : 'locked',
+      requiresAnswer: true,
+    });
+  }
+
+  return {
+    date: today,
+    steps,
+    currentStepIndex: 0,
+    completed: false,
+  };
+}
+
+function isSafeForActionWords(q: Question): boolean {
+  if (q.keywords.length === 0) return false;
+  if (q.keywords.some(k => FORBIDDEN_IN_ACTION_WORDS.has(k.word))) return false;
+  if (q.text.includes('倍') || q.text.includes('岁') || q.text.includes('年龄')) return false;
+  return q.keywords.every(k => {
+    const cls = classifyKeyword(k.word);
+    if (!cls) return true;
+    return cls.category === 'addition_change' || cls.category === 'subtraction_change';
+  });
 }
 
 // ========== 阶段推进 ==========

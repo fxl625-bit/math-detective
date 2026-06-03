@@ -11,7 +11,7 @@
  */
 
 import type { GameState, TodayLesson, LessonStep, StepPhase, LessonStepType, Question } from './types';
-import { normalizeLesson, normalizeStep, advancePhase, completeCurrentStep, saveTodayLesson, getCurrentStep, getCurrentPhase, getDefaultPhasesForStepType, buildStepFromQuestion, selectQuestionForStep, validateStepQuestionCompatibility, clearTodayLesson } from './lessonPlanner';
+import { normalizeLesson, normalizeStep, advancePhase, completeCurrentStep, saveTodayLesson, getCurrentStep, getCurrentPhase, getDefaultPhasesForStepType, buildStepFromQuestion, selectQuestionForStep, validateStepQuestionCompatibility, clearTodayLesson, generateSafeFallbackLesson } from './lessonPlanner';
 import { getQuestionById } from '@/data/questions';
 import { loadState } from './storage';
 
@@ -518,7 +518,7 @@ function handleRepairCurrentStep(
 
 // 修复计数器 (session scope)
 const repairAttemptsByStepId = new Map<string, number>();
-const MAX_REPAIR_ATTEMPTS = 2;
+const MAX_REPAIR_ATTEMPTS = 1; // v2.6.9: 一次失败就重建，不循环
 
 // v2.6.9: 修复追踪（调试页用）
 interface RepairRecord {
@@ -558,21 +558,23 @@ function handleRepairStepQuestion(
   repairAttemptsByStepId.set(currentStep.id, attempts);
 
   if (attempts > MAX_REPAIR_ATTEMPTS) {
-    console.error(`[P0] repair loop detected for step ${currentStep.id} (${attempts} attempts)`);
+    console.error(`[P0] repair loop detected for step ${currentStep.id} (${attempts} attempts), rebuilding safe lesson`);
 
-    // 降级：跳过当前 step
-    const afterSkip = completeCurrentStep(lesson);
+    // v2.6.9: 不再跳过 step，直接重建安全降级课程
     repairAttemptsByStepId.delete(currentStep.id);
+    const gradeBand = (payload.gradeBand as import('./types').GradeBand) || gameState.parentSettings.gradeBand || 'G1';
+    const fallback = generateSafeFallbackLesson(gradeBand);
+
     return {
-      nextState: { lesson: afterSkip, gameState },
-      nextLesson: afterSkip,
+      nextState: { lesson: fallback, gameState },
+      nextLesson: fallback,
       changed: true,
       advanced: true,
       fromStepIndex: lesson.currentStepIndex,
-      toStepIndex: afterSkip.currentStepIndex,
+      toStepIndex: 0,
       fromPhaseIndex: currentStep.currentPhaseIndex,
       toPhaseIndex: 0,
-      reason: `repair: loop detected (${attempts} attempts), step skipped`,
+      reason: `repair: loop detected (${attempts} attempts), safe fallback lesson generated`,
     };
   }
 
@@ -609,22 +611,24 @@ function handleRepairStepQuestion(
     });
   }
 
-  // 仍然选不到 → 跳过当前 step
+  // 仍然选不到 → v2.6.9: 生成安全降级课程
   if (!newQuestion) {
-    console.error(`[P0] repair_step_question: no valid replacement at all for step ${currentStep.id}`);
+    console.error(`[P0] repair_step_question: no valid replacement at all for step ${currentStep.id}, generating safe fallback`);
 
-    const afterSkip = completeCurrentStep(lesson);
     repairAttemptsByStepId.delete(currentStep.id);
+    const gradeBand = (payload.gradeBand as import('./types').GradeBand) || gameState.parentSettings.gradeBand || 'G1';
+    const fallback = generateSafeFallbackLesson(gradeBand);
+
     return {
-      nextState: { lesson: afterSkip, gameState },
-      nextLesson: afterSkip,
+      nextState: { lesson: fallback, gameState },
+      nextLesson: fallback,
       changed: true,
       advanced: true,
       fromStepIndex: lesson.currentStepIndex,
-      toStepIndex: afterSkip.currentStepIndex,
+      toStepIndex: 0,
       fromPhaseIndex: currentStep.currentPhaseIndex,
       toPhaseIndex: 0,
-      reason: 'repair: no replacement found, step skipped',
+      reason: 'repair: no replacement found, safe fallback lesson generated',
     };
   }
 
