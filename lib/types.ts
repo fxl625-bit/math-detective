@@ -7,6 +7,7 @@ export type ProblemType =
   | 'planting_problem'
   | 'age_problem'
   | 'shape_counting'
+  | 'pattern'              // v2.6.7: 规律题
   | 'ratio_distribution'
   | 'logic_ranking'
   | 'logic_truth'
@@ -31,6 +32,8 @@ export interface Statement {
 export interface SolutionStepDetailed {
   stepTitle: string;
   explanation: string;
+  /** v2.6.7: 该步骤是否直接暴露最终答案（答题前默认隐藏） */
+  revealsAnswer?: boolean;
 }
 
 export type AnswerType = 'number' | 'text' | 'ranking' | 'equation' | 'choice';

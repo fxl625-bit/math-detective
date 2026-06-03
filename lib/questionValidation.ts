@@ -26,6 +26,7 @@ import {
   FORBIDDEN_KEYWORD_TYPES,
   LESSON_TYPE_TO_STEP_TYPE,
 } from './types';
+import { hintRevealsAnswer, textRevealsAnswer, stepsRevealAnswer, stringStepsRevealAnswer } from './hintSafety';
 
 // ========== 关键词分类规则 ==========
 
@@ -483,6 +484,117 @@ export function validateQuestionIntegrity(q: Question): QuestionValidationResult
   if (q.requiresEquation === false) {
     if (q.equation && q.equation.length > 0) {
       warnings.push('requiresEquation=false 但 equation 不为空');
+    }
+  }
+
+  // ========== v2.6.7: Pre-answer 泄题检测 ==========
+
+  // 28. hint.light 不能包含最终答案
+  if (q.structuredHints?.light) {
+    if (hintRevealsAnswer(q.structuredHints.light, q)) {
+      errors.push('[P0] structuredHints.light 泄露了最终答案，pre-answer 阶段显示会直接泄题');
+      console.error('[Question Validation] Pre-answer hint reveals answer (light)', {
+        id: q.id, problemType: q.problemType, answer: q.answer, hint: q.structuredHints.light.slice(0, 80),
+      });
+    }
+  }
+
+  // 29. hint.medium 不应包含最终答案
+  if (q.structuredHints?.medium) {
+    if (hintRevealsAnswer(q.structuredHints.medium, q)) {
+      warnings.push('structuredHints.medium 包含最终答案，建议仅在 fullSteps 中展示');
+    }
+  }
+
+  // 30. hints[0] 不应泄露答案（旧版提示数组）
+  if (q.hints.length > 0) {
+    if (hintRevealsAnswer(q.hints[0], q)) {
+      errors.push('[P0] hints[0] 泄露了最终答案，ClueSummary 和 HintSystem 默认会展示');
+      console.error('[Question Validation] Pre-answer hint reveals answer (hints[0])', {
+        id: q.id, problemType: q.problemType, answer: q.answer, hint: q.hints[0].slice(0, 80),
+      });
+    }
+  }
+
+  // 31. solutionSteps 不应默认渲染泄露答案的步骤
+  if (q.solutionSteps.length > 0 && !q.structuredHints) {
+    const leakCheck = stringStepsRevealAnswer(q.solutionSteps, q);
+    if (leakCheck.leaksAnswer) {
+      errors.push(`[P0] solutionSteps[${leakCheck.offendingIndex}] 在 pre-answer 阶段泄露答案 — 应改为 structuredHints`);
+      console.error('[Question Validation] solutionSteps reveals answer', {
+        id: q.id, problemType: q.problemType,
+        offendingIndex: leakCheck.offendingIndex,
+        step: q.solutionSteps[leakCheck.offendingIndex!]?.slice(0, 80),
+      });
+    }
+  }
+
+  // 32. solutionStepsDetailed 存在时应确认不会在 pre-answer 渲染
+  if (q.solutionStepsDetailed && q.solutionStepsDetailed.length > 0) {
+    const leakCheck = stepsRevealAnswer(q.solutionStepsDetailed, q);
+    if (leakCheck.leaksAnswer) {
+      errors.push(`[P0] solutionStepsDetailed[${leakCheck.offendingStep}] 在 pre-answer 阶段泄露答案`);
+      console.error('[Question Validation] solutionStepsDetailed reveals answer', {
+        id: q.id, problemType: q.problemType,
+        offendingStep: leakCheck.offendingStep,
+        stepTitle: q.solutionStepsDetailed[leakCheck.offendingStep!]?.stepTitle,
+      });
+    }
+  }
+
+  // 33. pattern 题专项：默认步骤不应包含目标层结果
+  if (q.problemType === 'pattern' || /规律|第.*层/.test(q.text)) {
+    const allStepText = [
+      ...q.solutionSteps,
+      ...(q.solutionStepsDetailed || []).map(s => `${s.stepTitle}: ${s.explanation}`),
+    ].join(' ');
+    if (typeof q.answer === 'number') {
+      const numStr = String(q.answer);
+      const patternLeakRegex = new RegExp(`第[0-9一二三四五六七八九十]+层[：:是＝=]\\s*${numStr}|${numStr}.*第[0-9一二三四五六七八九十]+层`);
+      if (patternLeakRegex.test(allStepText)) {
+        errors.push('[P0] pattern 题步骤中直接显示了目标层的计算结果，pre-answer 会泄题');
+      }
+    }
+  }
+
+  // 34. ranking 题专项：默认提示不应包含完整排序
+  if (q.problemType === 'logic_ranking' || q.problemType === 'logic_truth' || q.problemType === 'logic_ordering') {
+    if (q.correctRanking) {
+      const rankStr = q.correctRanking.order?.join('');
+      const allText = [q.structuredHints?.light, q.structuredHints?.medium, q.hints.join(' '), q.solutionSteps.join(' ')].join(' ');
+      if (rankStr && rankStr.length >= 3 && allText.includes(rankStr)) {
+        errors.push('[P0] ranking 题 pre-answer 提示包含完整排序');
+      }
+    }
+  }
+
+  // 35. age_problem 专项：默认提示不应包含"再过X年"
+  if (q.problemType === 'age_problem' || /岁|年龄/.test(q.text)) {
+    const allText = [q.structuredHints?.light, q.hints[0], ...q.solutionSteps].join(' ');
+    if (/再过[0-9]+年|[0-9]+年后/.test(allText)) {
+      errors.push('[P0] age_problem 题 pre-answer 提示包含"再过X年"');
+    }
+  }
+
+  // 36. planting_problem 专项：默认提示不应包含最终棵数
+  if (q.problemType === 'planting_problem' || q.lessonType === 'planting_interval') {
+    if (typeof q.answer === 'number') {
+      const numStr = String(q.answer);
+      const allText = [q.structuredHints?.light, q.hints[0], ...q.solutionSteps].join(' ');
+      if (new RegExp(`${numStr}\\s*棵|共\\s*${numStr}`).test(allText)) {
+        errors.push('[P0] planting_problem 题 pre-answer 提示包含最终棵数');
+      }
+    }
+  }
+
+  // 37. ratio_distribution 专项：默认提示不应包含最终角度/数值
+  if (q.problemType === 'ratio_distribution' || q.lessonType === 'geometry_count') {
+    if (typeof q.answer === 'number') {
+      const numStr = String(q.answer);
+      const allText = [q.structuredHints?.light, q.hints[0], ...q.solutionSteps].join(' ');
+      if (new RegExp(`最大角.*${numStr}|${numStr}.*最大角|一共${numStr}份`).test(allText)) {
+        errors.push('[P0] ratio_distribution 题 pre-answer 提示包含最终角度/数值');
+      }
     }
   }
 

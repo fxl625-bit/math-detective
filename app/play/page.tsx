@@ -14,8 +14,10 @@ import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/t
 import type { Question, KeywordItem } from '@/lib/types';
 import { needsAddSubtractPrompt, getKeywordTypeDescription, classifyKeyword } from '@/data/keywordRules';
 import { inferLessonType, extractNumbers, classifyNumberRole } from '@/lib/questionValidation';
+import { textRevealsAnswer, hintRevealsAnswer, stringStepsRevealAnswer } from '@/lib/hintSafety';
 import { grantDailyRewardOnce, markDailyRewardShown } from '@/lib/rewardSystem';
 import { commitLessonTransaction, updateDebugState, assertCorrectAnswerAdvanced, assertRepairContinued, getDebugState, type LessonAction, type LearningState, type LessonActionPayload } from '@/lib/lessonTransaction';
+import HintSystem from '@/components/lesson/HintSystem';
 import AppButton from '@/components/ui/AppButton';
 import AppCard from '@/components/ui/AppCard';
 import PageContainer from '@/components/layout/PageContainer';
@@ -816,15 +818,82 @@ function ClueSummary({ question }: { question: Question }) {
         <span className="font-bold text-blue-600">{isLogicRanking ? '🧠 怎么想：' : '🧮 怎么想：'}</span>
         <span className="text-gray-700">{opDesc}</span>
       </div>
-      {/* 提示 */}
-      {question.hints.length > 0 && (
-        <details className="text-sm">
-          <summary className="text-amber-600 font-medium cursor-pointer">💡 小提示</summary>
-          <p className="mt-1 text-gray-600 pl-4">{question.hints[0]}</p>
-        </details>
-      )}
+      {/* 提示 — v2.6.7: 安全检查，不展示泄露答案的提示 */}
+      {question.hints.length > 0 && (() => {
+        const safeHint = question.hints[0];
+        const leaks = hintRevealsAnswer(safeHint, question);
+        if (leaks) return null;
+        return (
+          <details className="text-sm">
+            <summary className="text-amber-600 font-medium cursor-pointer">💡 小提示</summary>
+            <p className="mt-1 text-gray-600 pl-4">{safeHint}</p>
+          </details>
+        );
+      })()}
     </div>
   );
+}
+
+// ========== v2.6.7: 分层提示辅助函数 ==========
+
+/** 从题目中提取轻量提示，保证不泄露答案 */
+function getLightHint(question: Question): string {
+  // 优先使用 structuredHints.light
+  if (question.structuredHints?.light) return question.structuredHints.light;
+  // 使用 hints[0] 但需安全检查
+  if (question.hints.length > 0) {
+    const first = question.hints[0];
+    if (!hintRevealsAnswer(first, question)) return first;
+  }
+  // 生成安全默认提示
+  return generateSafeDefaultHint(question);
+}
+
+/** 从题目中提取中等提示 */
+function getMediumHint(question: Question): string | undefined {
+  if (question.structuredHints?.medium) return question.structuredHints.medium;
+  if (question.hints.length > 1) return question.hints[1];
+  return undefined;
+}
+
+/** 从题目中提取完整步骤 */
+function getFullStepsFromQuestion(question: Question) {
+  // 优先使用 structuredHints.fullSteps
+  if (question.structuredHints?.fullSteps?.length) return question.structuredHints.fullSteps;
+  // 如果有 solutionStepsDetailed，转换为格式
+  if (question.solutionStepsDetailed?.length) return question.solutionStepsDetailed;
+  // 将 solutionSteps string[] 转为 SolutionStepDetailed[]
+  if (question.solutionSteps.length > 0) {
+    return question.solutionSteps.map((step, i) => ({
+      stepTitle: `第${i + 1}步`,
+      explanation: step,
+    }));
+  }
+  return undefined;
+}
+
+/** 为不同题型生成安全的默认轻提示 */
+function generateSafeDefaultHint(question: Question): string {
+  const pt = question.problemType;
+  if (pt === 'pattern' || /规律/.test(question.text)) {
+    return '先比较相邻两层，每次多了多少。把多的数量记下来。';
+  }
+  if (pt === 'logic_ranking' || pt === 'logic_truth' || pt === 'logic_ordering') {
+    return '仔细读每个人的话，看看谁的话能帮你排除一些可能。';
+  }
+  if (pt === 'age_problem' || /岁|年龄/.test(question.text)) {
+    return '爸爸和孩子每年都长大1岁，年龄差永远不变。可以一年一年试试。';
+  }
+  if (pt === 'planting_problem' || question.lessonType === 'planting_interval') {
+    return '先看总共有多少段，再看两端要不要多算。一段一段数。';
+  }
+  if (pt === 'ratio_distribution' || question.lessonType === 'geometry_count') {
+    return '先找一共有几份，再算每一份是多少。';
+  }
+  if (question.operation === 'mixed') {
+    return '这道题要分几步来想。先看题目给了哪些数，再看看要算什么。';
+  }
+  return '先仔细读题，找出所有数字和关键词，再想想用什么方法。';
 }
 
 // ========== Shared: Equation + Answer Phase ==========
@@ -842,6 +911,8 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
   const [answered, setAnswered] = useState(false);
   const [wrongFeedback, setWrongFeedback] = useState<string | null>(null);
   const [showClues, setShowClues] = useState(true);
+  const [wrongAttempts, setWrongAttempts] = useState(0);
+  const [usedFullHint, setUsedFullHint] = useState(false);
   const mountedRef = useRef(true);
   useEffect(() => { return () => { mountedRef.current = false; }; }, []);
 
@@ -876,11 +947,18 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
     } else {
       setShakeInput(true);
       setTimeout(() => { if (mountedRef.current) setShakeInput(false); }, 500);
+      const newAttempts = wrongAttempts + 1;
+      setWrongAttempts(newAttempts);
       onWrongAnswer(input);
+      // v2.6.7: 递进式错误反馈，不直接爆答案
       const op = question.operation;
-      if (op === 'addition') setWrongFeedback('还差一点！这里数量变多了，用的是加法，再算算看～');
-      else if (op === 'subtraction') setWrongFeedback('还差一点！这里数量变少了，用的是减法，再想想～');
-      else setWrongFeedback('还差一点，我们再看一眼线索，重新算一遍～');
+      if (newAttempts === 1) {
+        setWrongFeedback('还差一点，先看看相邻两层的变化。再算算看～');
+      } else if (newAttempts === 2) {
+        setWrongFeedback('每一层都比上一层多同样的数量，注意看规律哦～');
+      } else {
+        setWrongFeedback('这道题有点难，可以点击下面的"看完整推理"来学习思路～');
+      }
     }
   }
 
@@ -934,24 +1012,17 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
         </button>
       )}
 
-      {/* 分步推导（所有题都展示） */}
-      {question.solutionSteps.length > 0 && (
-        <AppCard variant="blue">
-          <h4 className="text-sm font-extrabold text-blue-700 mb-3 flex items-center gap-1">
-            📝 一步一步想
-          </h4>
-          <div className="space-y-2">
-            {question.solutionSteps.map((step, i) => (
-              <div key={i} className="flex items-start gap-2 text-sm">
-                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-200 text-blue-700 flex items-center justify-center text-xs font-bold mt-0.5">
-                  {i + 1}
-                </span>
-                <span className="text-gray-700">{step}</span>
-              </div>
-            ))}
-          </div>
-        </AppCard>
-      )}
+      {/* v2.6.7: 统一分层提示系统 — 答题前只显示 light hint */}
+      <HintSystem
+        question={question}
+        phase={answered ? 'explain' : 'answer'}
+        lightHint={getLightHint(question)}
+        mediumHint={getMediumHint(question)}
+        fullSteps={getFullStepsFromQuestion(question)}
+        allowFullHint={usedFullHint}
+        wrongAttempts={wrongAttempts}
+        onFullHintRequested={() => setUsedFullHint(true)}
+      />
 
       <AppCard variant="amber">
         <div className="text-center">

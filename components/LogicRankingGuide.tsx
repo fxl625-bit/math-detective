@@ -421,6 +421,8 @@ function HintPanel({
   onShowMedium: () => void;
   onShowFull: () => void;
 }) {
+  const [fullConfirm, setFullConfirm] = useState(false);
+
   // 未初始化
   if (level === 'none') return null;
 
@@ -435,7 +437,7 @@ function HintPanel({
 
       {/* Medium — 用户点击后显示 */}
       {level === 'medium' && structuredHints?.medium && (
-        <div className="bg-white border border-blue-200 rounded-lg p-3">
+        <div className="bg-white border border-blue-200 rounded-lg p-3 animate-fadeIn">
           <p className="text-blue-700 text-sm">{structuredHints.medium}</p>
         </div>
       )}
@@ -455,13 +457,26 @@ function HintPanel({
             💡 再给一点提示
           </button>
         )}
-        {(level === 'light' || level === 'medium') && structuredHints?.fullSteps && (
+        {(level === 'light' || level === 'medium') && structuredHints?.fullSteps && !fullConfirm && (
           <button
-            onClick={onShowFull}
+            onClick={() => setFullConfirm(true)}
             className="px-3 py-1.5 text-xs font-bold bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors"
           >
-            🔍 看完整推理
+            📝 看完整推理
           </button>
+        )}
+        {(level === 'light' || level === 'medium') && structuredHints?.fullSteps && fullConfirm && (
+          <div className="w-full">
+            <p className="text-xs text-amber-700 mb-2">
+              ⚠️ 看完整推理后会看到答案思路哦，确定吗？
+            </p>
+            <button
+              onClick={onShowFull}
+              className="px-3 py-1.5 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors"
+            >
+              确定，我要看完整推理
+            </button>
+          </div>
         )}
       </div>
     </div>
@@ -477,12 +492,17 @@ function FullReasoningPanel({ steps }: { steps: SolutionStepDetailed[] }) {
     <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 space-y-3">
       <h4 className="font-extrabold text-purple-800 text-sm">📝 一步一步想</h4>
       {steps.map((step: SolutionStepDetailed, i: number) => (
-        <div key={i} className="bg-white rounded-lg p-3 shadow-sm">
+        <div key={i} className={`bg-white rounded-lg p-3 shadow-sm ${step.revealsAnswer ? 'border-l-4 border-amber-400' : ''}`}>
           <div className="flex items-center gap-2 mb-1">
             <span className="flex items-center justify-center w-6 h-6 bg-purple-500 text-white font-bold rounded-full text-xs">
               {i + 1}
             </span>
-            <h5 className="font-bold text-purple-700 text-sm">{step.stepTitle}</h5>
+            <h5 className="font-bold text-purple-700 text-sm">
+              {step.stepTitle}
+              {step.revealsAnswer && (
+                <span className="ml-1 text-xs font-normal text-amber-600">（答案）</span>
+              )}
+            </h5>
           </div>
           <p className="text-gray-700 text-sm ml-8">{step.explanation}</p>
         </div>
