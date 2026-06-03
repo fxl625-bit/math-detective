@@ -3,14 +3,46 @@
 | 项目 | 内容 |
 |------|------|
 | **项目名称** | 文字侦探（Math Detective） |
-| **当前版本** | v2.6.3 |
-| **版本历史** | v1.0: 04-29 / v2.0: 04-30 / v2.1: 05-08 / v2.2: 05-08 / v2.3: 05-11 / v2.4: 05-29 / v2.5: 05-29 / v2.6: 06-02 / v2.6.3: 06-03 |
+| **当前版本** | v2.6.9 |
+| **版本历史** | v1.0: 04-29 / v2.0: 04-30 / v2.1: 05-08 / v2.2: 05-08 / v2.3: 05-11 / v2.4: 05-29 / v2.5: 05-29 / v2.6: 06-02 / v2.6.3: 06-03 / v2.6.8: 06-03 / v2.6.9: 06-03 |
 | **项目定位** | 小学低年级数学应用题阅读理解小游戏（奥数渐进体系） |
 | **技术栈** | Next.js 16 (webpack) + React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + localStorage |
 | **部署方式** | Vercel（海外架构，大陆建议 VPN） |
 | **GitHub** | （本仓库） |
 | **Vercel** | https://math-detective.vercel.app |
-| **当前状态** | ✅ v2.6.3 封版，版本确认、缓存刷新、多余信息关卡运行时防御 |
+| **当前状态** | ✅ v2.6.9 封版，P0 渲染前修复管道 + 安全降级课程 + 禁止卡死页面 |
+
+---
+
+## v2.6.9 - P0 渲染前修复管道 + 禁止卡死页面 (2026-06-03)
+
+### 核心修复
+| 修复 | 文件 | 说明 |
+|------|------|------|
+| 渲染前修复管道 | `lib/lessonPlanner.ts` | `safeNormalizeLesson` step #12: 加载时即校验 step-question 兼容性，不再依赖 useEffect 渲染后修复 |
+| 安全降级课程 | `lib/lessonPlanner.ts` | `generateSafeFallbackLesson()`: 替换失败时直接生成 basic_arithmetic 保底课程，禁止空转循环 |
+| 修复上限 | `lib/lessonTransaction.ts` | MAX_REPAIR_ATTEMPTS 从 2 降为 1，一次失败即重建安全课程 |
+| 禁止卡死页面 | `app/play/page.tsx` | 移除 FindNumbers/ActionWords/SpotExtraInfo 三个 Phase 组件的 repair UI，孩子端不再能看到"正在自动修复" |
+| 版本迁移 | `app/play/page.tsx` | 自动检测 localStorage 旧状态，触发 versionUpgrade 迁移 |
+
+### 验证增强 (Phase 1)
+| 校验 | 文件 | 说明 |
+|------|------|------|
+| #38-#41 新增检查 | `lib/questionValidation.ts` | 倍词检测、age_problem 限制、find_action_words 关键词要求、step 标题场景匹配 |
+| 交叉校验 | `lib/questionValidation.ts` | `validateStepQuestionMatch()`: stepType × questionId 交叉验证 |
+| 家长调试面板 | `app/parent-report/page.tsx` | 可折叠 14 列 step/question/theme 匹配表 |
+
+### 设计决策
+- 修复发生在**加载阶段**而非渲染阶段：`loadState → safeNormalizeLesson → validate → repair/replace/rebuild → save → render`
+- 保底课程始终可用：禁止 倍/岁/年龄/比例/逻辑/图形/植树 等复杂关键词
+- 零循环：一次修复失败直接生成安全课程，永不空转
+
+---
+
+## v2.6.8 - P0 正确率 BUG 修复 (2026-06-03)
+
+- 修复统计正确率显示 17% 实际接近 100% 的计算错误
+- 提示提前泄露答案修复：全局分层提示系统
 
 ---
 
