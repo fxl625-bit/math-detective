@@ -407,6 +407,85 @@ export function validateQuestionIntegrity(q: Question): QuestionValidationResult
     errors.push('题干过短（少于5个字符）');
   }
 
+  // v2.6.6: 逻辑排序题元数据检查（增强版）
+  const isLogicRanking = q.problemType === 'logic_ranking'
+    || q.problemType === 'logic_truth'
+    || q.problemType === 'logic_ordering';
+  const hasRankingKeywords = /\b(名次|第.*名|排出|最高|最矮|最快|谁最|比赛|谁第几)\b/.test(q.text);
+
+  if (isLogicRanking || (q.operation === 'logic' && hasRankingKeywords)) {
+    // 18. logic_ranking 必须 operation = 'logic'
+    if (q.operation !== 'logic') {
+      errors.push(`逻辑排序题 operation=${q.operation}，应为 'logic'`);
+    }
+    // 19. requiresEquation 应为 false
+    if (q.requiresEquation !== false) {
+      errors.push(`逻辑排序题 requiresEquation 必须为 false，当前=${q.requiresEquation}`);
+    }
+    // 20. answerType 应为 'ranking'（如果问的是完整排序）
+    if (q.answerType !== 'ranking' && /排出|名次/.test(q.text)) {
+      errors.push('题目要求排完整名次，answerType 必须为 ranking');
+    }
+    // 21. correctRanking 必须存在
+    if (!q.correctRanking) {
+      errors.push('逻辑排序题缺少 correctRanking');
+    }
+    // 22. stepCompatibility 不应包含 equation 流程
+    if (q.stepCompatibility) {
+      if (q.stepCompatibility.includes('find_numbers') && q.requiresEquation === false) {
+        warnings.push('逻辑排序题 stepCompatibility 包含 find_numbers，但 requiresEquation=false');
+      }
+    }
+    // 23. 逻辑题文案检查：不应出现库存/算式/mixed运算文本
+    const forbiddenTexts = ['库存', '列算式', '算出库存', '用 mixed 运算', '数量关系', '糖果店', '宠物店'];
+    for (const ft of forbiddenTexts) {
+      if (q.text.includes(ft) || q.explanation.includes(ft) || (q.storyTitle && q.storyTitle.includes(ft))) {
+        errors.push(`逻辑题出现不匹配文案: "${ft}"`);
+      }
+    }
+    // 24. v2.6.6: title/theme 检查
+    if (q.storyTitle && /库存|糖果店|宠物店|算出库存/.test(q.storyTitle)) {
+      console.warn('[Question Validation] Logic ranking UI mismatch', {
+        id: q.id, text: q.text.slice(0, 50), issue: 'storyTitle contains forbidden text',
+      });
+    }
+    // 25. v2.6.6: full_solve phases 不应包含 build_equation
+    if (q.stepCompatibility?.includes('full_solve')) {
+      if (q.requiresEquation !== false) {
+        warnings.push('逻辑排序题通过 full_solve 但 requiresEquation 未设为 false');
+      }
+    }
+    // 26. v2.6.6: structuredHints.fullSteps 存在时必须安全使用
+    if (q.structuredHints?.fullSteps && q.structuredHints.fullSteps.length > 0) {
+      const fullStepsContainAnswer = q.structuredHints.fullSteps.some(step =>
+        step.explanation.includes('只能是') || step.explanation.includes('所以')
+      );
+      if (fullStepsContainAnswer) {
+        warnings.push('逻辑题 structuredHints.fullSteps 包含完整答案，必须仅在 explain 阶段或用户点击"看完整推理"后展示');
+      }
+    }
+    // 27. v2.6.6: 排名题不应有单个字符串 answer
+    if (typeof q.answer === 'string' && q.answerType === 'ranking') {
+      warnings.push('排名题 answer 为单个字符串，建议使用 correctRanking 字段');
+    }
+  }
+
+  // v2.6.6: 检测题目文本中隐含逻辑排序但缺少元数据
+  if (!isLogicRanking && hasRankingKeywords) {
+    const rankingIndicators = ['名次', '第一名', '最后一名', '排出', '谁最快', '谁第几', '比赛'];
+    const matchedIndicators = rankingIndicators.filter(kw => q.text.includes(kw));
+    if (matchedIndicators.length >= 2) {
+      warnings.push(`题目包含逻辑排序关键词 (${matchedIndicators.join(', ')}) 但 problemType 不是 logic_ranking`);
+    }
+  }
+
+  // v2.6.5: 非计算题但包含方程式文案检查
+  if (q.requiresEquation === false) {
+    if (q.equation && q.equation.length > 0) {
+      warnings.push('requiresEquation=false 但 equation 不为空');
+    }
+  }
+
   return {
     valid: errors.length === 0,
     errors,

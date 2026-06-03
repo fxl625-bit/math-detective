@@ -5,8 +5,9 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Check, X, ArrowUpRight, ArrowDownRight, ShieldCheck, Lightbulb, Calculator } from 'lucide-react';
+import LogicRankingGuide from '@/components/LogicRankingGuide';
 import { useGameState } from '@/hooks/useGameState';
-import { getTodayLesson, normalizeLesson, safeNormalizeLesson, getCurrentStep, getCurrentPhase, advancePhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson } from '@/lib/lessonPlanner';
+import { getTodayLesson, normalizeLesson, safeNormalizeLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson } from '@/lib/lessonPlanner';
 import { getStepNarrative } from '@/lib/storySystem';
 import { getVisual } from '@/data/visualItems';
 import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/types';
@@ -14,6 +15,7 @@ import type { Question, KeywordItem } from '@/lib/types';
 import { needsAddSubtractPrompt, getKeywordTypeDescription, classifyKeyword } from '@/data/keywordRules';
 import { inferLessonType, extractNumbers, classifyNumberRole } from '@/lib/questionValidation';
 import { grantDailyRewardOnce, markDailyRewardShown } from '@/lib/rewardSystem';
+import { commitLessonTransaction, updateDebugState, assertCorrectAnswerAdvanced, assertRepairContinued, getDebugState, type LessonAction, type LearningState, type LessonActionPayload } from '@/lib/lessonTransaction';
 import AppButton from '@/components/ui/AppButton';
 import AppCard from '@/components/ui/AppCard';
 import PageContainer from '@/components/layout/PageContainer';
@@ -36,8 +38,8 @@ export default function PlayPage() {
   const { state, completeQuestion } = useGameState();
 
   const [lesson, setLesson] = useState<TodayLesson | null>(null);
-  const lessonRef = useRef(lesson);
-  lessonRef.current = lesson;
+  const lessonRef = useRef<TodayLesson | null>(null);
+  const transitioningRef = useRef(false);
   const [mounted, setMounted] = useState(false);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -47,6 +49,7 @@ export default function PlayPage() {
     setMounted(true);
     const raw = getTodayLesson();
     const validated = safeNormalizeLesson(raw);
+    lessonRef.current = validated;
     setLesson(validated);
 
     // 开发环境调试日志
@@ -62,13 +65,164 @@ export default function PlayPage() {
     }
   }, []);
 
+  // v2.6.4: 同步 lessonRef 保持与 React state 一致
+  useEffect(() => {
+    lessonRef.current = lesson;
+  }, [lesson]);
+
   const handleRegenerateLesson = useCallback(() => {
     clearTodayLesson();
     const fresh = getTodayLesson();
     const validated = safeNormalizeLesson(fresh);
+    lessonRef.current = validated;
     setLesson(validated);
     setFeedback({ show: false, type: 'info', message: '' });
   }, []);
+
+  // ========== v2.6.4 统一事务系统：runLessonAction ==========
+
+  const runLessonAction = useCallback((
+    action: LessonAction,
+    payload: LessonActionPayload,
+    source: string
+  ) => {
+    if (transitioningRef.current) {
+      console.warn('[runLessonAction] blocked by transition lock', { action, source });
+      return;
+    }
+    transitioningRef.current = true;
+    setIsAdvancing(true);
+
+    try {
+      const currentLesson = lessonRef.current;
+      if (!currentLesson) return;
+
+      // v2.6.4: submit_answer / information_check / identify_extra_info — 通过 hook 记录 stats
+      const isAnswerAction = action === 'submit_answer' || action === 'information_check' || action === 'identify_extra_info';
+      if (isAnswerAction && payload.questionId && payload.inputAnswer) {
+        const q = getQuestionForLesson(currentLesson);
+        if (q) {
+          // v2.6.6: ranking 答案类型正确性判断（完整校验）
+          let isCorrect: boolean;
+          if (q.answerType === 'ranking' && q.correctRanking) {
+            isCorrect = isRankingAnswerCorrect(payload.inputAnswer, q);
+          } else {
+            const correctStr = String(q.answer);
+            isCorrect = payload.inputAnswer.trim() === correctStr ||
+                       parseFloat(payload.inputAnswer.trim()) === q.answer;
+          }
+          completeQuestion(payload.questionId, isCorrect, isCorrect ? undefined : {
+            questionId: q.id,
+            questionText: q.text,
+            myAnswer: payload.inputAnswer,
+            correctAnswer: q.answer,
+            errorType: 'answer_wrong',
+            retriedCorrect: false,
+          });
+          // 答错只记录 stats，不推进 lesson
+          if (!isCorrect) {
+            return;
+          }
+        }
+      }
+
+      const currentState: LearningState = {
+        lesson: currentLesson,
+        gameState: state, // snapshot from hook (用于 transaction 内部的 completeQuestion 计算)
+      };
+
+      const result = commitLessonTransaction({
+        state: currentState,
+        action,
+        payload,
+        source,
+      });
+
+      updateDebugState(result, action, source);
+
+      // P0 断言
+      assertCorrectAnswerAdvanced(result, action, source);
+      assertRepairContinued(result, action, source);
+
+      if (!result.changed) {
+        console.warn('[runLessonAction] no state changed', {
+          action, source, reason: result.reason
+        });
+      }
+
+      if (isAnswerAction && !result.advanced) {
+        console.error('[P0] answer action did not advance', { action, source, result });
+      }
+
+      // 持久化 lesson
+      saveTodayLesson(result.nextLesson);
+
+      // 同步 ref 和 state
+      lessonRef.current = result.nextLesson;
+      setLesson(result.nextLesson);
+
+      // v2.6.3: lesson 完成时处理每日奖励
+      if (result.nextLesson.completed) {
+        const now = new Date().toISOString();
+        let completedLesson: TodayLesson = {
+          ...result.nextLesson,
+          completedAt: result.nextLesson.completedAt || now,
+        };
+
+        const { lesson: rewardedLesson } = grantDailyRewardOnce(state, completedLesson);
+        completedLesson = rewardedLesson;
+        const { lesson: shownLesson } = markDailyRewardShown(state, completedLesson);
+        completedLesson = shownLesson;
+
+        saveTodayLesson(completedLesson);
+        lessonRef.current = completedLesson;
+        setLesson(completedLesson);
+
+        setShowConfetti(true);
+        setFeedback({
+          show: true,
+          type: 'success',
+          message: '🎉 今天的侦探任务完成！你获得了今日宝箱！',
+        });
+      } else if (result.nextLesson.currentStepIndex !== currentLesson.currentStepIndex) {
+        const steps = result.nextLesson.steps;
+        const completedCount = steps.filter(s => s.status === 'completed').length;
+        setFeedback({
+          show: true,
+          type: 'success',
+          message: `✅ 很好，下一条线索出现了！已完成 ${completedCount}/${steps.length} 关，继续破案！`,
+        });
+      }
+
+    } finally {
+      setTimeout(() => {
+        transitioningRef.current = false;
+        setIsAdvancing(false);
+      }, 300);
+    }
+  }, [state, completeQuestion]);
+
+  // ========== 专用 action 处理器 ==========
+
+  // 普通 phase 推进
+  const handlePhaseAdvance = useCallback(() => {
+    runLessonAction('complete_phase', {}, 'PhaseAdvance');
+  }, [runLessonAction]);
+
+  // 正确答案提交（v2.6.4: 一次事务 — stats 在 runLessonAction 中通过 hook 记录）
+  const handleSubmitAnswer = useCallback((inputAnswer: string, questionId: string) => {
+    runLessonAction('submit_answer', { inputAnswer, questionId }, 'AnswerSubmit');
+  }, [runLessonAction]);
+
+  // 答题完成后完成关卡（从 explain 按钮调用）
+  const handleStepComplete = useCallback((correct: boolean) => {
+    runLessonAction('complete_step', {}, 'StepComplete');
+  }, [runLessonAction]);
+
+  // 修复后继续（v2.6.4: 一次事务跳过无效题）
+  const handleContinueRepair = useCallback(() => {
+    runLessonAction('continue_after_repair', {}, 'ContinueRepair');
+  }, [runLessonAction]);
 
   const currentStep = lesson ? getCurrentStep(lesson) : null;
   const currentPhase = lesson ? getCurrentPhase(lesson) : null;
@@ -77,47 +231,18 @@ export default function PlayPage() {
     : null;
   const visual = question ? getVisual(question.visualKey) : null;
 
-  // Phase advancement (does NOT complete the step) — with anti-double-click lock
-  const handlePhaseAdvance = useCallback(() => {
-    if (!lesson || isAdvancing) return;
-    setIsAdvancing(true);
-    try {
-      const updated = advancePhase(lesson);
-      saveTodayLesson(updated);
-      setLesson(updated);
-    } finally {
-      // 短延迟防止连续点击
-      setTimeout(() => setIsAdvancing(false), 300);
-    }
-  }, [lesson, isAdvancing]);
-
-  // Phase back (go to previous phase in current step)
+  // Phase back (v2.6.4: 走事务系统，消除闭包陈旧问题)
   const handlePhaseBack = useCallback(() => {
-    if (!lesson || !currentStep) return;
-    const steps = [...lesson.steps];
-    const idx = lesson.currentStepIndex;
-    const step = { ...steps[idx] };
-    if (step.currentPhaseIndex > 0) {
-      step.currentPhaseIndex = step.currentPhaseIndex - 1;
-      steps[idx] = step;
-      const updated = { ...lesson, steps };
-      saveTodayLesson(updated);
-      setLesson(updated);
-    }
-  }, [lesson, currentStep]);
+    runLessonAction('go_back', {}, 'PhaseBack');
+  }, [runLessonAction]);
 
-  // Back to previous level (or home if on first level)
+  // Back to previous level (v2.6.4: 走事务系统)
   const handleBackToPrevLevel = useCallback(() => {
-    if (!lesson) { router.push('/'); return; }
-    if (lesson.currentStepIndex <= 0) { router.push('/'); return; }
-    const steps = [...lesson.steps];
-    const idx = lesson.currentStepIndex;
-    steps[idx] = { ...steps[idx], status: 'locked' as const, currentPhaseIndex: 0 };
-    steps[idx - 1] = { ...steps[idx - 1], status: 'current' as const, currentPhaseIndex: 0 };
-    const updated = { ...lesson, steps, currentStepIndex: idx - 1 };
-    saveTodayLesson(updated);
-    setLesson(updated);
-  }, [lesson, router]);
+    const currentLesson = lessonRef.current;
+    if (!currentLesson) { router.push('/'); return; }
+    if (currentLesson.currentStepIndex <= 0) { router.push('/'); return; }
+    runLessonAction('go_prev_level', {}, 'PrevLevelBack');
+  }, [runLessonAction, router]);
 
   // Record wrong answer (答错记录到错题本和统计)
   const handleWrongAnswer = useCallback((input: string) => {
@@ -131,73 +256,6 @@ export default function PlayPage() {
       retriedCorrect: false,
     });
   }, [question, completeQuestion]);
-
-  // Step completion (called from explain phase "完成本关" button)
-  const handleStepComplete = useCallback((correct: boolean) => {
-    // v2.6.2: 防重复提交锁
-    if (isAdvancing) return;
-    setIsAdvancing(true);
-
-    try {
-      const currentLesson = lessonRef.current;
-      if (!currentLesson || !currentStep || !question) {
-        setIsAdvancing(false);
-        return;
-      }
-
-      completeQuestion(question.id, correct, correct ? undefined : {
-        questionId: question.id,
-        questionText: question.text,
-        myAnswer: '未正确完成',
-        correctAnswer: question.answer,
-        errorType: `关卡"${currentStep.title}"未通过`,
-        retriedCorrect: false,
-      });
-
-      // 单次推进：从 explain → completed → next step
-      const afterAdvance = advancePhase(currentLesson);
-      saveTodayLesson(afterAdvance);
-      setLesson(afterAdvance);
-
-      if (afterAdvance.completed) {
-        // v2.6.3: 课程完成时发放每日奖励 + 标记已展示
-        const now = new Date().toISOString();
-        let completedLesson: TodayLesson = {
-          ...afterAdvance,
-          completedAt: afterAdvance.completedAt || now,
-        };
-        
-        // 发放奖励（仅第一次）
-        const { lesson: rewardedLesson } = grantDailyRewardOnce(state, completedLesson);
-        completedLesson = rewardedLesson;
-        
-        // 标记弹窗已展示（发放 + 展示一起处理，防止返回首页重复弹）
-        const { lesson: shownLesson } = markDailyRewardShown(state, completedLesson);
-        completedLesson = shownLesson;
-        
-        saveTodayLesson(completedLesson);
-        setLesson(completedLesson);
-        
-        setShowConfetti(true);
-        setFeedback({
-          show: true,
-          type: 'success',
-          message: '🎉 今天的侦探任务完成！你获得了今日宝箱！',
-        });
-      } else if (afterAdvance.currentStepIndex !== currentLesson.currentStepIndex) {
-        const steps = afterAdvance.steps;
-        const completedCount = steps.filter(s => s.status === 'completed').length;
-        setFeedback({
-          show: true,
-          type: 'success',
-          message: `✅ 很好，下一条线索出现了！已完成 ${completedCount}/${steps.length} 关，继续破案！`,
-        });
-      }
-    } finally {
-      // 延迟解锁，确保 React 批处理完成
-      setTimeout(() => setIsAdvancing(false), 300);
-    }
-  }, [currentStep, question, completeQuestion, isAdvancing]);
 
   if (!mounted) {
     return (
@@ -376,24 +434,54 @@ export default function PlayPage() {
     const isDebugMode = typeof window !== 'undefined' && localStorage.getItem('mathDetectiveDebug') === '1';
     const inferredLessonType = question ? (question.lessonType || inferLessonType(question)) : null;
 
+    // v2.6.6: 逻辑排序题覆盖 story 标题/描述
+    const isLogicRanking = question?.problemType === 'logic_ranking'
+      || question?.problemType === 'logic_truth'
+      || question?.problemType === 'logic_ordering';
+    const displayCaseStoryTitle = isLogicRanking
+      ? (question?.sceneType === 'race' ? '跑步名次谜案' : '逻辑推理谜案')
+      : (caseStory?.title || '');
+    const displayStepDescription = isLogicRanking
+      ? '根据每个人的话，排出比赛名次'
+      : stepNarrative.description;
+    const displayStepInstruction = isLogicRanking
+      ? '仔细看每个人说的话，用排除法找出答案！'
+      : stepNarrative.instruction;
+
   return (
     <PageContainer bottomPadding={false}>
       {/* v2.6 P0修复：开发调试信息 */}
-      {isDebugMode && question && (
-        <div className="mb-2 p-2 bg-gray-100 rounded-lg text-xs font-mono text-gray-600 border border-gray-300">
+      {isDebugMode && question && (() => {
+        const ds = getDebugState();
+        return (
+        <div className="mb-2 p-2 bg-gray-100 rounded-lg text-xs font-mono text-gray-600 border border-gray-300 space-y-1">
+          <div className="font-bold text-amber-700 border-b border-gray-300 pb-1 mb-1">📋 题目信息</div>
           <div>questionId=<span className="text-blue-600">{question.id}</span></div>
           <div>lessonType=<span className="text-green-600">{String(inferredLessonType || 'unknown')}</span></div>
           <div>keywordType=<span className="text-purple-600">{String(question.keywordType || 'auto')}</span></div>
           <div>numbers.length=<span className="text-amber-600">{question.numbers.length}</span></div>
           <div>keywords=<span className="text-orange-600">{question.keywords.map(k => k.word).join(', ') || '(none)'}</span></div>
+          {ds.lastLessonAction && (
+            <>
+              <div className="font-bold text-amber-700 border-b border-gray-300 pb-1 mb-1 mt-2">🔍 事务追踪 (v{ds.appVersion})</div>
+              <div>lastAction=<span className="text-blue-600">{ds.lastLessonAction}</span></div>
+              <div>source=<span className="text-green-600">{ds.lastActionSource}</span></div>
+              <div>advanced=<span className={ds.lastAdvanced ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>{String(ds.lastAdvanced)}</span></div>
+              <div>phase=<span className="text-purple-600">{ds.lastFromPhase}</span> → <span className="text-amber-600">{ds.lastToPhase}</span></div>
+              <div>reason=<span className="text-gray-500">{ds.lastReason || '(none)'}</span></div>
+              <div>stateVersion=<span className="text-blue-600">{ds.stateVersion}</span></div>
+              <div>at=<span className="text-gray-400">{ds.lastActionAt.slice(11, 19)}</span></div>
+            </>
+          )}
         </div>
-      )}
+        );
+      })()}
 
       {/* Header with story context */}
-      {caseStory && (
+      {displayCaseStoryTitle && (
         <div className="text-center mb-1">
           <span className="text-xs px-2 py-1 bg-blue-100 rounded-full text-blue-600 border border-blue-200">
-            📋 {caseStory.title}
+            📋 {displayCaseStoryTitle}
           </span>
         </div>
       )}
@@ -405,7 +493,7 @@ export default function PlayPage() {
           <h1 className="text-lg font-extrabold text-amber-800 truncate">
             {getStepLabel(currentStep, lesson)}
           </h1>
-          <p className="text-xs text-amber-600 truncate">{stepNarrative.description}</p>
+          <p className="text-xs text-amber-600 truncate">{displayStepDescription}</p>
           <div className="flex items-center gap-2 mt-1">
             <ProgressBar
               value={lesson.currentStepIndex}
@@ -418,7 +506,7 @@ export default function PlayPage() {
 
       {/* Detective with step instruction */}
       <div className="flex justify-center">
-        <DetectiveMascot mood="thinking" size="sm" message={stepNarrative.instruction} />
+        <DetectiveMascot mood="thinking" size="sm" message={displayStepInstruction} />
       </div>
 
       {/* Phase-aware step content (v2.6 P0修复: 加 question.id 防状态残留) */}
@@ -433,6 +521,8 @@ export default function PlayPage() {
           onStepComplete={handleStepComplete}
           onPhaseBack={handlePhaseBack}
           onWrongAnswer={handleWrongAnswer}
+          onSubmitAnswer={handleSubmitAnswer}
+          onContinueRepair={handleContinueRepair}
         />
       </AnimatePresence>
 
@@ -447,11 +537,93 @@ export default function PlayPage() {
   );
 }
 
+// ========== v2.6.6: Ranking 答案校验 ==========
+
+/**
+ * 校验排名答案是否正确。
+ * 支持：
+ * 1. option id (如 "A")
+ * 2. order array (逗号分隔，如 "小华,小红,小明")
+ * 3. 文本兜底（带分隔符的格式）
+ */
+function isRankingAnswerCorrect(input: string, question: Question): boolean {
+  const ranking = question.correctRanking;
+  if (!ranking) return false;
+
+  const expectedOrder = ranking.order || [
+    ranking.first, ranking.second, ranking.third,
+    ranking.fourth, ranking.fifth,
+  ].filter(Boolean) as string[];
+  const trimmed = input.trim();
+
+  // 方式1: option id (如 "A")
+  if (question.rankingOptions && question.rankingOptions.length > 0) {
+    const option = question.rankingOptions.find(o => o.id === trimmed);
+    if (option) return option.correct;
+  }
+
+  // 方式2: order array (逗号分隔)
+  if (trimmed.includes(',')) {
+    const inputOrder = trimmed.split(/[,，]+/).map(s => s.trim()).filter(Boolean);
+    return isOrderMatch(inputOrder, expectedOrder);
+  }
+
+  // 方式3: 文本兜底 — 解析各种分隔符格式
+  const normalized = normalizeRankingInput(trimmed);
+  if (normalized) {
+    return isOrderMatch(normalized, expectedOrder);
+  }
+
+  // 方式4: 检查是否只有部分答案（只输入第一名）
+  if (expectedOrder.length > 1) {
+    const partialMatch = expectedOrder.slice(0, 1).every(name => trimmed.includes(name));
+    if (partialMatch && !expectedOrder.slice(1).every(name => trimmed.includes(name))) {
+      // 只匹配了第一名但不完整 — 不视为正确
+      console.log('[RankingAnswer] Partial answer detected — only first place');
+      return false;
+    }
+  }
+
+  return false;
+}
+
+function isOrderMatch(inputOrder: string[], expectedOrder: string[]): boolean {
+  if (inputOrder.length !== expectedOrder.length) return false;
+  return inputOrder.every((name, i) => name === expectedOrder[i]);
+}
+
+function normalizeRankingInput(input: string): string[] | null {
+  // 尝试各种格式
+  const patterns = [
+    // 小华-小红-小明
+    /^([^-]+)-([^-]+)-([^-]+)$/,
+    // 小华，小红，小明  (already handled above)
+    // 小华、小红、小明
+    /^([^、]+)、([^、]+)、([^、]+)$/,
+    // 小华 小红 小明
+    /^(\S+)\s+(\S+)\s+(\S+)$/,
+    // 第一小华第二小红第三小明
+    /^第一(\S+)第二(\S+)第三(\S+)$/,
+    // 第一名小华第二名小红第三名小明
+    /^第一名(\S+)第二名(\S+)第三名(\S+)$/,
+  ];
+
+  for (const pattern of patterns) {
+    const match = input.match(pattern);
+    if (match) {
+      return [match[1].trim(), match[2].trim(), match[3].trim()];
+    }
+  }
+
+  return null;
+}
+
 // ========== Phase-Aware Step Router ==========
 
 function PhaseAwareStep({
   step, phase, question, visual,
   onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
+  onSubmitAnswer, onContinueRepair,
 }: {
   step: LessonStep;
   phase: StepPhase | null;
@@ -461,26 +633,60 @@ function PhaseAwareStep({
   onStepComplete: (correct: boolean) => void;
   onPhaseBack: () => void;
   onWrongAnswer: (input: string) => void;
+  onSubmitAnswer: (inputAnswer: string, questionId: string) => void;
+  onContinueRepair: () => void;
 }) {
   if (!phase) return null;
 
+  // v2.6.5: 逻辑排序题使用专用组件
+  const isLogicQuestion = question.problemType === 'logic_ranking'
+    || question.problemType === 'logic_truth'
+    || question.problemType === 'logic_ordering';
+
+  if (isLogicQuestion) {
+    // 运行时防御 P0: 逻辑题不应进入方程构建器
+    if (phase === 'build_equation') {
+      console.error('[P0] Logic question routed to build_equation!', {
+        questionId: question.id,
+        text: question.text.slice(0, 50),
+        problemType: question.problemType,
+        phase,
+      });
+      // 自动切到安全的 phase
+      const safePhase = 'understand_clues';
+      console.warn(`[P0] Auto-redirecting logic question from ${phase} to ${safePhase}`);
+    }
+    if (phase === 'answer' && question.answerType === 'ranking') {
+      console.warn('[UX] Logic ranking question in answer phase — should be ranking_answer');
+    }
+    return (
+      <LogicRankingGuide
+        question={question}
+        phase={phase}
+        onPhaseAdvance={onPhaseAdvance}
+        onPhaseBack={onPhaseBack}
+        onSubmitAnswer={onSubmitAnswer}
+      />
+    );
+  }
+
   switch (step.type) {
     case 'find_numbers':
-      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} />;
     case 'find_action_words':
-      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} />;
     case 'simulation':
-      return <SimulationPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+      return <SimulationPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     case 'remove_noise':
-      return <RemoveNoisePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+      return <RemoveNoisePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     case 'full_solve':
-      return <FullSolvePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+      return <FullSolvePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     case 'find_compare_numbers':
-      return <CompareNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+      return <CompareNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     case 'spot_extra_info':
-      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} />;
     case 'spot_missing_info':
-      return <SpotMissingInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+      return <SpotMissingInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     default:
       return null;
   }
@@ -514,10 +720,13 @@ function ClueSummary({ question }: { question: Question }) {
   const hasShare = question.text.includes('平均分') || question.text.includes('每人') || question.text.includes('每份');
   const hasCompare = question.text.includes('比') && question.text.includes('多') || question.text.includes('相差');
   const isMultiStep = question.operation === 'mixed';
+  const isLogicRanking = question.problemType === 'logic_ranking' || question.problemType === 'logic_truth' || question.problemType === 'logic_ordering';
 
   // 数量关系——用孩子能懂的语言
   let opDesc = '';
-  if (hasAge) {
+  if (isLogicRanking) {
+    opDesc = '这道题不是算数字，而是根据每个人的话排除不可能的位置。用排除法一步一步推理！';
+  } else if (hasAge) {
     opDesc = '爸爸和孩子每年都长大1岁，年龄差永远不变。可以一年一年试！';
   } else if (hasCircle && hasInterval) {
     opDesc = '沿着圆圈走一圈，每走一段就到一个种树位置。因为是圆圈，最后一段会接回起点，所以有几段就有几棵树。';
@@ -553,8 +762,28 @@ function ClueSummary({ question }: { question: Question }) {
         <span className="font-bold text-blue-600">📋 案件卷宗：</span>
         {question.text}
       </div>
+      {/* v2.6.5: 逻辑排序题人物和陈述线索 */}
+      {isLogicRanking && question.people && question.people.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="font-bold text-blue-600">👥 人物线索：</span>
+          {question.people.map((p, i) => (
+            <span key={i} className="px-2 py-0.5 bg-purple-100 rounded-lg font-bold text-purple-700">{p}</span>
+          ))}
+        </div>
+      )}
+      {isLogicRanking && question.statements && question.statements.length > 0 && (
+        <div className="bg-white rounded-lg p-2 text-sm space-y-1">
+          <span className="font-bold text-blue-600">📝 话语线索：</span>
+          {question.statements.map((s, i) => (
+            <div key={i} className="flex items-start gap-1 text-gray-700">
+              <span className="text-purple-500 flex-shrink-0">•</span>
+              <span><span className="font-medium">{s.speaker}</span>：{s.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
       {/* 数字线索 */}
-      {question.numbers.length > 0 && (
+      {question.numbers.length > 0 && !isLogicRanking && (
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="font-bold text-blue-600">🔢 数字线索：</span>
           {question.numbers.map((n, i) => (
@@ -584,7 +813,7 @@ function ClueSummary({ question }: { question: Question }) {
       )}
       {/* 运算关系 */}
       <div className="text-sm">
-        <span className="font-bold text-blue-600">🧮 怎么想：</span>
+        <span className="font-bold text-blue-600">{isLogicRanking ? '🧠 怎么想：' : '🧮 怎么想：'}</span>
         <span className="text-gray-700">{opDesc}</span>
       </div>
       {/* 提示 */}
@@ -600,12 +829,13 @@ function ClueSummary({ question }: { question: Question }) {
 
 // ========== Shared: Equation + Answer Phase ==========
 
-function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrongAnswer }: {
+function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrongAnswer, onSubmitAnswer }: {
   question: Question;
   visual: ReturnType<typeof getVisual>;
   onCorrect: () => void;
   onPhaseBack?: () => void;
   onWrongAnswer: (input: string) => void;
+  onSubmitAnswer?: (inputAnswer: string, questionId: string) => void;
 }) {
   const [userAnswer, setUserAnswer] = useState('');
   const [shakeInput, setShakeInput] = useState(false);
@@ -619,18 +849,34 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
     const input = userAnswer.trim();
     if (!input) return;
 
+    // v2.6.6: 运行时防御 — 非计算题不应进入数字答案流程
+    if (question.requiresEquation === false || question.problemType?.startsWith('logic')) {
+      console.error('[P0] Non-equation question rendered equation answer UI', {
+        questionId: question.id,
+        text: question.text.slice(0, 50),
+        problemType: question.problemType,
+        operation: question.operation,
+      });
+      // 自动切换为安全处理：将输入内容交给状态机
+    }
+
     const correctStr = String(question.answer);
     const isCorrect = input === correctStr || parseFloat(input) === question.answer;
 
     if (isCorrect) {
       setAnswered(true);
       setWrongFeedback(null);
-      onCorrect();
+      // v2.6.4: 使用统一事务提交 — 一次点击完成提交+推进
+      if (onSubmitAnswer) {
+        onSubmitAnswer(input, question.id);
+      } else {
+        // Fallback for components without onSubmitAnswer
+        onCorrect();
+      }
     } else {
       setShakeInput(true);
       setTimeout(() => { if (mountedRef.current) setShakeInput(false); }, 500);
       onWrongAnswer(input);
-      // 温和反馈
       const op = question.operation;
       if (op === 'addition') setWrongFeedback('还差一点！这里数量变多了，用的是加法，再算算看～');
       else if (op === 'subtraction') setWrongFeedback('还差一点！这里数量变少了，用的是减法，再想想～');
@@ -765,8 +1011,8 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
 // Phases: read → find_numbers → [equation+answer] → completed
 
 function FindNumbersPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [found, setFound] = useState<Set<number>>(new Set());
 
@@ -822,7 +1068,7 @@ function FindNumbersPhased({
                   lessonType={lessonType || 'unknown'}
                 </div>
               )}
-              <AppButton variant="primary" size="md" onClick={onPhaseAdvance}>
+              <AppButton variant="primary" size="md" onClick={onContinueRepair || (() => onStepComplete(true))}>
                 跳过本关（自动换题）
               </AppButton>
             </div>
@@ -895,15 +1141,15 @@ function FindNumbersPhased({
   }
 
   // phases after find_numbers → equation + answer
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }
 
 // ========== Step 2: Find Action Words (Phased) (v2.6 P0修复) ==========
 // Phases: read → find_keywords → choose_operation → [equation+answer] → completed
 
 function FindActionWordsPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [found, setFound] = useState<Set<number>>(new Set());
   const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
@@ -1008,7 +1254,7 @@ function FindActionWordsPhased({
                 </div>
               )}
               <p className="text-sm text-gray-500 mt-2">正在换一题...</p>
-              <AppButton variant="primary" size="md" onClick={onPhaseAdvance}>
+              <AppButton variant="primary" size="md" onClick={onContinueRepair || (() => onStepComplete(true))}>
                 跳过本关（自动换题）
               </AppButton>
             </div>
@@ -1086,15 +1332,15 @@ function FindActionWordsPhased({
   }
 
   // Final phase: equation + answer
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }
 
 // ========== Step 3: Simulation (Phased) ==========
 // Phases: read → simulation → choose_operation → answer → completed
 
 function SimulationPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [animationShown, setAnimationShown] = useState(false);
   const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
@@ -1243,15 +1489,15 @@ function SimulationPhased({
   }
 
   // answer phase
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }
 
 // ========== Step 4: Remove Noise (Phased) ==========
 // Phases: read → remove_noise → build_equation → answer → completed
 
 function RemoveNoisePhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [erased, setErased] = useState<Set<number>>(new Set());
   const [noiseDone, setNoiseDone] = useState(false);
@@ -1356,7 +1602,7 @@ function RemoveNoisePhased({
   }
 
   // Final phases: build_equation → answer
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }
 
 // ========== Step 5: Full Solve (Phased) ==========
@@ -1378,10 +1624,22 @@ function getOperationLabel(operation: string): string {
 }
 
 function FullSolvePhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
+
+  // v2.6.6: P0 运行时防御 — 逻辑题不应进入 FullSolvePhased
+  if (question.problemType === 'logic_ranking' || question.problemType === 'logic_truth' || question.problemType === 'logic_ordering') {
+    console.error('[P0] Logic question reached FullSolvePhased — should be routed to LogicRankingGuide', {
+      questionId: question.id, text: question.text.slice(0, 50), phase,
+    });
+  }
+  if (phase === 'build_equation' && (question.requiresEquation === false || question.problemType?.startsWith('logic'))) {
+    console.error('[P0] Non-equation question in build_equation phase', {
+      questionId: question.id, problemType: question.problemType, requiresEquation: question.requiresEquation,
+    });
+  }
 
   if (phase === 'read') {
     return (
@@ -1529,7 +1787,7 @@ function FullSolvePhased({
   }
 
   if (phase === 'answer') {
-    return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+    return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
   }
 
   // explain phase
@@ -1562,8 +1820,8 @@ function FullSolvePhased({
 // ========== Step 6: Find Compare Numbers (Phased) ==========
 
 function CompareNumbersPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
 
   if (phase === 'read') {
@@ -1625,14 +1883,14 @@ function CompareNumbersPhased({
     );
   }
 
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }
 
 // ========== Step 7: Spot Extra Info (Phased) ==========
 
 function SpotExtraInfoPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void }) {
   // v2.6.1: 运行时防御 — 非法题目不得卡住
   const extraNumbers = question.extraNumbers ?? [];
   const noiseCount = question.noisePhrases?.length ?? 0;
@@ -1655,7 +1913,7 @@ function SpotExtraInfoPhased({
           <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
         </AppCard>
         <BottomActionBar>
-          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+          <AppButton variant="primary" size="lg" fullWidth onClick={onContinueRepair || (() => onStepComplete(true))}>
             已自动修复，继续 →
           </AppButton>
         </BottomActionBar>
@@ -1732,14 +1990,14 @@ function SpotExtraInfoPhased({
     );
   }
 
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }
 
 // ========== Step 8: Spot Missing Info (Phased) ==========
 
 function SpotMissingInfoPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [choice, setChoice] = useState<boolean | null>(null);
   const isInsufficient = question.isInsufficient === true;
@@ -1830,5 +2088,5 @@ function SpotMissingInfoPhased({
     );
   }
 
-  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} />;
+  return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }

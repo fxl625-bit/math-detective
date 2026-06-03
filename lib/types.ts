@@ -1,5 +1,58 @@
 // ========== 年级与领域 ==========
 
+export type ProblemType =
+  | 'basic_arithmetic'
+  | 'multi_step'
+  | 'information_check'
+  | 'planting_problem'
+  | 'age_problem'
+  | 'shape_counting'
+  | 'ratio_distribution'
+  | 'logic_ranking'
+  | 'logic_truth'
+  | 'logic_ordering'
+  | 'unknown';
+
+export interface RankingAnswer {
+  first: string;
+  second?: string;
+  third?: string;
+  fourth?: string;
+  fifth?: string;
+  order?: string[];
+}
+
+export interface Statement {
+  speaker: string;
+  text: string;
+  means: string;
+}
+
+export interface SolutionStepDetailed {
+  stepTitle: string;
+  explanation: string;
+}
+
+export type AnswerType = 'number' | 'text' | 'ranking' | 'equation' | 'choice';
+
+/** v2.6.6: 排名选择题选项 */
+export interface RankingOption {
+  id: string;
+  label: string;
+  order: string[];
+  correct: boolean;
+}
+
+/** v2.6.6: 分层提示等级 */
+export type HintLevel = 'light' | 'medium' | 'full';
+
+/** v2.6.6: 结构化分层提示 */
+export interface StructuredHints {
+  light: string;
+  medium?: string;
+  fullSteps?: SolutionStepDetailed[];
+}
+
 export type GradeBand = 'G1' | 'G2' | 'G3' | 'G4' | 'G5' | 'G6' | 'OlympiadIntro';
 
 export type MathDomain =
@@ -176,6 +229,8 @@ export interface Question {
   explanation: string;
   solutionSteps: string[];
   hints: string[];
+  /** v2.6.6: 结构化分层提示（替代 hints 数组用于逻辑题） */
+  structuredHints?: StructuredHints;
   difficulty: 1 | 2 | 3 | 4 | 5;
   category: 'addition' | 'subtraction' | 'multiplication' | 'division' | 'mixed';
   visualKey: string;
@@ -195,6 +250,26 @@ export interface Question {
   levelId?: string;
   /** v2.6 P0修复：故事标题 */
   storyTitle?: string;
+  /** v2.6.5: 题型分类 */
+  problemType?: ProblemType;
+  /** v2.6.5: 是否需要列算式（逻辑题/排序题不需要） */
+  requiresEquation?: boolean;
+  /** v2.6.5: 答案类型 */
+  answerType?: AnswerType;
+  /** v2.6.5: 场景类型 */
+  sceneType?: string;
+  /** v2.6.5: 主题标签 */
+  themeTags?: string[];
+  /** v2.6.5: 逻辑排序题人物列表 */
+  people?: string[];
+  /** v2.6.5: 逻辑排序题陈述 */
+  statements?: Statement[];
+  /** v2.6.5: 排序答案 */
+  correctRanking?: RankingAnswer;
+  /** v2.6.6: 排名选择题选项 */
+  rankingOptions?: RankingOption[];
+  /** v2.6.5: 详细解题步骤 */
+  solutionStepsDetailed?: SolutionStepDetailed[];
 }
 
 // ========== 关卡阶段 ==========
@@ -212,6 +287,9 @@ export type StepPhase =
   | 'find_compare_numbers'
   | 'spot_extra_info'
   | 'spot_missing_info'
+  | 'understand_clues'
+  | 'logic_elimination'
+  | 'ranking_answer'
   | 'completed';
 
 export type LessonStepType =

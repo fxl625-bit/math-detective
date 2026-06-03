@@ -1,66 +1,44 @@
-# 文字侦探 — 更新日志
+# Math Detective Changelog
 
-## v2.6.1 - P0 修复：版本确认、缓存刷新与多余信息关卡防御 (2026-06-03)
+## v2.6.5 — P0 修复：逻辑排序题与列式流程错配
 
-- 增加 APP_VERSION / BUILD_TIME / COMMIT_SHA（lib/appVersion.ts）
-- 启动时 console.info 输出版本信息
-- localStorage 记录上一次运行版本（math-detective-app-version）
-- 版本变化后自动 migration 和修复 todayLesson（lib/versionUpgrade.ts）
-- 增加清理 Cache Storage / Service Worker 更新能力
-- 家长设置新增「版本与缓存」区域，显示版本号、构建时间、commit、数据版本、今日任务状态
-- 家长设置新增按钮：刷新到最新版本、清除页面缓存并刷新、重建今日任务
-- 修复旧 localStorage 中 identify_extra_info 无效 step 残留
-- SpotExtraInfoPhased 运行时检测 expectedIrrelevantItems，非法题目自动跳过不卡住
-- lessonPlanner 再次强制校验 hasExtraInfo / noisePhrases / irrelevantNumbers
-- 新增 lib/questionGuards.ts：getExpectedIrrelevantItems / isValidForExtraInfoStep / isValidForRemoveNoiseStep
-- 部署后输出版本号、commit、Production URL
+- 新增 `ProblemType` 问题类型系统：`logic_ranking`、`logic_truth`、`logic_ordering` 等 10 种
+- 新增 `RankingAnswer`、`Statement`、`SolutionStepDetailed` 接口
+- 新增 `AnswerType` 类型：`number` | `text` | `ranking` | `equation` | `choice`
+- 新增 `StepPhase`：`understand_clues`、`logic_elimination`、`ranking_answer`
+- 新增 `components/LogicRankingGuide.tsx`：排除法步骤展示 + 完整排序选择
+- 逻辑排序题使用专用阶段流程：read → understand_clues → logic_elimination → ranking_answer → explain
+- `getDefaultPhasesForStepType` 支持根据 `question.problemType` 动态返回阶段
+- `PhaseAwareStep` 路由逻辑题到 LogicRankingGuide，不再进入方程构建器
+- 修复 FullSolve 主题文案错配：`完整破案/算出库存` → `逻辑破案/排出名次`
+- `getDynamicStepTitle` / `getDynamicStepDescription`：根据题型动态生成关卡标题和描述
+- ranking 答案支持完整排序校验：只输入第一名不视为完整正确
+- `ClueSummary` 增强：逻辑排序题显示人物线索和话语线索
+- `validateQuestionIntegrity` 新增逻辑排序题元数据检查（18-23项）
+- 修复 oi_13 元数据：补全 `problemType`、`people`、`statements`、`correctRanking`、`solutionStepsDetailed`
+- 运行时防御：逻辑题误入方程构建器时 `console.error('[P0]')`
+- `requiresEquation=false` 的题运行时防御
 
-## v2.6 - P0/P1 全修复 (2026-06-02)
-详见 VERSION.md
+## v2.6.4 — P0 修复：统一状态机事务与二次点击问题
 
-## v1.0 已完成功能
+- 新增 `lib/lessonTransaction.ts`：`commitLessonTransaction` 统一 lesson 状态转换
+- 新增 `runLessonAction`：所有用户动作统一提交，单次原子事务
+- 修复 **正确答案需要提交两次** 的问题：一次点击 answer → explain
+- 修复 **"清除线索后才能进入下一页"** 的问题
+- 修复 **"已修复，点击继续"需要点击两次** 的问题：repair flow 接入 `continue_after_repair` action
+- answer phase 正确答案一次事务直接进入 explain，不再依赖 `canAdvance`
+- 组件不再直接修改 `currentPhaseIndex`，所有推进统一走事务系统
+- `transitioningRef` 事务锁防止并发状态修改
+- `lessonRef` 解决闭包陈旧问题，永远读取最新 lesson
+- 增加 P0 断言：`assertCorrectAnswerAdvanced`、`assertRepairContinued`、`assertNotDuplicateSubmit`
+- 增加调试状态 `LessonDebugState` 供家长面板追踪
+- 修复 stats 双重记录：移除 transaction 内多余的 `completeQuestion` 调用
+- 继续验证每日奖励幂等（`grantDailyRewardOnce` / `markDailyRewardShown`）
+- 新增 `information_check` 和 `identify_extra_info` action handler（之前只有类型定义，fallback 到 noChange）
+- 新增 `go_back` 和 `go_prev_level` action：hanlePhaseBack / handleBackToPrevLevel 统一走事务
+- 调试面板集成 `getDebugState()`：平板可查看 lastAction / phase 变化 / stateVersion
+- `runLessonAction` 扩展 stats 记录覆盖 `information_check` / `identify_extra_info`
 
-### 核心玩法
-- 数学读题训练核心玩法（找数字、找关键词、擦废话、理解题意、列式答题）
-- 每日任务自动编排（5 关循序渐进）
-- 关卡类型：找数字 → 找动作词 → 情景动画 → 擦掉废话 → 完整破案
-- 每题找到线索后继续列式和填答案（找线索不是终点）
-- 题目物品与图标绑定（visual 系统）
-- 答题反馈（答句 + 撒花 + 鼓励语）
+## v2.6.2
 
-### 题库
-- 6 个年级（G1-G6）+ 奥数启蒙
-- 180 道题（每级 25 题，含 30 道专用 remove_noise 题）
-- stepCompatibility 字段标注，支持按关卡类型选题
-- 题库自检脚本
-
-### 学习系统
-- 星星奖励 + 侦探等级（1-10 级）
-- 徽章系统
-- 连续打卡（streak）
-- 错题记录 + 家长报告
-- 每周学习卡片
-
-### 奖励中心
-- 虚拟奖励（徽章、宝箱、streak 里程碑）
-- 家长自定义奖励（CRUD）
-- 孩子兑换 + 家长确认流程
-- 兑换记录管理
-
-### 家长模式
-- 数学题验证进入（随机生成，防止孩子破解）
-- 验证失败记录
-- 连续失败 3 次锁定
-- 重置工具（重置今日任务 / 清空进度 / 完全重置 / 恢复默认奖励）
-- 年级选择、奥数开关、每日目标设置
-
-### 体验优化
-- 明日挑战预告（完成页 + 首页）
-- localStorage 数据迁移（version 3）
-- 旧数据兼容
-- hydration warning 处理
-- hooks 顺序错误修复
-
-### DevOps
-- GitHub 归档
-- Vercel 部署准备
+- 基础答题流程、关卡系统、每日奖励、错题本

@@ -30,9 +30,49 @@ const STEP_DESCRIPTIONS: Record<LessonStepType, string> = {
   spot_missing_info: '判断题目中是否缺少必要信息，能否计算',
 };
 
+/** v2.6.5: 根据题型生成动态关卡标题 */
+export function getDynamicStepTitle(type: LessonStepType, question?: Question): string {
+  if (question?.problemType === 'logic_ranking' || question?.problemType === 'logic_truth' || question?.problemType === 'logic_ordering') {
+    return '逻辑破案';
+  }
+  if (question?.problemType === 'shape_counting') return '图形破案';
+  if (question?.problemType === 'ratio_distribution') return '份数推理';
+  if (question?.problemType === 'planting_problem') return '路线种树谜';
+  if (question?.problemType === 'age_problem') return '年龄推理';
+  if (question?.problemType === 'information_check') return '线索检查';
+  return STEP_TITLES[type] || '今日任务';
+}
+
+/** v2.6.5: 根据题型生成动态关卡描述 */
+export function getDynamicStepDescription(type: LessonStepType, question?: Question): string {
+  if (question?.problemType === 'logic_ranking' || question?.problemType === 'logic_truth' || question?.problemType === 'logic_ordering') {
+    return '根据线索排出名次';
+  }
+  if (question?.problemType === 'information_check') return '判断信息够不够';
+  if (question?.problemType === 'shape_counting') return '数清楚所有图形';
+  if (question?.problemType === 'ratio_distribution') return '一步步找出目标份数';
+  if (question?.problemType === 'planting_problem') return '沿着路线一步步想';
+  if (question?.problemType === 'age_problem') return '一年一年找答案';
+  return STEP_DESCRIPTIONS[type] || '继续完成今天的侦探任务';
+}
+
 // ========== 默认阶段映射 ==========
 
-export function getDefaultPhasesForStepType(type: LessonStepType): StepPhase[] {
+/**
+ * 获取关卡类型的默认阶段列表。
+ * v2.6.5: 支持根据 question.problemType 动态调整阶段。
+ * 逻辑排序题不走 build_equation 流程，使用 understand_clues → logic_elimination → ranking_answer。
+ */
+export function getDefaultPhasesForStepType(type: LessonStepType, question?: Question): StepPhase[] {
+  // v2.6.5: 逻辑排序题特殊处理
+  if (question?.problemType === 'logic_ranking' || question?.problemType === 'logic_truth' || question?.problemType === 'logic_ordering') {
+    if (type === 'full_solve') {
+      return ['read', 'understand_clues', 'logic_elimination', 'ranking_answer', 'explain'];
+    }
+    // 如果逻辑题被分配到其他关卡，至少不走 equation 流程
+    return ['read', 'answer'];
+  }
+
   switch (type) {
     case 'find_numbers':
       return ['read', 'find_numbers', 'answer'];
@@ -57,13 +97,13 @@ export function getDefaultPhasesForStepType(type: LessonStepType): StepPhase[] {
 
 // ========== 步骤标准化 ==========
 
-export function normalizeStep(step: Partial<LessonStep>): LessonStep {
+export function normalizeStep(step: Partial<LessonStep>, question?: Question): LessonStep {
   const type: LessonStepType = step.type || 'full_solve';
 
   const phases: StepPhase[] =
     Array.isArray(step.phases) && step.phases.length > 0
       ? step.phases
-      : getDefaultPhasesForStepType(type);
+      : getDefaultPhasesForStepType(type, question);
 
   const currentPhaseIndex =
     typeof step.currentPhaseIndex === 'number' &&
@@ -96,7 +136,7 @@ export function normalizeStep(step: Partial<LessonStep>): LessonStep {
 export function normalizeLesson(lesson: TodayLesson | null): TodayLesson | null {
   if (!lesson || !Array.isArray(lesson.steps)) return null;
 
-  const steps = lesson.steps.map(normalizeStep);
+  const steps = lesson.steps.map(s => normalizeStep(s));
 
   const currentStepIndex =
     typeof lesson.currentStepIndex === 'number' &&
@@ -139,7 +179,7 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
   }
 
   // 5. 标准化所有 step
-  const steps = lesson.steps.map(normalizeStep);
+  const steps = lesson.steps.map(s => normalizeStep(s));
   const n = steps.length;
 
   // 6. 修正 currentStepIndex
@@ -572,13 +612,13 @@ function buildDailyLesson(
 
     const st = stepTypes[i];
     usedQuestionIds.push(reviewQ.id);
-    const phases = [...getDefaultPhasesForStepType(st)];
+    const phases = [...getDefaultPhasesForStepType(st, reviewQ)];
 
     steps.push({
       id: `${today}_review_${i}_${reviewQ.id}`,
       type: st,
-      title: STEP_TITLES[st],
-      description: STEP_DESCRIPTIONS[st],
+      title: getDynamicStepTitle(st, reviewQ),
+      description: getDynamicStepDescription(st, reviewQ),
       questionId: reviewQ.id,
       phases,
       currentPhaseIndex: 0,
@@ -632,12 +672,12 @@ function buildDailyLesson(
       });
       if (lastQ) {
         usedQuestionIds.push(lastQ.id);
-        const phases = [...getDefaultPhasesForStepType(st)];
+        const phases = [...getDefaultPhasesForStepType(st, lastQ)];
         steps.push({
           id: `${today}_${st}_${i}_${lastQ.id}`,
           type: st,
-          title: STEP_TITLES[st],
-          description: STEP_DESCRIPTIONS[st],
+          title: getDynamicStepTitle(st, lastQ),
+          description: getDynamicStepDescription(st, lastQ),
           questionId: lastQ.id,
           phases,
           currentPhaseIndex: 0,
@@ -649,13 +689,13 @@ function buildDailyLesson(
     }
 
     usedQuestionIds.push(question.id);
-    const phases = [...getDefaultPhasesForStepType(st)];
+    const phases = [...getDefaultPhasesForStepType(st, question)];
 
     steps.push({
       id: `${today}_${st}_${i}_${question.id}`,
       type: st,
-      title: STEP_TITLES[st],
-      description: STEP_DESCRIPTIONS[st],
+      title: getDynamicStepTitle(st, question),
+      description: getDynamicStepDescription(st, question),
       questionId: question.id,
       phases,
       currentPhaseIndex: 0,

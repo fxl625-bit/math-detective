@@ -243,10 +243,44 @@ export const olympiadIntroQuestions: Question[] = [
     answerSentence: '小华第一名，小红第二名，小明第三名。',
     explanation: '小红不是第一也不是最后→小红第二。小明不是第一→小明第三（只剩第一和第三，小红占了第二）。所以小华第一。',
     solutionSteps: ['小红不是第一也不是最后→第二', '小明不是第一→只能是第三', '剩下小华第一'],
-    hints: ['画个表格，用排除法！'],
-    difficulty: 1, category: 'mixed', visualKey: 'child', requiresAnswer: true,
+  hints: ['画个表格，用排除法！'],
+  // v2.6.6: 分层提示（不直接剧透答案）
+  structuredHints: {
+    light: '先看看谁说的话最容易确定位置？',
+    medium: '小红说不是第一也不是最后。三个名次里，既不是第一也不是最后的是第几名呢？',
+    fullSteps: [
+      { stepTitle: '先看小红的话', explanation: '小红不是第一名，也不是最后一名。三个人只有第一、第二、第三名，所以小红只能是第二名。' },
+      { stepTitle: '再看小明的话', explanation: '小明不是第一名，而第二名已经是小红了，所以小明只能是第三名。' },
+      { stepTitle: '看剩下的人', explanation: '剩下小华，所以小华是第一名。' },
+    ],
+  },
+  difficulty: 1, category: 'mixed', visualKey: 'child', requiresAnswer: true,
   lessonType:'logic_reasoning',
   stepCompatibility: ['full_solve'],
+  // v2.6.5: 逻辑排序题型元数据
+  problemType: 'logic_ranking',
+  requiresEquation: false,
+  answerType: 'ranking',
+  sceneType: 'race',
+  themeTags: ['race', 'ranking', 'logic'],
+  people: ['小明', '小红', '小华'],
+  statements: [
+    { speaker: '小明', text: '我不是第一名', means: '小明不能是第一名' },
+    { speaker: '小红', text: '我不是第一名也不是最后一名', means: '小红只能是第二名（三人中既不是第一也不是第三）' },
+  ],
+  correctRanking: { first: '小华', second: '小红', third: '小明' },
+  // v2.6.6: 排名选择题选项
+  rankingOptions: [
+    { id: 'A', label: '第一名：小华，第二名：小红，第三名：小明', order: ['小华', '小红', '小明'], correct: true },
+    { id: 'B', label: '第一名：小明，第二名：小红，第三名：小华', order: ['小明', '小红', '小华'], correct: false },
+    { id: 'C', label: '第一名：小红，第二名：小华，第三名：小明', order: ['小红', '小华', '小明'], correct: false },
+    { id: 'D', label: '第一名：小华，第二名：小明，第三名：小红', order: ['小华', '小明', '小红'], correct: false },
+  ],
+  solutionStepsDetailed: [
+    { stepTitle: '先看小红的话', explanation: '小红不是第一名，也不是最后一名。三个人只有第一、第二、第三名，所以小红只能是第二名。' },
+    { stepTitle: '再看小明的话', explanation: '小明不是第一名，而第二名已经是小红了，所以小明只能是第三名。' },
+    { stepTitle: '看剩下的人', explanation: '剩下小华，所以小华是第一名。' },
+  ],
   },
   {
     id: 'oi_14', gradeBand: 'OlympiadIntro', domain: 'logic_reasoning',
