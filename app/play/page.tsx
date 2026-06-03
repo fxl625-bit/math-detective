@@ -227,6 +227,21 @@ export default function PlayPage() {
     runLessonAction('continue_after_repair', {}, 'ContinueRepair');
   }, [runLessonAction]);
 
+  // v2.6.8: 真正的换题修复 — 替换不兼容的题目而不是跳过
+  const handleRepairStepQuestion = useCallback((reason: string) => {
+    const currentLesson = lessonRef.current;
+    if (!currentLesson) return;
+    const step = getCurrentStep(currentLesson);
+    if (!step) return;
+
+    runLessonAction('repair_step_question', {
+      reason,
+      stepType: step.type,
+      questionId: step.questionId,
+      gradeBand: state.parentSettings.gradeBand,
+    }, 'RepairStepQuestion');
+  }, [runLessonAction, state.parentSettings.gradeBand]);
+
   const currentStep = lesson ? getCurrentStep(lesson) : null;
   const currentPhase = lesson ? getCurrentPhase(lesson) : null;
   const question: Question | null = currentStep
@@ -525,6 +540,7 @@ export default function PlayPage() {
           onWrongAnswer={handleWrongAnswer}
           onSubmitAnswer={handleSubmitAnswer}
           onContinueRepair={handleContinueRepair}
+          onRepairStepQuestion={handleRepairStepQuestion}
         />
       </AnimatePresence>
 
@@ -625,7 +641,7 @@ function normalizeRankingInput(input: string): string[] | null {
 function PhaseAwareStep({
   step, phase, question, visual,
   onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
-  onSubmitAnswer, onContinueRepair,
+  onSubmitAnswer, onContinueRepair, onRepairStepQuestion,
 }: {
   step: LessonStep;
   phase: StepPhase | null;
@@ -637,6 +653,7 @@ function PhaseAwareStep({
   onWrongAnswer: (input: string) => void;
   onSubmitAnswer: (inputAnswer: string, questionId: string) => void;
   onContinueRepair: () => void;
+  onRepairStepQuestion: (reason: string) => void;
 }) {
   if (!phase) return null;
 
@@ -674,9 +691,9 @@ function PhaseAwareStep({
 
   switch (step.type) {
     case 'find_numbers':
-      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} />;
+      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} onRepairStepQuestion={onRepairStepQuestion} />;
     case 'find_action_words':
-      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} />;
+      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} onRepairStepQuestion={onRepairStepQuestion} />;
     case 'simulation':
       return <SimulationPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     case 'remove_noise':
@@ -686,7 +703,7 @@ function PhaseAwareStep({
     case 'find_compare_numbers':
       return <CompareNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     case 'spot_extra_info':
-      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} />;
+      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} onContinueRepair={onContinueRepair} onRepairStepQuestion={onRepairStepQuestion} />;
     case 'spot_missing_info':
       return <SpotMissingInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
     default:
@@ -1082,16 +1099,36 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
 // Phases: read → find_numbers → [equation+answer] → completed
 
 function FindNumbersPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair, onRepairStepQuestion,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void; onRepairStepQuestion?: (reason: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [found, setFound] = useState<Set<number>>(new Set());
 
-  // P0修复：检测invalid question（numbers.length === 0 或 逻辑推理题）
+  // v2.6.8: Auto-repair state
+  const [repairState, setRepairState] = useState<'idle' | 'repairing' | 'timed_out'>('idle');
+  const repairTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // P0修复：检测invalid question
   const lessonType = inferLessonType(question);
   const isInvalidForNumbers = question.numbers.length === 0 ||
     lessonType === 'logic_reasoning' ||
     lessonType === 'guarantee_worst_case';
+
+  // v2.6.8: Auto-trigger repair on mount
+  useEffect(() => {
+    if (isInvalidForNumbers && onRepairStepQuestion && repairState === 'idle') {
+      setRepairState('repairing');
+      // Set timeout for fallback
+      repairTimerRef.current = setTimeout(() => {
+        setRepairState('timed_out');
+      }, 1500);
+      // Trigger repair
+      onRepairStepQuestion(`find_numbers: numbers.length=${question.numbers.length}, lessonType=${lessonType}`);
+    }
+    return () => {
+      if (repairTimerRef.current) clearTimeout(repairTimerRef.current);
+    };
+  }, [isInvalidForNumbers, onRepairStepQuestion, repairState, question.numbers.length, lessonType]);
 
   const numbersToFind = question.numbers.filter(n =>
     classifyNumberRole(n, question.text) !== 'background_number'
@@ -1119,9 +1156,10 @@ function FindNumbersPhased({
   }
 
   if (phase === 'find_numbers') {
-    // P0修复：数字线索题无效时显示错误兜底
+    // v2.6.8: 自动修复 + 超时兜底
     if (isInvalidForNumbers) {
       const isDebug = typeof window !== 'undefined' && localStorage.getItem('mathDetectiveDebug') === '1';
+
       return (
         <div className="space-y-4">
           <AppCard variant="amber">
@@ -1130,18 +1168,45 @@ function FindNumbersPhased({
               <h3 className="font-extrabold text-amber-800 text-lg mb-2">
                 这道题不适合数字线索关卡
               </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                正在换一题...
-              </p>
               {isDebug && (
                 <div className="mt-3 p-2 bg-red-50 rounded-lg text-xs text-red-600 text-left font-mono">
                   [DEBUG] questionId={question.id}, numbers.length={question.numbers.length},
                   lessonType={lessonType || 'unknown'}
                 </div>
               )}
-              <AppButton variant="primary" size="md" onClick={onContinueRepair || (() => onStepComplete(true))}>
-                跳过本关（自动换题）
-              </AppButton>
+              {repairState === 'repairing' && (
+                <p className="text-sm text-gray-600 mt-3 animate-pulse">
+                  正在自动修复，替换为合法题目...
+                </p>
+              )}
+              {repairState === 'timed_out' && (
+                <div className="space-y-3 mt-3">
+                  <p className="text-sm text-red-600">⚠️ 自动修复超时，请手动选择：</p>
+                  <div className="flex flex-col gap-2 max-w-xs mx-auto">
+                    <AppButton variant="primary" size="md" onClick={() => {
+                      setRepairState('idle'); // 重试
+                      if (onRepairStepQuestion) onRepairStepQuestion('find_numbers: retry after timeout');
+                    }}>
+                      重新生成这一关
+                    </AppButton>
+                    <AppButton variant="secondary" size="md" onClick={onContinueRepair || (() => onStepComplete(true))}>
+                      跳过这一关
+                    </AppButton>
+                    <AppButton variant="ghost" size="md" onClick={() => { window.location.href = '/'; }}>
+                      返回首页
+                    </AppButton>
+                  </div>
+                </div>
+              )}
+              {repairState === 'idle' && (
+                <div className="space-y-3 mt-3">
+                  <AppButton variant="primary" size="md" onClick={() => {
+                    if (onRepairStepQuestion) onRepairStepQuestion('find_numbers: manual repair trigger');
+                  }}>
+                    自动修复题目
+                  </AppButton>
+                </div>
+              )}
             </div>
           </AppCard>
         </div>
@@ -1219,13 +1284,17 @@ function FindNumbersPhased({
 // Phases: read → find_keywords → choose_operation → [equation+answer] → completed
 
 function FindActionWordsPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair, onRepairStepQuestion,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void; onRepairStepQuestion?: (reason: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [found, setFound] = useState<Set<number>>(new Set());
   const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
 
-  // P0修复：检测是否包含禁止关键词（至少/保证/倍等）
+  // v2.6.8: Auto-repair state
+  const [repairState, setRepairState] = useState<'idle' | 'repairing' | 'timed_out'>('idle');
+  const repairTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // P0修复：检测是否包含禁止关键词
   const lessonType = inferLessonType(question);
   const isInvalidForAction = lessonType === 'guarantee_worst_case' ||
     lessonType === 'times_intro' ||
@@ -1234,6 +1303,24 @@ function FindActionWordsPhased({
       k.word.includes('至少') || k.word.includes('保证') ||
       k.word.includes('倍') || k.word.includes('最坏')
     );
+
+  // v2.6.8: Auto-trigger repair on mount
+  useEffect(() => {
+    if (isInvalidForAction && onRepairStepQuestion && repairState === 'idle') {
+      setRepairState('repairing');
+      repairTimerRef.current = setTimeout(() => {
+        setRepairState('timed_out');
+      }, 1500);
+      const forbiddenKw = question.keywords.filter(k =>
+        k.word.includes('至少') || k.word.includes('保证') ||
+        k.word.includes('倍') || k.word.includes('最坏')
+      ).map(k => k.word).join(', ');
+      onRepairStepQuestion(`find_action_words: keywords=[${forbiddenKw}], lessonType=${lessonType}`);
+    }
+    return () => {
+      if (repairTimerRef.current) clearTimeout(repairTimerRef.current);
+    };
+  }, [isInvalidForAction, onRepairStepQuestion, repairState, lessonType, question.keywords]);
 
   const allFound = found.size === question.keywords.length;
   const correctOp = question.operation === 'addition' ? 'add' : question.operation === 'subtraction' ? 'subtract' : null;
@@ -1304,7 +1391,7 @@ function FindActionWordsPhased({
   }
 
     if (phase === 'choose_operation') {
-    // P0修复：无效题目显示错误兜底
+    // v2.6.8: 自动修复 + 超时兜底
     if (isInvalidForAction) {
       const isDebug = typeof window !== 'undefined' && localStorage.getItem('mathDetectiveDebug') === '1';
       return (
@@ -1324,10 +1411,39 @@ function FindActionWordsPhased({
                   keywords={question.keywords.map(k => k.word).join(', ')}
                 </div>
               )}
-              <p className="text-sm text-gray-500 mt-2">正在换一题...</p>
-              <AppButton variant="primary" size="md" onClick={onContinueRepair || (() => onStepComplete(true))}>
-                跳过本关（自动换题）
-              </AppButton>
+              {repairState === 'repairing' && (
+                <p className="text-sm text-gray-600 mt-3 animate-pulse">
+                  正在自动修复，替换为合法题目...
+                </p>
+              )}
+              {repairState === 'timed_out' && (
+                <div className="space-y-3 mt-3">
+                  <p className="text-sm text-red-600">⚠️ 自动修复超时，请手动选择：</p>
+                  <div className="flex flex-col gap-2 max-w-xs mx-auto">
+                    <AppButton variant="primary" size="md" onClick={() => {
+                      setRepairState('idle');
+                      if (onRepairStepQuestion) onRepairStepQuestion('find_action_words: retry after timeout');
+                    }}>
+                      重新生成这一关
+                    </AppButton>
+                    <AppButton variant="secondary" size="md" onClick={onContinueRepair || (() => onStepComplete(true))}>
+                      跳过这一关
+                    </AppButton>
+                    <AppButton variant="ghost" size="md" onClick={() => { window.location.href = '/'; }}>
+                      返回首页
+                    </AppButton>
+                  </div>
+                </div>
+              )}
+              {repairState === 'idle' && (
+                <div className="space-y-3 mt-3">
+                  <AppButton variant="primary" size="md" onClick={() => {
+                    if (onRepairStepQuestion) onRepairStepQuestion('find_action_words: manual repair trigger');
+                  }}>
+                    自动修复题目
+                  </AppButton>
+                </div>
+              )}
             </div>
           </AppCard>
         </div>
@@ -1960,8 +2076,8 @@ function CompareNumbersPhased({
 // ========== Step 7: Spot Extra Info (Phased) ==========
 
 function SpotExtraInfoPhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, onContinueRepair, onRepairStepQuestion,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; onContinueRepair?: () => void; onRepairStepQuestion?: (reason: string) => void }) {
   // v2.6.1: 运行时防御 — 非法题目不得卡住
   const extraNumbers = question.extraNumbers ?? [];
   const noiseCount = question.noisePhrases?.length ?? 0;
@@ -1977,16 +2093,28 @@ function SpotExtraInfoPhased({
         <AppCard variant="amber">
           <h3 className="font-extrabold text-amber-800 mb-2">🔧 系统修复</h3>
           <p className="text-sm text-gray-600">
-            这道题没有多余信息，系统已为你换一道题。
+            这道题没有多余信息，系统正在自动替换为有干扰信息的题目。
           </p>
         </AppCard>
         <AppCard>
           <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
         </AppCard>
         <BottomActionBar>
-          <AppButton variant="primary" size="lg" fullWidth onClick={onContinueRepair || (() => onStepComplete(true))}>
-            已自动修复，继续 →
-          </AppButton>
+          <div className="flex flex-col gap-2 w-full">
+            <AppButton variant="primary" size="lg" fullWidth onClick={() => {
+              if (onRepairStepQuestion) onRepairStepQuestion('spot_extra_info: no extra info');
+            }}>
+              自动修复题目
+            </AppButton>
+            <div className="flex gap-2">
+              <AppButton variant="secondary" size="md" onClick={onContinueRepair || (() => onStepComplete(true))}>
+                跳过这一关
+              </AppButton>
+              <AppButton variant="ghost" size="md" onClick={() => { window.location.href = '/'; }}>
+                返回首页
+              </AppButton>
+            </div>
+          </div>
         </BottomActionBar>
       </div>
     );

@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Target, TrendingUp, Lightbulb, Settings, Check, Brain, GraduationCap } from 'lucide-react';
+import { BarChart3, Target, TrendingUp, Lightbulb, Settings, Check, Brain, GraduationCap, Bug } from 'lucide-react';
 import { useGameState } from '@/hooks/useGameState';
-import type { GradeBand, CognitiveSkill } from '@/lib/types';
+import type { GradeBand, CognitiveSkill, TodayLesson } from '@/lib/types';
 import StarDisplay from '@/components/StarDisplay';
 import StreakDisplay from '@/components/StreakDisplay';
 import LevelBadge from '@/components/LevelBadge';
@@ -13,6 +13,11 @@ import AppCard from '@/components/ui/AppCard';
 import AppButton from '@/components/ui/AppButton';
 import PageContainer from '@/components/layout/PageContainer';
 import { getLevelInfo, getAccuracyStats } from '@/lib/storage';
+import { getTodayLesson } from '@/lib/lessonPlanner';
+import { getQuestionById } from '@/data/questions';
+import { validateStepQuestionMatch } from '@/lib/questionValidation';
+import { getRepairAttemptsSnapshot, getRepairRecordsSnapshot } from '@/lib/lessonTransaction';
+import { classifyKeyword } from '@/data/keywordRules';
 
 const GRADE_OPTIONS: { value: GradeBand; label: string }[] = [
   { value: 'G1', label: '一年级' },
@@ -42,6 +47,8 @@ export default function ParentReportPage() {
   const { state, setParentSettings } = useGameState();
   const [mounted, setMounted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
+  const [debugLesson, setDebugLesson] = useState<TodayLesson | null>(null);
 
   // Settings form state
   const [formDailyGoal, setFormDailyGoal] = useState(state.parentSettings.dailyGoal);
@@ -294,6 +301,45 @@ export default function ParentReportPage() {
         </ul>
       </AppCard>
 
+      {/* v2.6.9: 调试面板 — Step/Question/Theme 匹配信息 */}
+      <AppCard variant="gray">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="font-extrabold text-gray-800 flex items-center gap-2">
+            <Bug size={20} className="text-gray-500" />调试面板
+          </h2>
+          <button
+            className="px-3 py-1 rounded-lg text-xs font-bold bg-gray-200 hover:bg-gray-300 transition-colors"
+            onClick={() => {
+              if (!showDebug) {
+                try {
+                  const lesson = getTodayLesson();
+                  setDebugLesson(lesson);
+                } catch { setDebugLesson(null); }
+              }
+              setShowDebug(!showDebug);
+            }}
+          >
+            {showDebug ? '收起' : '展开'}
+          </button>
+        </div>
+
+        {showDebug && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            {!debugLesson ? (
+              <p className="text-sm text-gray-500">无今日课程数据</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <StepDebugTable
+                  lesson={debugLesson}
+                  repairAttempts={getRepairAttemptsSnapshot()}
+                  repairRecords={getRepairRecordsSnapshot()}
+                />
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AppCard>
+
       <div className="text-center text-xs text-gray-400 py-2">
         数据保存在本地浏览器中，不会上传到服务器
       </div>
@@ -370,5 +416,121 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
       <span className="text-sm text-gray-600">{label}</span>
       <span className="font-extrabold text-gray-800">{value}</span>
     </div>
+  );
+}
+
+// ========== v2.6.9: Step 调试表格 ==========
+
+function StepDebugTable({
+  lesson,
+  repairAttempts,
+  repairRecords,
+}: {
+  lesson: TodayLesson;
+  repairAttempts: Record<string, number>;
+  repairRecords: Record<string, { lastRepairReason: string; replacementQuestionId: string; timestamp: number }>;
+}) {
+  // v2.6.9: 每个 step 显示完整匹配信息
+  const rows = lesson.steps.map((step) => {
+    const question = getQuestionById(step.questionId);
+    const repair = repairRecords[step.id];
+    const matchResult = question
+      ? validateStepQuestionMatch(question, step.type, step.title, undefined)
+      : null;
+
+    // keywordCategories: 收集所有关键词的分类
+    const keywordCategories = question
+      ? [...new Set(question.keywords.map(k => classifyKeyword(k.word)?.category || 'unknown'))]
+      : [];
+
+    return {
+      stepId: step.id,
+      stepType: step.type,
+      stepTitle: step.title,
+      stepDescription: step.description,
+      questionId: step.questionId,
+      questionText: question ? (question.text.length > 30 ? question.text.slice(0, 30) + '…' : question.text) : 'N/A',
+      problemType: question?.problemType || 'N/A',
+      sceneType: question?.sceneType || 'N/A',
+      keywordCategories: keywordCategories.join(', ') || 'N/A',
+      isValidForStep: matchResult?.isValidForStep ?? false,
+      matchErrors: matchResult?.errors || [],
+      matchWarnings: matchResult?.warnings || [],
+      repairAttempts: repairAttempts[step.id] || 0,
+      lastRepairReason: repair?.lastRepairReason || '',
+      replacementQuestionId: repair?.replacementQuestionId || '',
+    };
+  });
+
+  if (rows.length === 0) {
+    return <p className="text-sm text-gray-500">课程无步骤</p>;
+  }
+
+  return (
+    <table className="w-full text-xs border-collapse">
+      <thead>
+        <tr className="border-b border-gray-300 bg-gray-100">
+          <th className="text-left py-2 px-1 text-gray-600">Step</th>
+          <th className="text-left py-2 px-1 text-gray-600">Type</th>
+          <th className="text-left py-2 px-1 text-gray-600">Title</th>
+          <th className="text-left py-2 px-1 text-gray-600">Desc</th>
+          <th className="text-left py-2 px-1 text-gray-600">Q.ID</th>
+          <th className="text-left py-2 px-1 text-gray-600">Q.Text</th>
+          <th className="text-left py-2 px-1 text-gray-600">ProbType</th>
+          <th className="text-left py-2 px-1 text-gray-600">Scene</th>
+          <th className="text-left py-2 px-1 text-gray-600">Keywords</th>
+          <th className="text-center py-2 px-1 text-gray-600">Valid</th>
+          <th className="text-left py-2 px-1 text-gray-600">Errors/Warnings</th>
+          <th className="text-center py-2 px-1 text-gray-600">Repairs</th>
+          <th className="text-left py-2 px-1 text-gray-600">Last Reason</th>
+          <th className="text-left py-2 px-1 text-gray-600">Repl Q</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((row, i) => (
+          <tr key={i} className={`border-b border-gray-200 ${!row.isValidForStep ? 'bg-red-50' : ''}`}>
+            <td className="py-1 px-1 font-mono text-gray-500">{row.stepId.slice(0, 8)}</td>
+            <td className="py-1 px-1">
+              <span className={`px-1 rounded ${row.stepType === 'find_action_words' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700'}`}>
+                {row.stepType}
+              </span>
+            </td>
+            <td className="py-1 px-1 max-w-[80px] truncate text-gray-700" title={row.stepTitle}>{row.stepTitle}</td>
+            <td className="py-1 px-1 max-w-[80px] truncate text-gray-500" title={row.stepDescription}>{row.stepDescription}</td>
+            <td className="py-1 px-1 font-mono text-gray-500">{row.questionId.slice(0, 8)}</td>
+            <td className="py-1 px-1 max-w-[100px] truncate text-gray-700" title={row.questionText}>{row.questionText}</td>
+            <td className="py-1 px-1">
+              <span className={row.problemType === 'age_problem' ? 'text-red-600 font-bold' : 'text-gray-600'}>
+                {row.problemType}
+              </span>
+            </td>
+            <td className="py-1 px-1 text-gray-500">{row.sceneType}</td>
+            <td className="py-1 px-1 max-w-[120px] truncate text-gray-500" title={row.keywordCategories}>{row.keywordCategories}</td>
+            <td className="py-1 px-1 text-center">
+              {row.isValidForStep
+                ? <span className="text-green-600 font-bold">✅</span>
+                : <span className="text-red-600 font-bold">❌</span>
+              }
+            </td>
+            <td className="py-1 px-1 max-w-[150px]">
+              {row.matchErrors.length > 0 && (
+                <div className="text-red-600 text-[10px] leading-tight">{row.matchErrors.join('; ')}</div>
+              )}
+              {row.matchWarnings.length > 0 && (
+                <div className="text-amber-600 text-[10px] leading-tight">{row.matchWarnings.join('; ')}</div>
+              )}
+            </td>
+            <td className="py-1 px-1 text-center">
+              {row.repairAttempts > 0
+                ? <span className="text-amber-600 font-bold">{row.repairAttempts}</span>
+                : <span className="text-gray-400">0</span>
+              }
+            </td>
+            <td className="py-1 px-1 max-w-[100px] truncate text-gray-500 text-[10px]" title={row.lastRepairReason}>{row.lastRepairReason || '-'}</td>
+            <td className="py-1 px-1 font-mono text-[10px] text-gray-400">{row.replacementQuestionId ? row.replacementQuestionId.slice(0, 8) : '-'}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }

@@ -1,5 +1,35 @@
 # Math Detective Changelog
 
+## v2.6.9 — P0 修复：validateQuestions 增强 + 家长调试页 step/question/theme 匹配信息
+
+### 根因
+1. 题目含"倍/几倍"关键词时 `keywordType` 未强制为 `times_intro`，可能被分配到错误关卡
+2. `age_problem` 题型没有与 `find_action_words` / `candy_inventory` / `shop_stock` 场景的互斥检查
+3. `find_action_words` 步骤缺少对 `addition_change`/`subtraction_change` 关键词分类的强制要求
+4. 步标题含"卖出/进货/库存"时题目场景不匹配无法被检测
+
+### 修复 (questionValidation.ts)
+- 新增检查 #38：含"倍"关键字的题目 `keywordType` 强制为 `times_intro`
+- 新增检查 #39：`age_problem` 题目不允许出现商店/库存关键词、不兼容 `candy_inventory`/`shop_stock` sceneType/themeTags
+- 新增检查 #40：适合 `find_action_words` 的题目必须有 `addition_change`/`subtraction_change` 关键词分类
+- 新增检查 #41：`storyTitle` 含"卖出/进货/库存"时题目场景必须匹配
+- 新增 `validateStepQuestionMatch()` 函数：跨引用校验（stepType + stepTitle + themeId vs question 兼容性）
+  - `age_problem` 不兼容 `find_action_words` stepType
+  - `age_problem` 不兼容 `candy_inventory`/`shop_stock` theme
+  - `find_action_words` 步必须有 `addition_change`/`subtraction_change` 关键词分类
+  - 步标题含商店关键词时 question.sceneType 必须匹配
+
+### 修复 (lessonTransaction.ts)
+- 新增 `repairRecordsByStepId` 追踪每次修复的原因和替换题目 ID
+- 导出 `getRepairAttemptsSnapshot()` 和 `getRepairRecordsSnapshot()` 供调试页使用
+- 修复 `getDateStr` 未导出导致的 TypeScript 编译错误
+
+### 新增 (parent-report page)
+- 新增"调试面板"折叠区块，展开后显示完整 step/question/theme 匹配表格
+- 每列显示：step.id, step.type, step.title, step.description, questionId, questionText, problemType, sceneType, keywordCategories, isValidForStep, matchErrors/Warnings, repairAttempts, lastRepairReason, replacementQuestionId
+- 无效匹配行红色背景高亮，`age_problem` 红色加粗标注
+- 版本 v2.6.8 → v2.6.9
+
 ## v2.6.8 — P0 修复：统计正确率 BUG（显示 17% 实际接近 100%）
 
 ### 根因

@@ -11,8 +11,9 @@
  */
 
 import type { GameState, TodayLesson, LessonStep, StepPhase, LessonStepType, Question } from './types';
-import { normalizeLesson, normalizeStep, advancePhase, completeCurrentStep, saveTodayLesson, getCurrentStep, getCurrentPhase, getDefaultPhasesForStepType } from './lessonPlanner';
+import { normalizeLesson, normalizeStep, advancePhase, completeCurrentStep, saveTodayLesson, getCurrentStep, getCurrentPhase, getDefaultPhasesForStepType, buildStepFromQuestion, selectQuestionForStep, validateStepQuestionCompatibility, clearTodayLesson } from './lessonPlanner';
 import { getQuestionById } from '@/data/questions';
+import { loadState } from './storage';
 
 // ========== v2.6.6: Ranking 答案校验 ==========
 
@@ -69,6 +70,7 @@ export type LessonAction =
   | 'complete_phase'
   | 'complete_step'
   | 'repair_current_step'
+  | 'repair_step_question'   // v2.6.8: 真正换题修复
   | 'continue_after_repair'
   | 'information_check'
   | 'identify_extra_info'
@@ -173,6 +175,8 @@ export function commitLessonTransaction(params: {
       return handleContinueAfterRepair(normalized, gameState, currentStep, payload, source);
     case 'repair_current_step':
       return handleRepairCurrentStep(normalized, gameState, currentStep, payload, source);
+    case 'repair_step_question':
+      return handleRepairStepQuestion(normalized, gameState, currentStep, payload, source);
     case 'go_next':
       return handleGoNext(normalized, gameState, currentStep, payload, source);
     case 'go_back':
@@ -495,6 +499,205 @@ function handleRepairCurrentStep(
   };
 }
 
+// ========== v2.6.8: 真正的换题修复事务 ==========
+
+/**
+ * repair_step_question: 发现当前 step 的题目不兼容时，自动替换为合法题目。
+ *
+ * 一次事务完成：
+ *   选题 → 重建 step metadata → 保存 state → 返回可渲染 step
+ *
+ * 降级策略：
+ *   1. 优先选同类型合法题
+ *   2. 如果选不到 → 降级为 full_solve 类型
+ *   3. 如果还选不到 → 跳过当前 step
+ *   4. 如果全部跳过 → 重建今日任务
+ *
+ * 修复循环保护：同一个 step 最多 repair 2 次。
+ */
+
+// 修复计数器 (session scope)
+const repairAttemptsByStepId = new Map<string, number>();
+const MAX_REPAIR_ATTEMPTS = 2;
+
+// v2.6.9: 修复追踪（调试页用）
+interface RepairRecord {
+  lastRepairReason: string;
+  replacementQuestionId: string;
+  timestamp: number;
+}
+const repairRecordsByStepId = new Map<string, RepairRecord>();
+
+/** v2.6.9: 导出修复次数快照（调试页用） */
+export function getRepairAttemptsSnapshot(): Record<string, number> {
+  const snapshot: Record<string, number> = {};
+  repairAttemptsByStepId.forEach((v, k) => { snapshot[k] = v; });
+  return snapshot;
+}
+
+/** v2.6.9: 导出修复记录快照（调试页用） */
+export function getRepairRecordsSnapshot(): Record<string, { lastRepairReason: string; replacementQuestionId: string; timestamp: number }> {
+  const snapshot: Record<string, { lastRepairReason: string; replacementQuestionId: string; timestamp: number }> = {};
+  repairRecordsByStepId.forEach((v, k) => { snapshot[k] = { ...v }; });
+  return snapshot;
+}
+
+function handleRepairStepQuestion(
+  lesson: TodayLesson,
+  gameState: GameState,
+  currentStep: LessonStep,
+  payload: LessonActionPayload,
+  source: string
+): LessonTransactionResult {
+  const reason = (payload.reason as string) || 'unknown';
+  const stepIdx = lesson.currentStepIndex;
+  const oldQuestionId = currentStep.questionId;
+
+  // 修复循环保护
+  const attempts = (repairAttemptsByStepId.get(currentStep.id) || 0) + 1;
+  repairAttemptsByStepId.set(currentStep.id, attempts);
+
+  if (attempts > MAX_REPAIR_ATTEMPTS) {
+    console.error(`[P0] repair loop detected for step ${currentStep.id} (${attempts} attempts)`);
+
+    // 降级：跳过当前 step
+    const afterSkip = completeCurrentStep(lesson);
+    repairAttemptsByStepId.delete(currentStep.id);
+    return {
+      nextState: { lesson: afterSkip, gameState },
+      nextLesson: afterSkip,
+      changed: true,
+      advanced: true,
+      fromStepIndex: lesson.currentStepIndex,
+      toStepIndex: afterSkip.currentStepIndex,
+      fromPhaseIndex: currentStep.currentPhaseIndex,
+      toPhaseIndex: 0,
+      reason: `repair: loop detected (${attempts} attempts), step skipped`,
+    };
+  }
+
+  // 收集已用题目 ID（排除当前 step 的题目）
+  const usedQuestionIds = lesson.steps
+    .filter(s => s.questionId && s.questionId !== oldQuestionId)
+    .map(s => s.questionId);
+
+  // 构建 learning profile for question selection
+  const freshState = loadState();
+  const profile = {
+    gradeBand: (payload.gradeBand as import('./types').GradeBand) || gameState.parentSettings.gradeBand || freshState.parentSettings.gradeBand || 'G1',
+    streakDays: gameState.streak || 0,
+    recentAccuracy: 100,
+    weakSkills: [] as import('./types').CognitiveSkill[],
+    dailyQuestionCount: gameState.completedToday || 0,
+    skillLevel: gameState.skillLevel || 1,
+  };
+
+  // 尝试选择替换题目
+  let newQuestion = selectQuestionForStep({
+    stepType: currentStep.type,
+    profile,
+    usedQuestionIds,
+  });
+
+  // 如果选不到同类型，降级用 full_solve
+  if (!newQuestion && currentStep.type !== 'full_solve') {
+    console.warn(`[Repair] No valid ${currentStep.type} question, falling back to full_solve`);
+    newQuestion = selectQuestionForStep({
+      stepType: 'full_solve',
+      profile,
+      usedQuestionIds,
+    });
+  }
+
+  // 仍然选不到 → 跳过当前 step
+  if (!newQuestion) {
+    console.error(`[P0] repair_step_question: no valid replacement at all for step ${currentStep.id}`);
+
+    const afterSkip = completeCurrentStep(lesson);
+    repairAttemptsByStepId.delete(currentStep.id);
+    return {
+      nextState: { lesson: afterSkip, gameState },
+      nextLesson: afterSkip,
+      changed: true,
+      advanced: true,
+      fromStepIndex: lesson.currentStepIndex,
+      toStepIndex: afterSkip.currentStepIndex,
+      fromPhaseIndex: currentStep.currentPhaseIndex,
+      toPhaseIndex: 0,
+      reason: 'repair: no replacement found, step skipped',
+    };
+  }
+
+  // 验证新题与 step 类型兼容
+  const stepTypeToUse = (newQuestion.stepCompatibility?.includes(currentStep.type) || !newQuestion.stepCompatibility)
+    ? currentStep.type
+    : 'full_solve';
+
+  const compatibilityError = validateStepQuestionCompatibility(
+    { ...currentStep, type: stepTypeToUse },
+    newQuestion
+  );
+  if (compatibilityError) {
+    // 新题也不兼容 → 再试一次（递归防护）
+    const nextPayload = {
+      ...payload,
+      reason: `${reason} → retry: ${compatibilityError}`,
+    };
+    return handleRepairStepQuestion(lesson, gameState, currentStep, nextPayload, source);
+  }
+
+  // 重建 step metadata
+  const stepMeta = buildStepFromQuestion({
+    question: newQuestion,
+    stepType: stepTypeToUse,
+    gradeBand: profile.gradeBand,
+    excludeQuestionIds: usedQuestionIds,
+  });
+
+  // 替换 step
+  const steps = [...lesson.steps];
+  steps[stepIdx] = {
+    ...stepMeta,
+    status: 'current' as const,
+    currentPhaseIndex: 0,
+  };
+
+  const nextLesson: TodayLesson = {
+    ...lesson,
+    steps,
+    currentStepIndex: stepIdx,
+  };
+
+  // 修复成功，清除循环计数
+  repairAttemptsByStepId.delete(currentStep.id);
+
+  // v2.6.9: 记录修复追踪
+  repairRecordsByStepId.set(currentStep.id, {
+    lastRepairReason: reason,
+    replacementQuestionId: newQuestion.id,
+    timestamp: Date.now(),
+  });
+
+  console.log(
+    `[Repair] Question replaced: ${oldQuestionId} → ${newQuestion.id} ` +
+    `(type=${stepTypeToUse}, reason=${reason}, attempt=${attempts})`
+  );
+
+  return {
+    nextState: { lesson: nextLesson, gameState },
+    nextLesson: nextLesson,
+    changed: true,
+    advanced: true,
+    fromStepIndex: stepIdx,
+    toStepIndex: stepIdx,
+    fromPhaseIndex: currentStep.currentPhaseIndex,
+    toPhaseIndex: 0,
+    fromPhase: currentStep.phases?.[currentStep.currentPhaseIndex],
+    toPhase: stepMeta.phases[0],
+    reason: `repair: question replaced (${oldQuestionId} → ${newQuestion.id}), type=${stepTypeToUse}`,
+  };
+}
+
 function handleGoNext(
   lesson: TodayLesson,
   gameState: GameState,
@@ -682,6 +885,7 @@ export function actionRequiresAdvance(action: LessonAction): boolean {
     'complete_phase',
     'complete_step',
     'continue_after_repair',
+    'repair_step_question',
     'go_next',
   ].includes(action);
 }

@@ -412,6 +412,9 @@ const FORBIDDEN_IN_ACTION_WORDS = new Set([
   '比', '多几', '少几', '差几',
   '每份', '每组', '每人', '平均', '一样多',
   '谁最快', '谁最慢', '不是最后一名', '第一名', '最后一名',
+  // v2.6.8: 补充更多非加减词
+  '每隔', '植树', '种树', '种了', '种一棵', '一条路', '两端',
+  '圆形', '围成一个圈', '每隔几米',
 ]);
 
 const STEP_TYPE_REQUIREMENTS: Record<LessonStepType, (q: Question) => boolean> = {
@@ -431,9 +434,18 @@ const STEP_TYPE_REQUIREMENTS: Record<LessonStepType, (q: Question) => boolean> =
   },
   find_action_words: (q) => {
     if (q.keywords.length === 0) return false;
+    // v2.6.8: problemType 级别过滤 — 年龄倍率/比例分配/逻辑排序/图形计数/植树题不应进动作词
+    const forbiddenTypes = new Set([
+      'age_problem', 'ratio_distribution', 'logic_ranking',
+      'logic_truth', 'logic_ordering', 'shape_counting',
+      'planting_problem', 'pattern',
+    ]);
+    if (q.problemType && forbiddenTypes.has(q.problemType)) return false;
     // P0修复：禁止"至少/保证/倍"等非加减关键词
     const hasForbidden = q.keywords.some(k => FORBIDDEN_IN_ACTION_WORDS.has(k.word));
     if (hasForbidden) return false;
+    // v2.6.8: 额外检查 — 题文中含"岁/年龄/倍"的题目不能进动作词
+    if (q.text.includes('岁') || q.text.includes('年龄')) return false;
     // 必须是加减动作词
     return q.keywords.every(k => {
       const cls = classifyKeyword(k.word);
@@ -870,6 +882,142 @@ export function getQuestionForLesson(lesson: TodayLesson): Question | null {
   const step = getCurrentStep(lesson);
   if (!step) return null;
   return getQuestionById(step.questionId) || null;
+}
+
+// ========== v2.6.8: 从题目重建完整 step metadata ==========
+
+/**
+ * 根据题目和关卡类型，统一生成 step 所有 metadata。
+ * 确保 title、description、phases 100% 由当前 question + stepType 决定。
+ *
+ * 必须在 replace question 时调用，不能只替换 questionId。
+ */
+export function buildStepFromQuestion(params: {
+  question: Question;
+  stepType: LessonStepType;
+  gradeBand: GradeBand;
+  excludeQuestionIds?: string[];
+}): Omit<LessonStep, 'status' | 'currentPhaseIndex'> {
+  const { question, stepType } = params;
+  const today = getDateStr();
+  const phases = getDefaultPhasesForStepType(stepType, question);
+
+  return {
+    id: `${today}_${stepType}_${Date.now()}_${question.id}`,
+    type: stepType,
+    title: getDynamicStepTitle(stepType, question),
+    description: getDynamicStepDescription(stepType, question),
+    questionId: question.id,
+    phases: [...phases],
+    requiresAnswer: true,
+  };
+}
+
+// ========== v2.6.8: 题目-关卡类型兼容性校验 ==========
+
+/**
+ * 检查题目是否与关卡类型兼容。
+ * 用于运行时防御，在渲染前调用。
+ * 返回 null 表示兼容，返回 string 表示不兼容原因。
+ */
+export function validateStepQuestionCompatibility(
+  step: LessonStep,
+  question: Question
+): string | null {
+  const st = step.type;
+
+  // 1. find_action_words: 必须全是加减动作词
+  if (st === 'find_action_words') {
+    const hasForbidden = question.keywords.some(k => FORBIDDEN_IN_ACTION_WORDS.has(k.word));
+    if (hasForbidden) {
+      const forbidden = question.keywords.filter(k => FORBIDDEN_IN_ACTION_WORDS.has(k.word));
+      return `关键词"${forbidden.map(k => k.word).join('、')}"不适合动作线索关卡`;
+    }
+    if (question.keywords.length === 0) {
+      return '没有关键词，不适合动作线索关卡';
+    }
+    const nonAction = question.keywords.filter(k => {
+      const cls = classifyKeyword(k.word);
+      return cls && cls.category !== 'addition_change' && cls.category !== 'subtraction_change';
+    });
+    if (nonAction.length > 0) {
+      return `关键词"${nonAction.map(k => k.word).join('、')}"不是加减动作词`;
+    }
+  }
+
+  // 2. find_numbers: 必须有数字
+  if (st === 'find_numbers') {
+    if (question.numbers.length === 0) {
+      return '没有数字，不适合数字线索关卡';
+    }
+    const lt = inferLessonType(question);
+    if (lt === 'logic_reasoning' || lt === 'guarantee_worst_case') {
+      return `题目类型"${lt}"不适合数字线索关卡`;
+    }
+  }
+
+  // 3. age_problem 不能进 find_action_words
+  if (st === 'find_action_words' && question.problemType === 'age_problem') {
+    return '年龄倍数题不适合动作线索关卡';
+  }
+
+  // 4. spot_extra_info: 必须有多余数据
+  if (st === 'spot_extra_info') {
+    const hasExtra = (question.extraNumbers && question.extraNumbers.length > 0) ||
+      (question.noisePhrases && question.noisePhrases.length > 0);
+    if (!hasExtra) {
+      return '没有多余信息，不适合识别多余信息关卡';
+    }
+  }
+
+  // 5. simulation: 必须有 visualKey
+  if (st === 'simulation') {
+    if (!question.visualKey) {
+      return '没有可视化素材，不适合演示关卡';
+    }
+  }
+
+  return null; // 兼容
+}
+
+// ========== v2.6.8: 主题-题目匹配校验 ==========
+
+/**
+ * 检查 theme story 是否与题目类型匹配。
+ * 返回 null 表示匹配，返回 string 表示不匹配原因。
+ */
+export function validateThemeQuestionMatch(
+  themeId: string | undefined,
+  question: Question
+): string | null {
+  if (!themeId) return null;
+
+  // candy_inventory / shop_stock 主题只能匹配商店/库存/买卖场景
+  const isShopTheme = /candy|shop|stock|inventory|store|buy|sell/i.test(themeId);
+
+  if (isShopTheme) {
+    const isAge = question.problemType === 'age_problem' ||
+      question.text.includes('岁') ||
+      question.text.includes('年龄');
+    const isRatio = question.problemType === 'ratio_distribution' ||
+      question.keywords.some(k => classifyKeyword(k.word)?.category === 'multiplicative_comparison') &&
+      question.keywords.some(k => k.word === '倍');
+    const isLogic = question.problemType === 'logic_ranking' ||
+      question.problemType === 'logic_truth' ||
+      question.problemType === 'logic_ordering';
+
+    if (isAge) {
+      return `糖果库存主题不匹配年龄题（题目含"岁/年龄"）。建议切换为通用或家庭主题。`;
+    }
+    if (isRatio) {
+      return `糖果库存主题不匹配倍数比较题（题目含"倍"）。建议切换为通用主题。`;
+    }
+    if (isLogic) {
+      return `糖果库存主题不匹配逻辑推理题。建议切换为通用主题。`;
+    }
+  }
+
+  return null; // 匹配
 }
 
 // ========== 案件故事辅助 ==========

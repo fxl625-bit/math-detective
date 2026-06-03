@@ -27,6 +27,7 @@ import {
   LESSON_TYPE_TO_STEP_TYPE,
 } from './types';
 import { hintRevealsAnswer, textRevealsAnswer, stepsRevealAnswer, stringStepsRevealAnswer } from './hintSafety';
+import { classifyKeyword } from '@/data/keywordRules';
 
 // ========== 关键词分类规则 ==========
 
@@ -598,6 +599,63 @@ export function validateQuestionIntegrity(q: Question): QuestionValidationResult
     }
   }
 
+  // ========== v2.6.9: 倍词检测 + age_problem 专项 ==========
+
+  // 38. 题目含"倍/几倍"时，keywordType 必须为 times_intro
+  const hasMultiplicativeKeyword = q.keywords.some(k => {
+    const cls = classifyKeyword(k.word);
+    return cls?.category === 'multiplicative_comparison';
+  });
+  if (hasMultiplicativeKeyword && keywordType !== 'times_intro') {
+    errors.push(`题目含"倍/几倍"关键词，keywordType 应为 times_intro，当前=${keywordType}`);
+  }
+
+  // 39. age_problem 题不允许出现商店/库存场景关键词
+  if (q.problemType === 'age_problem') {
+    const shopSceneKeywords = ['糖果店', '库存', '进货', '卖出', '宠物店', '文具店', '商店', '卖掉了', '还剩几个'];
+    const hasShopWords = shopSceneKeywords.some(w =>
+      q.text.includes(w) || (q.storyTitle && q.storyTitle.includes(w))
+    );
+    if (hasShopWords) {
+      errors.push('age_problem 题出现商店/库存关键词，场景不兼容');
+    }
+    // sceneType 检查
+    const incompatibleScenes = ['candy_inventory', 'shop_stock', 'shop', 'inventory'];
+    if (q.sceneType && incompatibleScenes.includes(q.sceneType)) {
+      errors.push(`age_problem 题 sceneType=${q.sceneType}，不兼容商店/库存场景`);
+    }
+    // themeTags 检查
+    if (q.themeTags) {
+      const badTags = q.themeTags.filter(t => incompatibleScenes.some(s => t.includes(s)));
+      if (badTags.length > 0) {
+        errors.push(`age_problem 题 themeTags 包含不兼容标签: ${badTags.join(', ')}`);
+      }
+    }
+  }
+
+  // 40. find_action_words 关卡必须有 addition_change/subtraction_change 关键词分类
+  // (stepCompatibility 含 find_action_words 的题也检查)
+  const isForFindActionWords = q.lessonType === 'add_sub_action'
+    || (q.stepCompatibility && q.stepCompatibility.includes('find_action_words'));
+  if (isForFindActionWords) {
+    const hasActionKeyword = q.keywords.some(k => {
+      const cls = classifyKeyword(k.word);
+      return cls?.category === 'addition_change' || cls?.category === 'subtraction_change';
+    });
+    if (!hasActionKeyword) {
+      errors.push('适合 find_action_words 的题目缺少 addition_change/subtraction_change 关键词分类');
+    }
+  }
+
+  // 41. stepCompatibility 含 shop 场景关键词但 question sceneType 不匹配
+  if (q.storyTitle && /卖出|进货|库存/.test(q.storyTitle)) {
+    const isShopOrInventory = q.sceneType === 'shop_stock' || q.sceneType === 'candy_inventory'
+      || q.text.includes('商店') || q.text.includes('进货') || q.text.includes('库存');
+    if (!isShopOrInventory) {
+      errors.push(`storyTitle="${q.storyTitle}"含商店/库存关键词，但题目场景不匹配`);
+    }
+  }
+
   return {
     valid: errors.length === 0,
     errors,
@@ -691,6 +749,81 @@ function stringSimilarity(a: string, b: string): number {
   }
   const union = new Set([...setA, ...setB]).size;
   return union === 0 ? 0 : intersection / union;
+}
+
+/**
+ * v2.6.9: step-question 跨引用匹配校验
+ *
+ * 校验题目与步骤类型/标题/主题的兼容性。
+ * 覆盖：
+ * - age_problem 不能进入 find_action_words / shop 场景
+ * - find_action_words 必须有 addition_change/subtraction_change 关键词
+ * - step title 含商店关键词时 question 必须是 shop/inventory 场景
+ */
+export function validateStepQuestionMatch(
+  question: Question,
+  stepType: LessonStepType,
+  stepTitle?: string,
+  themeId?: string,
+): { errors: string[]; warnings: string[]; isValidForStep: boolean } {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  // 1. age_problem 不兼容 find_action_words
+  if (question.problemType === 'age_problem' && stepType === 'find_action_words') {
+    errors.push('age_problem 不兼容 find_action_words 关卡');
+  }
+
+  // 2. age_problem 不兼容 candy_inventory/shop_stock theme
+  if (question.problemType === 'age_problem') {
+    const incompatibleThemes = ['candy_inventory', 'shop_stock'];
+    if (themeId && incompatibleThemes.includes(themeId)) {
+      errors.push(`age_problem 不兼容 theme=${themeId}`);
+    }
+    if (question.sceneType && incompatibleThemes.includes(question.sceneType)) {
+      errors.push(`age_problem 不兼容 sceneType=${question.sceneType}`);
+    }
+    const shopKeywords = ['糖果店', '库存', '进货', '卖出', '宠物店', '商店', '卖掉了'];
+    if (shopKeywords.some(w => question.text.includes(w))) {
+      errors.push('age_problem 题含商店/库存场景关键词');
+    }
+  }
+
+  // 3. find_action_words 步必须有 addition_change/subtraction_change 关键词分类
+  if (stepType === 'find_action_words') {
+    const hasValidActionKeyword = question.keywords.some(k => {
+      const cls = classifyKeyword(k.word);
+      return cls?.category === 'addition_change' || cls?.category === 'subtraction_change';
+    });
+    if (!hasValidActionKeyword) {
+      errors.push('find_action_words 步缺少 addition_change/subtraction_change 关键词分类');
+    }
+    // 额外检查: 不应该有 multiplicative_comparison 关键词
+    const hasMultiplicative = question.keywords.some(k => {
+      const cls = classifyKeyword(k.word);
+      return cls?.category === 'multiplicative_comparison';
+    });
+    if (hasMultiplicative) {
+      warnings.push('find_action_words 步含 multiplicative_comparison 关键词（倍），可能导致错配');
+    }
+  }
+
+  // 4. step title 含"卖出/进货/库存"时 question 必须是 shop/inventory 场景
+  if (stepTitle && /卖出|进货|库存/.test(stepTitle)) {
+    const isShopOrInventory = question.sceneType === 'shop_stock' || question.sceneType === 'candy_inventory'
+      || question.sceneType === 'shop' || question.sceneType === 'inventory'
+      || question.text.includes('商店') || question.text.includes('糖果店')
+      || question.text.includes('进货') || question.text.includes('库存');
+    if (!isShopOrInventory) {
+      errors.push(`步标题"${stepTitle}"含商店关键词，但题目场景(sceneType=${question.sceneType})不匹配`);
+    }
+  }
+
+  return {
+    errors,
+    warnings,
+    isValidForStep: errors.length === 0,
+  };
 }
 
 // Re-export from types for convenience
