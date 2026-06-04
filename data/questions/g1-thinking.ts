@@ -40,9 +40,11 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'compare',
     stepCompatibility: ['find_action_words', 'full_solve'],
-    sceneType: 'generic',
-    themeTags: ["generic"],
+    sceneType: 'competition',
+    themeTags: ["competition", "ranking"],
     problemType: 'logic_ranking',
+    // v2.7.1: 只问谁最快，不是完整排序，用 text 而非 ranking
+    answerType: 'text',
   },
   // ========== 找规律：数字序列 ==========
   {

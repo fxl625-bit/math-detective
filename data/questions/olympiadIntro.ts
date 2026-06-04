@@ -515,7 +515,7 @@ export const olympiadIntroQuestions: Question[] = [
     answerSentence: '12-3-4+5=10。',
     explanation: '把1和2组合成12：12-3-4+5。计算：12-3=9，9-4=5，5+5=10。相邻数字可以组成两位数，给了更多可能。',
     solutionSteps: ['尝试组合相邻数字', '12-3-4+5：先12-3=9', '再9-4=5', '最后5+5=10'],
-    hints: ['把相邻数字拼成两位数试试！12-3-4+5=10。'],
+    hints: ['把相邻数字拼成两位数试试！比如1和2可以拼成12。'],
     difficulty: 3, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
   lessonType:'logic_reasoning',
   keywordType:'number_extract',

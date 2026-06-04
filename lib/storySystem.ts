@@ -8,6 +8,8 @@ export interface StepNarrative {
   instruction: string;
 }
 
+export type ThemeStrictness = 'strict' | 'semi_strict' | 'generic';
+
 export interface CaseStory {
   id: string;
   title: string;
@@ -23,6 +25,10 @@ export interface CaseStory {
   themeTags?: string[];
   /** v2.6.11: 主题禁止的标签（题目 themeTags 不能包含任何一个） */
   forbiddenTags?: string[];
+  /** v2.7.1: 必须匹配的标签（题目 themeTags 必须包含至少一个） */
+  requiredTags?: string[];
+  /** v2.7.1: 主题严格程度 */
+  themeStrictness?: ThemeStrictness;
 }
 
 // ========== 根据年级和日期选择案件 ==========
@@ -150,50 +156,95 @@ export function saveRecentStoryId(storyId: string, max: number = 5): void {
 
 /**
  * 检查题目是否与故事主题兼容。
- * 用于 lessonPlanner 选题时过滤。
+ * v2.7.1: 增加 requiredTags 和 themeStrictness 支持。
  *
- * 兼容规则：
- * 1. 如果 story 有 allowedSceneTypes，题目 sceneType 必须匹配
- * 2. 如果 story 有 themeTags，题目 themeTags 必须包含至少一个
- * 3. 如果 story 有 forbiddenTags，题目 themeTags 不能包含任何一个
- * 4. 如果题目没有 sceneType/themeTags，通过推断判断
+ * 兼容规则（strict 模式）：
+ * 1. forbiddenTags 硬排除
+ * 2. allowedSceneTypes 必须匹配
+ * 3. requiredTags 必须命中至少一个（如果有）
+ * 4. generic sceneType 不再无条件通过 strict 主题
  */
 export function isQuestionCompatibleWithTheme(
   question: Question,
   story: CaseStory | undefined
 ): boolean {
-  if (!story) return true; // 没有主题则不过滤
+  if (!story) return true;
 
   const qScene = question.sceneType || inferSceneType(question);
   const qTags = question.themeTags?.length ? question.themeTags : inferThemeTags(question);
+  const strictness = story.themeStrictness || 'semi_strict';
 
-  // 1. forbiddenTags 检查（硬排除）
+  // 1. forbiddenTags 硬排除（所有模式）
   if (story.forbiddenTags?.length) {
     const hasForbidden = qTags.some(tag => story.forbiddenTags!.includes(tag));
     if (hasForbidden) return false;
   }
 
+  // generic 模式：不过滤
+  if (strictness === 'generic') return true;
+
   // 2. allowedSceneTypes 检查
+  let sceneOk = true;
   if (story.allowedSceneTypes?.length) {
-    if (qScene && !story.allowedSceneTypes.includes(qScene)) {
-      // generic 只有在 allowedSceneTypes 包含 'generic' 时才通过
-      if (qScene === 'generic' || qScene === 'math') {
-        if (!story.allowedSceneTypes.includes('generic') && !story.allowedSceneTypes.includes('math')) {
-          return false;
-        }
-      } else {
-        return false;
-      }
+    sceneOk = story.allowedSceneTypes.includes(qScene);
+    // generic/math 只有在 allowedSceneTypes 明确包含时才通过
+    if (!sceneOk && (qScene === 'generic' || qScene === 'math')) {
+      sceneOk = story.allowedSceneTypes.includes('generic') || story.allowedSceneTypes.includes('math');
     }
   }
 
-  // 3. themeTags 检查（至少一个匹配）
-  if (story.themeTags?.length && qTags.length > 0) {
-    const hasMatch = qTags.some(tag => story.themeTags!.includes(tag));
-    if (!hasMatch) return false;
+  // 3. requiredTags 检查（必须命中至少一个）
+  let requiredOk = true;
+  if (story.requiredTags?.length) {
+    requiredOk = story.requiredTags.some(tag => qTags.includes(tag));
   }
 
-  return true;
+  // 4. themeTags 交叉检查
+  let tagMatch = true;
+  if (story.themeTags?.length && qTags.length > 0) {
+    tagMatch = qTags.some(tag => story.themeTags!.includes(tag));
+  }
+
+  // 5. strict 模式：sceneType 和 requiredTags 都必须满足
+  if (strictness === 'strict') {
+    return sceneOk && requiredOk;
+  }
+
+  // semi_strict 模式：sceneType 或 requiredTags 至少命中一个
+  return (sceneOk || requiredOk) && tagMatch;
+}
+
+/**
+ * 检查题目是否通过主题兼容（带原因）
+ */
+export function checkThemeCompatibility(
+  question: Question,
+  story: CaseStory
+): { compatible: boolean; reason?: string } {
+  const qScene = question.sceneType || inferSceneType(question);
+  const qTags = question.themeTags?.length ? question.themeTags : inferThemeTags(question);
+
+  if (story.forbiddenTags?.length) {
+    const hit = qTags.filter(tag => story.forbiddenTags!.includes(tag));
+    if (hit.length > 0) {
+      return { compatible: false, reason: `forbiddenTag: ${hit.join(',')}` };
+    }
+  }
+
+  if (story.requiredTags?.length) {
+    const hasRequired = story.requiredTags.some(tag => qTags.includes(tag));
+    if (!hasRequired) {
+      return { compatible: false, reason: `missing requiredTags: need one of [${story.requiredTags.join(',')}]` };
+    }
+  }
+
+  if (story.allowedSceneTypes?.length && !story.allowedSceneTypes.includes(qScene)) {
+    if (qScene !== 'generic' && qScene !== 'math') {
+      return { compatible: false, reason: `sceneType "${qScene}" not in allowedSceneTypes` };
+    }
+  }
+
+  return { compatible: true };
 }
 
 /**

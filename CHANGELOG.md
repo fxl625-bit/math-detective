@@ -1,5 +1,21 @@
 # Math Detective Changelog
 
+## v2.7.1 — P0 修复：主题错配、重复提示与 step 文案
+
+### 核心修复
+- **宠物店主题错配**：宠物店 forbiddenTags 增加 food_meal/snack/fruit/food/stationery；requiredTags=[animal, pet]；themeStrictness=strict
+- **主题匹配逻辑升级**：CaseStory 新增 requiredTags + themeStrictness；strict 模式要求 sceneType 和 requiredTags 都满足
+- **小提示重复渲染**：ClueSummary 移除 HintSystem 渲染，小提示只由 HintSystem 统一渲染一次
+- **step 文案不准确**：find_numbers description 从"找到所有数字，然后列式并算出答案"改为"先找出题目里出现的所有数字"
+- **g1t_02 answerType**：从逻辑排序改为 text（只问谁最快，不问完整排序）
+- **oi_21 泄题**：hint 从直接给出答案改为只提示方法
+- **所有 Story 补充 requiredTags + themeStrictness**
+
+### 版本
+- v2.6.12 → v2.7.1
+
+---
+
 ## v2.6.12 — P0 修复：全主题一致性验证
 
 ### 核心修复

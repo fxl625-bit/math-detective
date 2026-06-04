@@ -5,6 +5,7 @@ import { allStories } from '@/data/stories';
 import { getCaseStoryForDate, getRecentStoryIds, saveRecentStoryId, isQuestionCompatibleWithTheme, type CaseStory } from './storySystem';
 import { classifyKeyword } from '@/data/keywordRules';
 import { inferLessonType, extractNumbers, classifyNumberRole } from './questionValidation';
+import { isQuestionSafeForLesson } from './questionSafety';
 
 // ========== 关卡配置 ==========
 
@@ -20,14 +21,14 @@ const STEP_TITLES: Record<LessonStepType, string> = {
 };
 
 const STEP_DESCRIPTIONS: Record<LessonStepType, string> = {
-  find_numbers: '从题目中找到所有数字，然后列式并算出答案',
-  find_action_words: '找出关键词，判断增加还是减少，然后列式算出答案',
-  simulation: '观察物品的增减变化，判断运算符号并算出答案',
-  remove_noise: '擦掉和数学无关的废话，然后列式算出答案',
-  full_solve: '完整破解一道数学题：找数字→找关键词→明白问什么→列算式→算答案',
-  find_compare_numbers: '找出题目中的比较关系，判断谁是谁的几倍',
+  find_numbers: '先找出题目里出现的所有数字',
+  find_action_words: '找出关键词，判断增加还是减少',
+  simulation: '观察物品的增减变化，判断运算符号',
+  remove_noise: '擦掉和数学无关的干扰信息',
+  full_solve: '完整破解一道数学题：找数字→找关键词→列算式→算答案',
+  find_compare_numbers: '找出题目中的比较关系',
   spot_extra_info: '找出题目中和计算无关的多余数字',
-  spot_missing_info: '判断题目中是否缺少必要信息，能否计算',
+  spot_missing_info: '判断题目中是否缺少必要信息',
 };
 
 /** v2.6.5: 根据题型生成动态关卡标题 */
@@ -560,11 +561,12 @@ export function selectQuestionForStep(params: {
   };
 
   const tryPool = (pool: Question[], allowDegrade: boolean): Question | null => {
-    // v2.6.11: 先按主题过滤，再按 stepType 过滤
+    // v2.7.1: 先按安全+主题过滤，再按 stepType 过滤
     const themeCompatible = pool.filter(q =>
       !usedSet.has(q.id) &&
       q.difficulty <= maxDifficulty &&
-      themeFilter(q)
+      themeFilter(q) &&
+      isQuestionSafeForLesson(q).safe
     );
 
     const compatible = themeCompatible.filter(q =>
@@ -599,11 +601,11 @@ export function selectQuestionForStep(params: {
   const pool = questionsByGrade[grade] || allQuestions;
   let result = tryPool(pool, stepType !== 'remove_noise');
 
-  // Degrade: lower difficulty (v2.6.11: 保留主题过滤)
+  // Degrade: lower difficulty (v2.7.1: 保留安全+主题过滤)
   if (!result && stepType !== 'remove_noise') {
     for (let diff = maxDifficulty - 1; diff >= 1; diff--) {
       const lowered = pool.filter(q =>
-        !usedSet.has(q.id) && q.difficulty <= diff && isCompatible(q) && themeFilter(q)
+        !usedSet.has(q.id) && q.difficulty <= diff && isCompatible(q) && themeFilter(q) && isQuestionSafeForLesson(q).safe
       );
       if (lowered.length > 0) {
         for (let i = lowered.length - 1; i > 0; i--) {

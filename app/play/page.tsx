@@ -832,18 +832,7 @@ function ClueSummary({ question }: { question: Question }) {
         <span className="font-bold text-blue-600">{isLogicRanking ? '🧠 怎么想：' : '🧮 怎么想：'}</span>
         <span className="text-gray-700">{opDesc}</span>
       </div>
-      {/* 提示 — v2.6.7: 安全检查，不展示泄露答案的提示 */}
-      {question.hints.length > 0 && (() => {
-        const safeHint = question.hints[0];
-        const leaks = hintRevealsAnswer(safeHint, question);
-        if (leaks) return null;
-        return (
-          <details className="text-sm">
-            <summary className="text-amber-600 font-medium cursor-pointer">💡 小提示</summary>
-            <p className="mt-1 text-gray-600 pl-4">{safeHint}</p>
-          </details>
-        );
-      })()}
+      {/* v2.7.1: 小提示由 HintSystem 统一渲染，ClueSummary 不再渲染 */}
     </div>
   );
 }
