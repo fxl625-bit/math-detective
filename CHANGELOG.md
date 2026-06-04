@@ -1,5 +1,40 @@
 # Math Detective Changelog
 
+## v2.6.11 — P0 修复：主题与题目错配
+
+### 根本原因
+1. **主题随机选，题目随机选**：lessonPlanner 选 story 和选 question 完全独立，无交叉校验
+2. **Questions 缺少 sceneType/themeTags**：266 道题中仅 1 道设置了这两个字段
+3. **Step 文案来自 story 模板**：play/page 用 `getStepNarrative(story, stepType)` 显示文案，与实际题目无关
+4. **替换题不重建 metadata**：repair 时只换 questionId，step title/description 残留旧文案
+
+### 核心修复
+
+**主题-题目硬匹配** (`lib/storySystem.ts`)
+- CaseStory 新增 `allowedSceneTypes` / `themeTags` / `forbiddenTags`
+- 新增 `isQuestionCompatibleWithTheme()` 兼容性检查
+- 新增 `inferSceneType()` / `inferThemeTags()` 从题目内容推断标签
+
+**20 个 Story 全部标注主题标签** (`data/stories.ts`)
+- 超市购物主题：allowedSceneTypes=[shopping, snack, food, stationery]，forbiddenTags=[rabbit, animal, playground, flag, interval, age, geometry, competition, ocean, planting]
+- 森林/海洋/校园/零食/玩具/派对/宠物 主题各有独立标签
+
+**lessonPlanner 按主题筛题** (`lib/lessonPlanner.ts`)
+- `selectQuestionForStep` 新增 `story` 参数
+- 选题时先按 `isQuestionCompatibleWithTheme` 过滤题库
+- 降级时仍保留主题过滤，不跨主题凑题
+- `safeNormalizeLesson` 修复时也传入 story
+
+**play/page 文案从 question 生成** (`app/play/page.tsx`)
+- 不再使用 `getStepNarrative(story, stepType)` 显示 step 描述
+- `displayStepDescription` 从 `currentStep.description` 获取（由 `buildStepFromQuestion` 生成）
+- 新增 `generateStepInstruction()` 从 question 内容推断 instruction
+
+### 版本
+- v2.6.10 → v2.6.11
+
+---
+
 ## v2.6.10 — P0 修复：多答案题校验 + 统一答案检查器 + 等差数列引导
 
 ### 根本原因

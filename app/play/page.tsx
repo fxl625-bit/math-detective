@@ -433,23 +433,21 @@ export default function PlayPage() {
   }
 
     const caseStory = getCaseStoryForLesson(lesson!);
-    const stepNarrative = getStepNarrative(caseStory, currentStep.type);
     const isDebugMode = typeof window !== 'undefined' && localStorage.getItem('mathDetectiveDebug') === '1';
     const inferredLessonType = question ? (question.lessonType || inferLessonType(question)) : null;
 
-    // v2.6.6: 逻辑排序题覆盖 story 标题/描述
+    // v2.6.11: 从 question 生成 step 文案（不再依赖 story 模板）
     const isLogicRanking = question?.problemType === 'logic_ranking'
       || question?.problemType === 'logic_truth'
       || question?.problemType === 'logic_ordering';
-    const displayCaseStoryTitle = isLogicRanking
-      ? (question?.sceneType === 'race' ? '跑步名次谜案' : '逻辑推理谜案')
-      : (caseStory?.title || '');
-    const displayStepDescription = isLogicRanking
-      ? '根据每个人的话，排出比赛名次'
-      : stepNarrative.description;
-    const displayStepInstruction = isLogicRanking
-      ? '仔细看每个人说的话，用排除法找出答案！'
-      : stepNarrative.instruction;
+    const isSequence = question?.problemType === 'pattern'
+      || question?.problemType === 'sequence_arithmetic';
+    const displayCaseStoryTitle = caseStory?.title || '';
+
+    // v2.6.11: step 描述从 step 对象获取（由 buildStepFromQuestion 生成）
+    const displayStepDescription = currentStep.description || '';
+    // v2.6.11: instruction 从 question 推断
+    const displayStepInstruction = generateStepInstruction(question, currentStep.type);
 
   return (
     <PageContainer bottomPadding={false}>
@@ -889,6 +887,51 @@ function getFullStepsFromQuestion(question: Question) {
 }
 
 /** 为不同题型生成安全的默认轻提示 */
+/** v2.6.11: 从 question + stepType 生成 instruction（不依赖 story 模板） */
+function generateStepInstruction(question: Question | null, stepType: string): string {
+  if (!question) return '仔细读题，找出线索！';
+
+  const text = question.text;
+  const hasShopping = /超市|商店|购物|价格|优惠|找零|元|买|卖/.test(text);
+  const hasAnimal = /兔子|兔|小鸟|鸟|小鸡|猫|狗|鱼/.test(text);
+  const hasFood = /苹果|桃子|包子|饼干|蛋糕|糖果|牛奶/.test(text);
+  const hasPlayground = /操场|跑道|彩旗|每隔|种树|植树/.test(text);
+  const hasAge = /年龄|岁/.test(text);
+  const hasGeometry = /正方形|长方形|三角形|圆形|面积|周长/.test(text);
+
+  // 根据场景生成开头
+  let scene = '';
+  if (hasShopping) scene = '看看购物清单';
+  else if (hasAnimal) scene = '看看小动物';
+  else if (hasFood) scene = '看看食物';
+  else if (hasPlayground) scene = '看看操场';
+  else if (hasAge) scene = '看看年龄';
+  else if (hasGeometry) scene = '看看图形';
+  else scene = '仔细读题';
+
+  // 根据 stepType 生成指令
+  switch (stepType) {
+    case 'find_numbers':
+      return `${scene}，找出题目里所有的数字！`;
+    case 'find_action_words':
+      return `找出关键词，判断是增加还是减少！`;
+    case 'simulation':
+      return `观察物品的变化过程，想想用了什么运算！`;
+    case 'remove_noise':
+      return `有些信息是干扰项，擦掉和数学无关的！`;
+    case 'full_solve':
+      return `运用所有侦探技能，一步步破解这道题！`;
+    case 'find_compare_numbers':
+      return `找出数字之间的关系，谁多谁少？`;
+    case 'spot_extra_info':
+      return `有些数字是多余的，找出来！`;
+    case 'spot_missing_info':
+      return `判断信息够不够用来计算！`;
+    default:
+      return `${scene}，仔细想想！`;
+  }
+}
+
 function generateSafeDefaultHint(question: Question): string {
   const pt = question.problemType;
   if (pt === 'pattern' || /规律/.test(question.text)) {

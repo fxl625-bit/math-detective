@@ -42,6 +42,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '太棒了！你成功算出了丢失的坚果数量，松鼠大叔感动得送了你一袋松果！案件告破！',
     rewardHint: '松鼠大叔送了你 3 颗星星和一颗侦探徽章！',
+    allowedSceneTypes: ["shopping","animal_grass","animal","forest","generic"],
+    themeTags: ["shopping","animal","forest","food","quantity"],
+    forbiddenTags: ["playground","geometry","age","competition","ocean","interval"],
   },
   {
     id: 'pond_duckling_mystery',
@@ -83,6 +86,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '找到了！你算出了正确的鸭子数量，鸭妈妈开心地带着小鸭子们回家了。你又破了一个案子！',
     rewardHint: '鸭妈妈送了你一枚闪亮的羽毛徽章！',
+    allowedSceneTypes: ["animal_grass","animal","forest","ocean","generic"],
+    themeTags: ["animal","bird","forest","nature","quantity"],
+    forbiddenTags: ["shopping","playground","geometry","age","competition","interval"],
   },
   {
     id: 'bunny_carrot_garden',
@@ -124,6 +130,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '破案了！你精确算出了被吃掉的胡萝卜数量。兔奶奶送了你一篮新鲜的胡萝卜（胡萝卜蛋糕也不错！）',
     rewardHint: '兔奶奶的感谢礼：3 颗星星和一块侦探勋章！',
+    allowedSceneTypes: ["animal_grass","animal","forest","garden","food_fruit","generic"],
+    themeTags: ["rabbit","animal","garden","food","forest","quantity"],
+    forbiddenTags: ["shopping","playground","geometry","age","competition","interval"],
   },
 
   // ========== G1-G2 海洋主题 ==========
@@ -167,6 +176,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '完美！你算出了正确的贝壳数量，美人鱼泡泡开心地送你一颗最漂亮的珍珠！',
     rewardHint: '奖励：一颗美人鱼珍珠和 3 颗星星！',
+    allowedSceneTypes: ["ocean","generic"],
+    themeTags: ["ocean","nature","quantity"],
+    forbiddenTags: ["shopping","playground","geometry","age","competition","interval"],
   },
   {
     id: 'crab_sandcastle',
@@ -208,6 +220,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '沙堡谜案成功告破！螃蟹先生开心地堆了一个新沙堡送给你（还刻了你的名字！）',
     rewardHint: '螃蟹先生的谢礼：2 颗星星和一枚沙滩纪念章！',
+    allowedSceneTypes: ["ocean","generic"],
+    themeTags: ["ocean","nature","quantity"],
+    forbiddenTags: ["shopping","playground","geometry","age","competition","interval"],
   },
 
   // ========== G1-G2 校园主题 ==========
@@ -251,6 +266,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '破案成功！你找出了蛋挞数量不对的原因——原来是二班多领了一盘！食堂阿姨请你吃了一个热乎乎的蛋挞！',
     rewardHint: '香甜的奖励：2 颗星星和一张蛋挞优惠券（虚拟）！',
+    allowedSceneTypes: ["food_meal","food","snack","generic"],
+    themeTags: ["food","snack","school","quantity"],
+    forbiddenTags: ["shopping","playground","geometry","age","competition","interval","ocean"],
   },
   {
     id: 'playground_ball_mystery',
@@ -292,6 +310,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '案件解决！所有篮球都找到了——原来是小明多借了两个忘了登记。体育老师表扬了你的细心！',
     rewardHint: '体育老师的谢礼：2 颗星星和一枚运动徽章！',
+    allowedSceneTypes: ["sports","playground","generic"],
+    themeTags: ["sports","playground","school","quantity"],
+    forbiddenTags: ["shopping","geometry","age","competition","ocean","interval"],
   },
 
   // ========== G1-G2 零食/玩具主题 ==========
@@ -335,6 +356,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '库存清楚了！你帮熊猫阿姨算出了精确的糖果数量。熊猫阿姨开心地送了你一颗最大的棒棒糖！',
     rewardHint: '甜蜜奖励：3 颗星星和一枚糖果侦探徽章！',
+    allowedSceneTypes: ["snack","shopping","food","generic"],
+    themeTags: ["snack","food","shopping","quantity"],
+    forbiddenTags: ["playground","geometry","age","competition","ocean","interval"],
   },
   {
     id: 'toy_store_puzzle',
@@ -376,6 +400,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '账本理清了！河马老板感激地送了你一个侦探玩偶（戴着侦探帽的小熊！）。玩具店又恢复了秩序！',
     rewardHint: '河马老板的赠礼：3 颗星星和一只迷你侦探熊玩偶！',
+    allowedSceneTypes: ["shopping","generic"],
+    themeTags: ["shopping","toy","quantity"],
+    forbiddenTags: ["playground","geometry","age","competition","ocean","interval"],
   },
 
   // ========== G1-G2 其他场景 ==========
@@ -419,6 +446,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '派对数学案破解！你帮小象算清楚了所有数字。小象送了你一块最大的生日蛋糕！',
     rewardHint: '派对礼物：2 颗星星和一块虚拟生日蛋糕！',
+    allowedSceneTypes: ["party","food","generic"],
+    themeTags: ["party","food","family","quantity"],
+    forbiddenTags: ["shopping","playground","geometry","age","competition","ocean","interval"],
   },
   {
     id: 'pet_shop_adventure',
@@ -460,6 +490,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '账本理清了！猫咪店员开心地蹭了蹭你的腿。宠物店的每一只小动物都归位了！',
     rewardHint: '可爱奖励：3 颗星星和一枚小爪印徽章！',
+    allowedSceneTypes: ["animal_grass","animal","shopping","pet","generic"],
+    themeTags: ["animal","pet","shopping","quantity"],
+    forbiddenTags: ["playground","geometry","age","competition","ocean","interval"],
   },
   {
     id: 'supermarket_price_puzzle',
@@ -501,6 +534,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '账算清了！小熊妈妈开心地多买了一包饼干送给你。生活中的数学果然最重要！',
     rewardHint: '购物奖励：2 颗星星和一张虚拟超市优惠券！',
+    allowedSceneTypes: ["shopping","snack","food","stationery","generic"],
+    themeTags: ["shopping","price","money","quantity"],
+    forbiddenTags: ["rabbit","animal","playground","flag","interval","age","geometry","competition","ocean","planting"],
   },
 
   // ========== G3-G4 侦探主题 ==========
@@ -544,6 +580,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '数据修复完成！教授激动地握住你的手："你救了我的论文！"实验室恢复了秩序。',
     rewardHint: '科学家的感谢：3 颗星星和一枚实验徽章！',
+    allowedSceneTypes: ["generic","math"],
+    themeTags: ["science","math","quantity"],
+    forbiddenTags: ["shopping","playground","age","competition","ocean"],
   },
   {
     id: 'charity_sale_ledger',
@@ -585,6 +624,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '账目全部对上了！校长在晨会上表扬了你的数学侦探能力。义卖善款顺利捐给了慈善机构！',
     rewardHint: '校长奖励：3 颗星星和一张荣誉证书！',
+    allowedSceneTypes: ["shopping","school","money","generic"],
+    themeTags: ["shopping","money","school","quantity"],
+    forbiddenTags: ["playground","geometry","age","competition","ocean","interval"],
   },
   {
     id: 'library_overdue_research',
@@ -626,6 +668,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '书找到了！原来是被一位小书虫放在书包里忘记登记了。管理员笑着说："还好有你这位小侦探！"',
     rewardHint: '知识奖励：3 颗星星和一枚阅读徽章！',
+    allowedSceneTypes: ["school","generic"],
+    themeTags: ["school","library","quantity"],
+    forbiddenTags: ["shopping","playground","geometry","age","competition","ocean","interval"],
   },
   {
     id: 'sports_day_scoring',
@@ -667,6 +712,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '成绩更正了！原来是一班的成绩被错记到了二班。裁判长竖起大拇指："小侦探，干得漂亮！"',
     rewardHint: '运动奖励：3 颗星星和一枚金牌徽章！',
+    allowedSceneTypes: ["sports","competition","playground","generic"],
+    themeTags: ["sports","competition","school","quantity"],
+    forbiddenTags: ["shopping","geometry","age","ocean","interval"],
   },
 
   // ========== G5-G6 进阶主题 ==========
@@ -710,6 +758,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '数据修正了！原来是一位实习研究员在计算时输入错误。真正的轨道数据和预测完全吻合！星空恢复了宁静。',
     rewardHint: '星际奖励：4 颗星星和一枚天文徽章！',
+    allowedSceneTypes: ["generic","math","science"],
+    themeTags: ["science","math","quantity"],
+    forbiddenTags: ["shopping","playground","age","competition","ocean"],
   },
   {
     id: 'city_planning_ratio',
@@ -751,6 +802,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '规划图修正了！公园和桥梁的尺寸全部准确。规划局长说："这个项目能按时开工，多亏了你！"',
     rewardHint: '工程奖励：4 颗星星和一枚蓝图徽章！',
+    allowedSceneTypes: ["geometry","generic","math"],
+    themeTags: ["geometry","engineering","math","ratio"],
+    forbiddenTags: ["shopping","playground","age","competition","ocean"],
   },
   {
     id: 'bank_interest_case',
@@ -792,6 +846,9 @@ export const allStories: CaseStory[] = [
     },
     completeText: '计算修正了！原来是实习柜员把年利率当成了月利率。客户拿到了正确的利息，满意地笑了！',
     rewardHint: '金融奖励：4 颗星星和一枚金算盘徽章！',
+    allowedSceneTypes: ["money","shopping","generic","math"],
+    themeTags: ["money","finance","math","percent"],
+    forbiddenTags: ["playground","age","competition","ocean","interval"],
   },
   {
     id: 'map_scale_mystery',
@@ -833,5 +890,8 @@ export const allStories: CaseStory[] = [
     },
     completeText: '比例尺还原了！原来1厘米代表1.5公里。按照正确比例，宝藏就在老灯塔下！虽然只是一个装满旧硬币的铁盒子，但探险的乐趣无价！',
     rewardHint: '探险奖励：4 颗星星和一枚藏宝图徽章！',
+    allowedSceneTypes: ["geometry","generic","math"],
+    themeTags: ["geometry","ratio","adventure","math"],
+    forbiddenTags: ["shopping","playground","age","competition","ocean"],
   },
 ];

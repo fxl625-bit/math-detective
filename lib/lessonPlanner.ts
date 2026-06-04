@@ -2,7 +2,7 @@ import { Question, MistakeRecord, GradeBand, CognitiveSkill, LessonStepType, Ste
 import { getQuestionById, allQuestions, questionsByGrade, getQuestionsByFilter } from '@/data/questions';
 import { loadState, getAccuracyStats } from './storage';
 import { allStories } from '@/data/stories';
-import { getCaseStoryForDate, getRecentStoryIds, saveRecentStoryId } from './storySystem';
+import { getCaseStoryForDate, getRecentStoryIds, saveRecentStoryId, isQuestionCompatibleWithTheme, type CaseStory } from './storySystem';
 import { classifyKeyword } from '@/data/keywordRules';
 import { inferLessonType, extractNumbers, classifyNumberRole } from './questionValidation';
 
@@ -257,6 +257,9 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
           // 尝试选合法替换题
           const state = loadState();
           const profile = getLearningProfile();
+          const lessonStory = lesson.caseStoryId
+            ? allStories.find(s => s.id === lesson.caseStoryId)
+            : undefined;
           const usedIds = lesson.steps
             .filter(s => s.questionId && s.questionId !== current.questionId)
             .map(s => s.questionId);
@@ -264,12 +267,14 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
             stepType: current.type,
             profile,
             usedQuestionIds: usedIds,
+            story: lessonStory,
           });
           if (!replacementQ && current.type !== 'full_solve') {
             replacementQ = selectQuestionForStep({
               stepType: 'full_solve',
               profile,
               usedQuestionIds: usedIds,
+              story: lessonStory,
             });
           }
           if (replacementQ) {
@@ -526,19 +531,32 @@ export function selectQuestionForStep(params: {
   profile: LearningProfile;
   usedQuestionIds: string[];
   targetDifficulty?: number;
+  /** v2.6.11: 故事主题，用于过滤兼容题目 */
+  story?: CaseStory | null;
 }): Question | null {
-  const { stepType, profile, usedQuestionIds } = params;
+  const { stepType, profile, usedQuestionIds, story } = params;
   const maxDifficulty = params.targetDifficulty ?? getEffectiveMaxDifficulty(profile);
   const grade = profile.gradeBand;
   const usedSet = new Set(usedQuestionIds);
 
   const isCompatible = STEP_TYPE_REQUIREMENTS[stepType];
 
+  // v2.6.11: 主题兼容性过滤（有 story 时启用）
+  const themeFilter = (q: Question): boolean => {
+    if (!story) return true;
+    return isQuestionCompatibleWithTheme(q, story);
+  };
+
   const tryPool = (pool: Question[], allowDegrade: boolean): Question | null => {
-    const compatible = pool.filter(q =>
+    // v2.6.11: 先按主题过滤，再按 stepType 过滤
+    const themeCompatible = pool.filter(q =>
       !usedSet.has(q.id) &&
       q.difficulty <= maxDifficulty &&
-      (q.stepCompatibility?.includes(stepType) || (!q.stepCompatibility && isCompatible(q)))
+      themeFilter(q)
+    );
+
+    const compatible = themeCompatible.filter(q =>
+      q.stepCompatibility?.includes(stepType) || (!q.stepCompatibility && isCompatible(q))
     );
 
     if (compatible.length > 0) {
@@ -551,9 +569,7 @@ export function selectQuestionForStep(params: {
 
     if (!allowDegrade) return null;
 
-    const fieldMatch = pool.filter(q =>
-      !usedSet.has(q.id) &&
-      q.difficulty <= maxDifficulty &&
+    const fieldMatch = themeCompatible.filter(q =>
       isCompatible(q)
     );
     if (fieldMatch.length > 0) {
@@ -571,10 +587,12 @@ export function selectQuestionForStep(params: {
   const pool = questionsByGrade[grade] || allQuestions;
   let result = tryPool(pool, stepType !== 'remove_noise');
 
-  // Degrade: lower difficulty
+  // Degrade: lower difficulty (v2.6.11: 保留主题过滤)
   if (!result && stepType !== 'remove_noise') {
     for (let diff = maxDifficulty - 1; diff >= 1; diff--) {
-      const lowered = pool.filter(q => !usedSet.has(q.id) && q.difficulty <= diff && isCompatible(q));
+      const lowered = pool.filter(q =>
+        !usedSet.has(q.id) && q.difficulty <= diff && isCompatible(q) && themeFilter(q)
+      );
       if (lowered.length > 0) {
         for (let i = lowered.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
@@ -708,6 +726,7 @@ function buildDailyLesson(
       profile,
       usedQuestionIds,
       targetDifficulty: maxDifficulty,
+      story: caseStory,
     });
 
     if (!question) {
@@ -718,6 +737,7 @@ function buildDailyLesson(
           profile,
           usedQuestionIds,
           targetDifficulty: maxDifficulty,
+          story: caseStory,
         });
         if (subQ) {
           usedQuestionIds.push(subQ.id);
@@ -742,6 +762,7 @@ function buildDailyLesson(
         profile,
         usedQuestionIds,
         targetDifficulty: maxDifficulty,
+        story: caseStory,
       });
       if (lastQ) {
         usedQuestionIds.push(lastQ.id);
