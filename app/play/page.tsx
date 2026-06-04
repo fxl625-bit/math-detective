@@ -618,6 +618,21 @@ function normalizeRankingInput(input: string): string[] | null {
   return null;
 }
 
+// ========== v2.7.4: 孩子端友好重建占位 ==========
+
+function AutoRebuildPlaceholder() {
+  // 不显示工程异常给孩子，自动返回首页重建任务
+  if (typeof window !== 'undefined') {
+    setTimeout(() => { window.location.href = '/'; }, 1500);
+  }
+  return (
+    <div className="text-center py-8">
+      <div className="text-4xl mb-3 animate-bounce">🔍</div>
+      <p className="text-amber-700 font-bold">今天的任务已整理好，我们继续挑战吧！</p>
+    </div>
+  );
+}
+
 // ========== Phase-Aware Step Router ==========
 
 function PhaseAwareStep({
@@ -1148,24 +1163,9 @@ function FindNumbersPhased({
   }
 
   if (phase === 'find_numbers') {
-    // v2.6.9: Data-layer repair ensures this never renders. Safety net only.
+    // v2.7.4: 不合法题自动跳过，不显示工程异常页给孩子
     if (isInvalidForNumbers) {
-      return (
-        <div className="space-y-4">
-          <AppCard variant="amber">
-            <div className="text-center py-6">
-              <div className="text-4xl mb-3">⚠️</div>
-              <h3 className="font-extrabold text-amber-800 text-lg mb-2">关卡数据异常</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                系统检测到当前关卡数据不兼容，已自动生成新任务。
-              </p>
-              <AppButton variant="primary" size="md" onClick={() => { window.location.href = '/'; }}>
-                返回首页重新开始
-              </AppButton>
-            </div>
-          </AppCard>
-        </div>
-      );
+      return <AutoRebuildPlaceholder />;
     }
 
     return (
@@ -1323,24 +1323,9 @@ function FindActionWordsPhased({
   }
 
     if (phase === 'choose_operation') {
-    // v2.6.9: Data-layer repair ensures this never renders. Safety net only.
+    // v2.7.4: 不合法题自动跳过，不显示工程异常页给孩子
     if (isInvalidForAction) {
-      return (
-        <div className="space-y-4">
-          <AppCard variant="amber">
-            <div className="text-center py-6">
-              <div className="text-4xl mb-3">⚠️</div>
-              <h3 className="font-extrabold text-amber-800 text-lg mb-2">关卡数据异常</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                检测到动作词关卡数据不兼容（含倍/年龄/逻辑等非加减词），系统已自动处理。
-              </p>
-              <AppButton variant="primary" size="md" onClick={() => { window.location.href = '/'; }}>
-                返回首页重新开始
-              </AppButton>
-            </div>
-          </AppCard>
-        </div>
-      );
+      return <AutoRebuildPlaceholder />;
     }
 
     const isAddSubtractOnly = needsAddSubtractPrompt(question.keywords);
@@ -1977,26 +1962,8 @@ function SpotExtraInfoPhased({
   
   // Safety net: if somehow still invalid, show fallback
   if (extraNumbers.length === 0 && noiseCount === 0) {
-    console.error(
-      '[P0] spot_extra_info received question without extra info (should have been repaired in safeNormalizeLesson)',
-      { questionId: question.id, text: question.text.slice(0, 60) }
-    );
-    return (
-      <div className="space-y-4">
-        <AppCard variant="amber">
-          <div className="text-center py-6">
-            <div className="text-4xl mb-3">⚠️</div>
-            <h3 className="font-extrabold text-amber-800 text-lg mb-2">关卡数据异常</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              该题目缺少多余信息，不适合当前关卡。系统已记录并自动处理。
-            </p>
-            <AppButton variant="primary" size="md" onClick={() => { window.location.href = '/'; }}>
-              返回首页重新开始
-            </AppButton>
-          </div>
-        </AppCard>
-      </div>
-    );
+    // v2.7.4: 不合法题自动跳过，不显示工程异常页给孩子
+    return <AutoRebuildPlaceholder />;
   }
   
   // silence unused onPhaseBack warning — used by EquationAnswerPhase

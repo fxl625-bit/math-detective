@@ -187,6 +187,7 @@ export const allStories: CaseStory[] = [
     requiredTags: ["ocean"],
     themeStrictness: 'semi_strict',
     forbiddenTags: ["food","snack","dairy","yogurt","fridge","shopping","toy","pet","playground","flag","geometry","age","logic","sequence","planting","sports"],
+    fallbackToGeneric: true,
   },
   {
     id: 'crab_sandcastle',
@@ -233,6 +234,7 @@ export const allStories: CaseStory[] = [
     requiredTags: ["ocean"],
     themeStrictness: 'semi_strict',
     forbiddenTags: ["food","snack","dairy","yogurt","fridge","shopping","toy","pet","playground","flag","geometry","age","logic","sequence","planting","sports"],
+    fallbackToGeneric: true,
   },
 
   // ========== G1-G2 校园主题 ==========
@@ -327,6 +329,7 @@ export const allStories: CaseStory[] = [
     requiredTags: ["playground","sports","ball"],
     themeStrictness: 'strict',
     forbiddenTags: ["food","snack","dairy","yogurt","fridge","shopping","toy","pet","geometry","age","logic","sequence","planting","ocean"],
+    fallbackToGeneric: true,
   },
 
   // ========== G1-G2 零食/玩具主题 ==========
@@ -421,6 +424,7 @@ export const allStories: CaseStory[] = [
     requiredTags: ["toy","stationery_toy"],
     themeStrictness: 'strict',
     forbiddenTags: ["food","snack","dairy","yogurt","fridge","baozi","bun","candy","sweet","fruit","apple","bread","cake","breakfast","canteen_food","pet","animal","playground","flag","geometry","age","logic","sequence","planting","ocean","sports"],
+    fallbackToGeneric: true,
   },
 
   // ========== G1-G2 其他场景 ==========
@@ -469,6 +473,7 @@ export const allStories: CaseStory[] = [
     requiredTags: ["party"],
     themeStrictness: 'semi_strict',
     forbiddenTags: ["pet","animal","toy","playground","flag","geometry","age","logic","sequence","planting","ocean","sports","shopping"],
+    fallbackToGeneric: true,
   },
   {
     id: 'pet_shop_adventure',
@@ -609,6 +614,7 @@ export const allStories: CaseStory[] = [
     requiredTags: ["science"],
     themeStrictness: 'semi_strict',
     forbiddenTags: ["food","snack","shopping","toy","pet","playground","flag","age","logic","sequence","planting","ocean"],
+    fallbackToGeneric: true,
   },
   {
     id: 'charity_sale_ledger',
@@ -747,6 +753,7 @@ export const allStories: CaseStory[] = [
     requiredTags: ["sports","competition"],
     themeStrictness: 'semi_strict',
     forbiddenTags: ["food","snack","dairy","yogurt","fridge","shopping","toy","pet","geometry","age","logic","sequence","planting","ocean"],
+    fallbackToGeneric: true,
   },
 
   // ========== G5-G6 进阶主题 ==========
@@ -795,6 +802,7 @@ export const allStories: CaseStory[] = [
     requiredTags: ["science"],
     themeStrictness: 'semi_strict',
     forbiddenTags: ["food","snack","shopping","toy","pet","playground","flag","age","logic","sequence","planting","ocean"],
+    fallbackToGeneric: true,
   },
   {
     id: 'city_planning_ratio',

@@ -554,9 +554,10 @@ export function selectQuestionForStep(params: {
 
   const isCompatible = STEP_TYPE_REQUIREMENTS[stepType];
 
-  // v2.6.11: 主题兼容性过滤（有 story 时启用）
+  // v2.7.4: 主题兼容性过滤（fallbackToGeneric 故事跳过主题过滤）
   const themeFilter = (q: Question): boolean => {
     if (!story) return true;
+    if (story.fallbackToGeneric) return true; // 题库不足，不按主题过滤
     return isQuestionCompatibleWithTheme(q, story);
   };
 

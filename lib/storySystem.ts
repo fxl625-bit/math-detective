@@ -30,6 +30,8 @@ export interface CaseStory {
   requiredTags?: string[];
   /** v2.7.1: 主题严格程度 */
   themeStrictness?: ThemeStrictness;
+  /** v2.7.4: 题库不足时 fallback 到 generic 主题 */
+  fallbackToGeneric?: boolean;
 }
 
 // ========== 根据年级和日期选择案件 ==========

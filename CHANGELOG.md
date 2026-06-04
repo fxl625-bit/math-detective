@@ -1,5 +1,23 @@
 # Math Detective Changelog
 
+## v2.7.4 — P0 修复：发布闸门、题库不足降级与孩子端异常页移除
+
+### 核心修复
+- **新增 `validate:lesson-generation` 发布闸门**：每个 Story 生成 100 套 lesson，验证主题-题目-关卡一致性
+- **12/20 Story 主题匹配正确**（0 mismatches），8 个因题库不足标记 `fallbackToGeneric`
+- **题库不足的 Story 自动降级**：`fallbackToGeneric: true` 的 Story 不按主题过滤，使用通用题库
+- **孩子端彻底移除"关卡数据异常"页面**：不合法题渲染前自动跳过，显示友好文案"今天的任务已整理好"
+- **新增 `AutoRebuildPlaceholder` 组件**：自动 1.5 秒后返回首页重建任务
+
+### 验证结果
+- 12/20 Story 通过 100 套生成验证（森林、池塘、兔子、食堂、糖果、宠物、超市、义卖、图书馆、城市规划、银行、藏宝图）
+- 8/20 Story 标记 fallbackToGeneric（海洋、螃蟹、操场、玩具店、生日、科学、运动、天文台）
+
+### 版本
+- v2.7.3 → v2.7.4
+
+---
+
 ## v2.7.3 — P0 修复：全量标签与主题治理
 
 ### 核心修复
