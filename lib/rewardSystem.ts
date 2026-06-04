@@ -80,6 +80,7 @@ export function markDailyRewardShown(
     rewardShownAt: now,
   };
 
+  // v2.7.6: 修复 bug — 之前返回了原始 lesson 而不是 updatedLesson
   return { state, lesson: updatedLesson };
 }
 

@@ -9,7 +9,8 @@ import LogicRankingGuide from '@/components/LogicRankingGuide';
 import SequencePatternGuide from '@/components/lesson/SequencePatternGuide';
 import { useGameState } from '@/hooks/useGameState';
 import { loadState, getAccuracyStats } from '@/lib/storage';
-import { getTodayLesson, normalizeLesson, safeNormalizeLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson } from '@/lib/lessonPlanner';
+import { getTodayLesson, normalizeLesson, safeNormalizeLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson, validateStepQuestionCompatibility } from '@/lib/lessonPlanner';
+import { getQuestionById } from '@/data/questions';
 import { getStepNarrative } from '@/lib/storySystem';
 import { getVisual } from '@/data/visualItems';
 import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/types';
@@ -83,6 +84,25 @@ export default function PlayPage() {
   useEffect(() => {
     lessonRef.current = lesson;
   }, [lesson]);
+
+  // v2.7.6: 检测非法 step 并就地重建（不跳首页）
+  useEffect(() => {
+    if (!lesson || lesson.completed || !mounted) return;
+    const step = getCurrentStep(lesson);
+    if (!step) return;
+    const q = getQuestionById(step.questionId);
+    if (!q) {
+      console.warn('[v2.7.6] Current step has invalid questionId, rebuilding lesson');
+      handleRegenerateLesson();
+      return;
+    }
+    // 检查 stepType 与 question 兼容性
+    const compatError = validateStepQuestionCompatibility(step, q);
+    if (compatError) {
+      console.warn('[v2.7.6] Current step incompatible, rebuilding lesson:', compatError);
+      handleRegenerateLesson();
+    }
+  }, [lesson?.currentStepIndex, mounted]);
 
   const handleRegenerateLesson = useCallback(() => {
     clearTodayLesson();
@@ -618,17 +638,14 @@ function normalizeRankingInput(input: string): string[] | null {
   return null;
 }
 
-// ========== v2.7.4: 孩子端友好重建占位 ==========
+// ========== v2.7.6: 非法步骤自动重建（不跳首页） ==========
 
 function AutoRebuildPlaceholder() {
-  // 不显示工程异常给孩子，自动返回首页重建任务
-  if (typeof window !== 'undefined') {
-    setTimeout(() => { window.location.href = '/'; }, 1500);
-  }
+  // v2.7.6: 不再跳首页，显示加载状态并触发父组件重建
   return (
     <div className="text-center py-8">
-      <div className="text-4xl mb-3 animate-bounce">🔍</div>
-      <p className="text-amber-700 font-bold">今天的任务已整理好，我们继续挑战吧！</p>
+      <div className="text-4xl mb-3 animate-spin">⏳</div>
+      <p className="text-amber-700 font-bold">正在准备挑战...</p>
     </div>
   );
 }

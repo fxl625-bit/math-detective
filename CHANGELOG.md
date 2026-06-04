@@ -1,5 +1,20 @@
 # Math Detective Changelog
 
+## v2.7.6 — P0 修复：奖励弹窗幂等与 /play 修复死循环
+
+### 核心修复
+- **修复 `markDailyRewardShown` 返回原始 lesson 的 bug**：之前返回 `{ state, lesson: updatedLesson }` 写成了 `{ state: lesson: updatedLesson }`，导致 `rewardShown` 永远不持久化
+- **修复 /play 死循环**：非法 step 不再跳首页，改为就地重建 safe fallback lesson
+- **AutoRebuildPlaceholder 不再 redirect to home**：显示加载状态，由父组件触发重建
+- **play/page 新增 useEffect 检测非法 step**：检测到 incompatible question 时自动调用 `handleRegenerateLesson`
+- **STATE_VERSION 升级到 6**：强制重建旧 localStorage 中的坏任务
+- **旧 completed lesson migration**：`rewardClaimed=true, rewardShown=true`，防止旧任务重复弹奖励
+
+### 版本
+- v2.7.5 → v2.7.6
+
+---
+
 ## v2.7.5 — P0 修复：提示系统契约固化
 
 ### 核心修复
