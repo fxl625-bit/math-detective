@@ -57,6 +57,8 @@ export const g5Questions: Question[] = [
   },
   {
     id: 'g5_04', gradeBand: 'G5', domain: 'decimals',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"unit","label":"单价","answer":6.4},{"id":"total","label":"3千克价","answer":19.2}],
     cognitiveSkills: ['find_numbers', 'choose_operation', 'multi_step_reasoning'],
     text: '超市里5千克苹果卖32元，平均每千克苹果多少元？买3千克要多少元？',
     numbers: [32, 5, 3],
@@ -183,6 +185,8 @@ export const g5Questions: Question[] = [
   },
   {
     id: 'g5_11', gradeBand: 'G5', domain: 'fractions',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"sum","label":"一共","answer":"3/5"},{"id":"diff","label":"多","answer":"1/5"}],
     cognitiveSkills: ['find_numbers', 'choose_operation', 'understand_question'],
     text: '小明吃了蛋糕的2/5，小红吃了蛋糕的1/5，两人一共吃了蛋糕的几分之几？小明比小红多吃了几分之几？',
     numbers: [],
@@ -219,6 +223,8 @@ export const g5Questions: Question[] = [
   },
   {
     id: 'g5_13', gradeBand: 'G5', domain: 'fractions',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"eaten","label":"吃了","answer":8},{"id":"left","label":"剩","answer":16}],
     cognitiveSkills: ['build_model', 'choose_operation'],
     text: '一盒饼干有24块，小明吃了1/3，他吃了多少块？还剩多少块？',
     numbers: [24],
@@ -237,6 +243,8 @@ export const g5Questions: Question[] = [
   },
   {
     id: 'g5_14', gradeBand: 'G5', domain: 'fractions',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"done","label":"已修","answer":"3/4"},{"id":"left","label":"剩","answer":"1/4"}],
     cognitiveSkills: ['build_model', 'multi_step_reasoning'],
     text: '修一段路，第一天修了全长的1/2，第二天修了全长的1/4，两天一共修了全长的几分之几？还剩下几分之几没修？',
     numbers: [],
@@ -421,6 +429,8 @@ export const g5Questions: Question[] = [
   },
   {
     id: 'g5_24', gradeBand: 'G5', domain: 'fractions',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"sum","label":"一共","answer":"5/8"},{"id":"left","label":"剩","answer":"3/8"}],
     cognitiveSkills: ['remove_noise', 'choose_operation'],
     text: '中秋节晚上，天上挂着一轮圆圆的明月，全家人围坐在一起。一块月饼，爸爸吃了3/8，妈妈吃了2/8，两人一共吃了几分之几？还剩几分之几？',
     numbers: [],

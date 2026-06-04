@@ -656,6 +656,37 @@ export function validateQuestionIntegrity(q: Question): QuestionValidationResult
     }
   }
 
+  // ========== v2.7: 多答案题校验 ==========
+
+  // 42. 多答案题必须有 subAnswers
+  if (q.answerType === 'multi_answer') {
+    if (!q.subAnswers || q.subAnswers.length === 0) {
+      errors.push('[P0] answerType=multi_answer 但 subAnswers 为空');
+    }
+    if (q.subAnswers) {
+      for (const sub of q.subAnswers) {
+        if (!sub.id) errors.push('[P0] subAnswer 缺少 id');
+        if (!sub.label) errors.push('[P0] subAnswer 缺少 label');
+        if (sub.answer === undefined || sub.answer === null) errors.push(`[P0] subAnswer "${sub.label}" 缺少 answer`);
+      }
+    }
+  }
+
+  // 43. 题目含多个"？"且 answer 是字符串 → 应为 multi_answer
+  const questionMarks = (q.text.match(/？|\?/g) || []).length;
+  if (questionMarks >= 2 && q.answerType !== 'multi_answer' && q.answerType !== 'ranking') {
+    const answerStr = String(q.answer);
+    // 如果答案包含中文分隔符，很可能是多答案
+    if (/，|；|和/.test(answerStr) && !/^\d+$/.test(answerStr)) {
+      warnings.push(`题目含${questionMarks}个问号且答案含分隔符，可能应标注 answerType=multi_answer`);
+    }
+  }
+
+  // 44. multi_answer 题不应进入 find_action_words
+  if (q.answerType === 'multi_answer' && q.stepCompatibility?.includes('find_action_words')) {
+    warnings.push('multi_answer 题不适合 find_action_words 步');
+  }
+
   return {
     valid: errors.length === 0,
     errors,

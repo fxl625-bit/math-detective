@@ -4,6 +4,8 @@ export const g2OlympiadQuestions: Question[] = [
   // ====== 和差问题（具象版，画线段图，不教公式）4题 ======
   {
     id: 'g2o_01', gradeBand: 'G2', domain: 'logic_reasoning',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"ming","label":"小明","answer":7},{"id":"hong","label":"小红","answer":5}],
     cognitiveSkills: ['find_numbers', 'build_model', 'multi_step_reasoning'],
     text: '小明和小红一共有12颗糖果，小明比小红多2颗。小明有几颗？小红有几颗？提示：画两条线段比一比！',
     numbers: [12, 2],
@@ -22,6 +24,8 @@ export const g2OlympiadQuestions: Question[] = [
   },
   {
     id: 'g2o_02', gradeBand: 'G2', domain: 'logic_reasoning',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"brother","label":"哥哥","answer":11},{"id":"younger","label":"弟弟","answer":7}],
     cognitiveSkills: ['find_numbers', 'build_model', 'multi_step_reasoning'],
     text: '哥哥和弟弟的年龄加起来是18岁，哥哥比弟弟大4岁。哥哥几岁？弟弟几岁？',
     numbers: [18, 4],
@@ -58,6 +62,8 @@ export const g2OlympiadQuestions: Question[] = [
   },
   {
     id: 'g2o_04', gradeBand: 'G2', domain: 'logic_reasoning',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"class1","label":"一班","answer":34},{"id":"class2","label":"二班","answer":28}],
     cognitiveSkills: ['find_numbers', 'build_model', 'multi_step_reasoning'],
     text: '一班和二班共有学生62人。一班比二班多6人。两个班各有多少人？',
     numbers: [62, 6],

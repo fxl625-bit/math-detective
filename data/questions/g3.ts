@@ -201,6 +201,8 @@ export const g3Questions: Question[] = [
   },
   {
     id: 'g3_12', gradeBand: 'G3', domain: 'measurement',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"diff","label":"相差","answer":2},{"id":"total","label":"总重","answer":8}],
     cognitiveSkills: ['find_numbers', 'choose_operation'],
     text: '一袋大米重5千克，一袋面粉重3千克，大米比面粉重多少千克？买一袋大米和一袋面粉共重多少千克？',
     numbers: [5, 3],
@@ -219,6 +221,8 @@ export const g3Questions: Question[] = [
   },
   {
     id: 'g3_13', gradeBand: 'G3', domain: 'fractions',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"fraction","label":"几分之几","answer":"1/4"},{"id":"count","label":"个数","answer":3}],
     cognitiveSkills: ['find_numbers', 'understand_question'],
     text: '妈妈把12个草莓平均分给4个人，每人分到草莓的几分之几？每人分到几个草莓？',
     numbers: [12, 4],
@@ -273,6 +277,8 @@ export const g3Questions: Question[] = [
   },
   {
     id: 'g3_16', gradeBand: 'G3', domain: 'money',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"soccer","label":"足球价格","answer":72},{"id":"total","label":"总价","answer":90}],
     cognitiveSkills: ['multi_step_reasoning', 'choose_operation'],
     text: '一个皮球18元，一个足球的价格是皮球的4倍，一个足球多少元？买一个足球和一个皮球共多少元？',
     numbers: [18, 4],

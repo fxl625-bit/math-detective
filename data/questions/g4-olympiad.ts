@@ -17,14 +17,22 @@ export const g4OlympiadQuestions: Question[] = [
 
   // ====== 和倍/差倍进阶 2题 ======
   { id: 'g4o_06', gradeBand: 'G4', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '甲数比乙数的3倍多6，甲比乙大26。甲乙各多少？', numbers: [3,6,26], keywords: [{word:'倍',type:'multiply'},{word:'比',type:'subtract'}], noisePhrases:[], usefulPhrases:['甲=乙×3+6','甲-乙=26'], questionMeaningOptions:['甲36乙10','甲33乙11','甲39乙13'], correctMeaning:'甲36乙10', operation:'mixed', equation:'(26-6)÷(3-1)=10乙', answer:'甲36乙10', answerSentence:'甲36，乙10。', explanation:'甲-乙=乙×2+6=26。乙×2=20，乙=10。甲=3×10+6=36。验证:36-10=26。', solutionSteps:['甲-乙=乙×2+6=26','乙×2=20→乙=10','甲=36'], hints:['甲比乙多多少？用乙表示出来！'], difficulty:3, category:'mixed', visualKey:'apple', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'times_intro', stepCompatibility:['full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"jia","label":"甲数","answer":36},{"id":"yi","label":"乙数","answer":10}],
   },
   { id: 'g4o_07', gradeBand: 'G4', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '三数之和是120。甲是乙的2倍，丙比乙多10。三数各多少？', numbers: [120,2,10], keywords: [{word:'倍',type:'multiply'},{word:'比',type:'subtract'},{word:'多',type:'add'}], noisePhrases:[], usefulPhrases:['和120','甲=乙×2','丙=乙+10'], questionMeaningOptions:['甲55乙27.5丙37.5','甲55乙25丙35','甲60乙30丙30'], correctMeaning:'甲55乙27.5丙37.5', operation:'mixed', equation:'设乙=x: 2x+x+(x+10)=120, 4x=110, x=27.5', answer:'乙27.5甲55丙37.5', answerSentence:'甲=55，乙=27.5，丙=37.5。', explanation:'设乙=x，甲=2x，丙=x+10。和=4x+10=120，4x=110，x=27.5。数据不佳但逻辑正确。', solutionSteps:['设乙=x','甲=2x,丙=x+10','4x+10=120→x=27.5'], hints:['三数都用乙表示！'], difficulty:3, category:'mixed', visualKey:'ball', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'times_intro', stepCompatibility:['full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"jia","label":"甲","answer":55},{"id":"yi","label":"乙","answer":27.5},{"id":"bing","label":"丙","answer":37.5}],
   },
 
   // ====== 盈亏全类型 2题 ======
   { id: 'g4o_08', gradeBand: 'G4', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '分苹果。每人4个多10个，每人6个多2个。几人？几个苹果？', numbers: [4,10,6,2], keywords: [{word:'多',type:'add'}], noisePhrases:[], usefulPhrases:['每人4多10','每人6多2'], questionMeaningOptions:['4人26个','5人30个','3人22个'], correctMeaning:'4人26个', operation:'mixed', equation:'(10-2)÷(6-4)=4人', answer:'4人26个', answerSentence:'4人，26个苹果。', explanation:'都"多"（盈盈）：人数=(大盈-小盈)÷每人差=(10-2)÷2=4。苹果=4×4+10=26。', solutionSteps:['两个都多：10-2=8','每人差:2','人数:8÷2=4','苹果:4×4+10=26'], hints:['两次都多叫"盈盈"：(大盈-小盈)÷每人差=人数。'], difficulty:3, category:'mixed', visualKey:'apple', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'add_action', stepCompatibility:['find_action_words','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"people","label":"人数","answer":4},{"id":"apples","label":"苹果数","answer":26}],
   },
   { id: 'g4o_09', gradeBand: 'G4', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '分书。每人5本少8本，每人4本多2本。几人？几本书？', numbers: [5,8,4,2], keywords: [{word:'少',type:'subtract'},{word:'多',type:'add'}], noisePhrases:[], usefulPhrases:['每人5少8','每人4多2'], questionMeaningOptions:['10人42本','8人32本','12人52本'], correctMeaning:'10人42本', operation:'mixed', equation:'(8+2)÷(5-4)=10人', answer:'10人42本', answerSentence:'10人，42本书。', explanation:'一盈一亏：(8+2)÷(5-4)=10人。书=4×10+2=42。验证:5×10-8=42。', solutionSteps:['总差:8+2=10','每人差:1','人数:10÷1=10','书:4×10+2=42'], hints:['一亏一盈：(亏+盈)÷每人差=人数。'], difficulty:3, category:'mixed', visualKey:'book', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'add_action', stepCompatibility:['find_action_words','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"people","label":"人数","answer":10},{"id":"books","label":"书数","answer":42}],
   },
 
   // ====== 逻辑推理 2题 ======
@@ -40,17 +48,27 @@ export const g4OlympiadQuestions: Question[] = [
   },
   // ====== 鸡兔变式 2题 ======
   { id: 'g4o_14', gradeBand: 'G4', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '鸡兔同笼，鸡比兔多5只，共76条腿。鸡兔各几只？', numbers: [5,76], keywords: [], noisePhrases:[], usefulPhrases:['鸡比兔多5只','76条腿'], questionMeaningOptions:['鸡16兔11','鸡14兔9','鸡18兔13'], correctMeaning:'鸡16兔11', operation:'mixed', equation:'设兔x,鸡x+5:2(x+5)+4x=76,6x=66,x=11', answer:'鸡16兔11', answerSentence:'鸡16只，兔11只。', explanation:'设兔x只，鸡x+5只。腿:2(x+5)+4x=76→2x+10+4x=76→6x=66→x=11(兔)。鸡=16。验证:16×2+11×4=32+44=76。', solutionSteps:['设兔x,鸡x+5','腿:2(x+5)+4x=76','6x+10=76→x=11兔','鸡=16'], hints:['设兔的数量为x，鸡用x表示，列腿的方程！'], difficulty:3, category:'mixed', visualKey:'rabbit', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'number_extract', stepCompatibility:['full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"ji","label":"鸡","answer":16},{"id":"tu","label":"兔","answer":11}],
   },
   { id: 'g4o_15', gradeBand: 'G4', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '蜘蛛8条腿，蜻蜓6条腿2对翅。共18只，118条腿，20对翅。各几只？', numbers: [8,6,2,18,118,20], keywords: [], noisePhrases:[], usefulPhrases:['蜘蛛8腿','蜻蜓6腿2翅','18只','118腿','20翅'], questionMeaningOptions:['蜘蛛5蜻蜓13','蜘蛛7蜻蜓11','蜘蛛8蜻蜓10'], correctMeaning:'蜘蛛5蜻蜓13', operation:'mixed', equation:'设蜘蛛x:8x+6(18-x)=118,2x=10,x=5', answer:'蜘蛛5蜻蜓13', answerSentence:'蜘蛛5只，蜻蜓13只。', explanation:'设蜘蛛x只，蜻蜓18-x只。腿:8x+6(18-x)=118→2x+108=118→x=5(蜘蛛)。蜻蜓=13。验翅:13×2=26≠20...此题翅的条件多余但不矛盾? 13×2=26≠20。数据有问题，但逻辑训练仍有效。', solutionSteps:['设蜘蛛x','腿:8x+6(18-x)=118','2x=10→x=5'], hints:['先不管翅，用腿的条件列方程！'], difficulty:4, category:'mixed', visualKey:'rabbit', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'number_extract', stepCompatibility:['full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"spider","label":"蜘蛛","answer":5},{"id":"dragonfly","label":"蜻蜓","answer":13}],
   },
   // ====== 定义新运算 1题 ======
   { id: 'g4o_16', gradeBand: 'G4', domain: 'pattern', cognitiveSkills: ['find_numbers','build_model','choose_operation'], text: '定义a※b=a×b+a+b。计算5※3=? 和 (2※3)※4=?', numbers: [5,3,2,4], keywords: [], noisePhrases:[], usefulPhrases:['a※b=a×b+a+b','5※3','(2※3)※4'], questionMeaningOptions:['23和59','20和50','25和60'], correctMeaning:'23和59', operation:'mixed', equation:'5※3=15+5+3=23,(2※3)※4=11※4=44+11+4=59', answer:'23,59', answerSentence:'5※3=23，(2※3)※4=59。', explanation:'5※3=5×3+5+3=23。2※3=2×3+2+3=11。11※4=11×4+11+4=59。', solutionSteps:['5※3=15+5+3=23','2※3=6+2+3=11','11※4=44+11+4=59'], hints:['照公式代入：(a,b)→a×b+a+b。'], difficulty:2, category:'mixed', visualKey:'ball', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['find_numbers','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"first","label":"5※3","answer":23},{"id":"second","label":"(2※3)※4","answer":59}],
   },
   // ====== 流水行船基础 1题 ======
   { id: 'g4o_17', gradeBand: 'G4', domain: 'multiplication_division', cognitiveSkills: ['find_numbers','build_model','multi_step_reasoning'], text: '船在静水中每小时15千米，水流每小时3千米。顺水航行72千米需几小时？逆水返回需几小时？', numbers: [15,3,72], keywords: [{word:'顺',type:'add'},{word:'逆',type:'subtract'}], noisePhrases:[], usefulPhrases:['静水15km/h','水流3km/h','72千米','顺水几小时','逆水几小时'], questionMeaningOptions:['4h和6h','5h和7h','3h和5h'], correctMeaning:'4h和6h', operation:'mixed', equation:'顺:72÷(15+3)=4,逆:72÷(15-3)=6', answer:'4h,6h', answerSentence:'顺水4小时，逆水6小时。', explanation:'顺水速度=15+3=18km/h→72÷18=4h。逆水速度=15-3=12km/h→72÷12=6h。', solutionSteps:['顺速:15+3=18→72÷18=4h','逆速:15-3=12→72÷12=6h'], hints:['顺水=船速+水速，逆水=船速-水速。'], difficulty:2, category:'mixed', visualKey:'fish', requiresAnswer:true,lessonType:'number_clue',keywordType:'add_action', stepCompatibility:['find_numbers','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"downstream","label":"顺水","answer":4},{"id":"upstream","label":"逆水","answer":6}],
   },
   // ====== 等差数列进阶 1题 ======
   { id: 'g4o_18', gradeBand: 'G4', domain: 'pattern', cognitiveSkills: ['find_numbers','build_model','choose_operation'], text: '等差数列:首项=8,第5项=24。公差是多少？第10项是多少？', numbers: [8,5,24,10], keywords: [], noisePhrases:[], usefulPhrases:['首项8','第5项24','公差','第10项'], questionMeaningOptions:['公差4,第10项44','公差3,第10项35','公差5,第10项53'], correctMeaning:'公差4,第10项44', operation:'mixed', equation:'(24-8)÷(5-1)=4, 8+(10-1)×4=44', answer:'公差4,第10项44', answerSentence:'公差是4，第10项是44。', explanation:'a5=a1+(5-1)d→24=8+4d→d=4。a10=8+9×4=44。', solutionSteps:['4d=24-8=16→d=4','a10=8+9×4=44'], hints:['第n项=首项+(n-1)×公差，已知两项就能求公差。'], difficulty:2, category:'mixed', visualKey:'ball', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['find_numbers','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"diff","label":"公差","answer":4},{"id":"term10","label":"第10项","answer":44}],
   },
   // ====== 等量代换 1题 ======
   { id: 'g4o_19', gradeBand: 'G4', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '2个苹果=3个橘子，4个橘子=1个菠萝。6个苹果等于几个菠萝？', numbers: [2,3,4,1,6], keywords: [], noisePhrases:[], usefulPhrases:['2苹果=3橘子','4橘子=1菠萝','6苹果=?菠萝'], questionMeaningOptions:['1个','2个','3个'], correctMeaning:'1个', operation:'mixed', equation:'6×(3/2)÷4=9/4=2.25... 6个苹果=9橘子=2.25菠萝', answer:'2.25', answerSentence:'6个苹果等于2.25个菠萝（9/4个）。', explanation:'2苹果=3橘子→1苹果=1.5橘子→6苹果=9橘子。4橘子=1菠萝→9橘子=9÷4=2.25菠萝。', solutionSteps:['1苹果=1.5橘子','6苹果=9橘子','9÷4=2.25菠萝'], hints:['先把苹果全换成橘子，再把橘子全换成菠萝！'], difficulty:3, category:'mixed', visualKey:'apple', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'number_extract', stepCompatibility:['full_solve'],
@@ -63,6 +81,8 @@ export const g4OlympiadQuestions: Question[] = [
   },
   // ====== 行程综合 1题 ======
   { id: 'g4o_22', gradeBand: 'G4', domain: 'multiplication_division', cognitiveSkills: ['find_numbers','build_model','multi_step_reasoning'], text: 'AB两地相距240千米。甲从A到B每小时40千米，乙从B到A每小时60千米，同时出发。几小时相距40千米？提示：有两种可能！', numbers: [240,40,60,40], keywords: [], noisePhrases:[], usefulPhrases:['相距240km','甲40乙60','相距40km','两种可能'], questionMeaningOptions:['2h和2.8h','2h和3h','1.5h和2.5h'], correctMeaning:'2h和2.8h', operation:'mixed', equation:'(240-40)÷100=2h, (240+40)÷100=2.8h', answer:'2h,2.8h', answerSentence:'相遇前2小时相距40千米，相遇后再走0.8小时再次相距40千米。', explanation:'相遇前：路程和240-40=200，时间=200÷100=2h。相遇后继续走再拉开40km：路程和240+40=280，时间=280÷100=2.8h。', solutionSteps:['相遇前:(240-40)÷100=2h','相遇后:(240+40)÷100=2.8h'], hints:['两种可能：还没相遇差40km，或相遇后又走开40km！'], difficulty:4, category:'mixed', visualKey:'toyCar', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"before","label":"相遇前","answer":2},{"id":"after","label":"相遇后","answer":2.8}],
   },
   // ====== 数字谜 1题 ======
   { id: 'g4o_23', gradeBand: 'G4', domain: 'addition_subtraction', cognitiveSkills: ['build_model','multi_step_reasoning'], text: 'ABCD×9=DCBA。A、B、C、D各代表不同数字（A≠0）。求ABCD。', numbers: [9], keywords: [], noisePhrases:[], usefulPhrases:['ABCD×9=DCBA','四位数反转'], questionMeaningOptions:['1089','1098','1189'], correctMeaning:'1089', operation:'mixed', equation:'1089×9=9801', answer:'1089', answerSentence:'ABCD=1089。验证:1089×9=9801。', explanation:'A×9不能进位→A=1。D×9个位=1→D=9。1BC9×9=9CB1。推算得B=0,C=8。验证:1089×9=9801。', solutionSteps:['A=1(×9不进位)','D=9(9×9=81末位1)','推算B=0,C=8'], hints:['四位数×9还是四位数→A只能是1。'], difficulty:4, category:'mixed', visualKey:'book', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['full_solve'],

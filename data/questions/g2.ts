@@ -165,6 +165,8 @@ export const g2Questions: Question[] = [
   },
   {
     id: 'g2_10', gradeBand: 'G2', domain: 'addition_subtraction',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"lower","label":"下层","answer":19},{"id":"total","label":"总数","answer":47}],
     cognitiveSkills: ['find_numbers', 'find_keywords', 'choose_operation'],
     text: '书架的上层有28本图书，下层比上层少9本，下层有多少本图书？两层一共有多少本？',
     numbers: [28, 9],

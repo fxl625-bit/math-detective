@@ -155,6 +155,8 @@ export const g5OlympiadQuestions: Question[] = [
   // 流水行船 (1)
   {
     id: 'g5o_09', gradeBand: 'G5', domain: 'multiplication_division',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"boatspeed","label":"船速","answer":18},{"id":"waterspeed","label":"水速","answer":2}],
     cognitiveSkills: ['find_numbers', 'build_model', 'multi_step_reasoning'],
     text: '一条船顺水4小时行80千米，逆水5小时行80千米。船速和水速各多少？',
     numbers: [4, 80, 5],
@@ -206,6 +208,8 @@ export const g5OlympiadQuestions: Question[] = [
   },
   // ====== 经济进阶 2题 ======
   { id: 'g5o_16', gradeBand: 'G5', domain: 'ratio', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '一件衣服进价150元，按40%利润定价，打8折后仍赚多少？利润率多少？', numbers: [150,40,8], keywords: [], noisePhrases:[], usefulPhrases:['进价150','40%利润','8折'], questionMeaningOptions:['赚18元,12%','赚20元,13%','赚15元,10%'], correctMeaning:'赚18元,12%', operation:'mixed', equation:'定价210,售价168,利润18,利润率18/150=12%', answer:'18元,12%', answerSentence:'赚18元，利润率12%。', explanation:'定价=150×1.4=210元。售价=210×0.8=168元。利润=168-150=18元。利润率=18/150=12%。', solutionSteps:['定价:150×1.4=210','售价:210×0.8=168','利润:168-150=18','率:18/150=12%'], hints:['利润=售价-进价。利润率=利润/进价。'], difficulty:3, category:'mixed', visualKey:'sticker', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['find_numbers','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"profit","label":"赚","answer":18},{"id":"rate","label":"利润率","answer":12}],
   },
   { id: 'g5o_17', gradeBand: 'G5', domain: 'ratio', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '商品按定价打85折仍赚15%。定价是进价的百分之几？', numbers: [85,15], keywords: [], noisePhrases:[], usefulPhrases:['85折','赚15%'], questionMeaningOptions:['约135%','130%','140%'], correctMeaning:'约135%', operation:'mixed', equation:'定价×0.85=进价×1.15,定价/进价=1.15/0.85≈1.353', answer:'135.3%', answerSentence:'定价约是进价的135.3%。', explanation:'售价=进价×(1+15%)=1.15进价。售价又=定价×0.85。所以定价=1.15进价/0.85≈1.353进价→135.3%。', solutionSteps:['售价=进价×1.15','售价=定价×0.85','定价/进价=1.15/0.85≈1.353'], hints:['设进价为1，逆推定价。'], difficulty:4, category:'mixed', visualKey:'sticker', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['full_solve'],
   },
@@ -218,9 +222,13 @@ export const g5OlympiadQuestions: Question[] = [
   { id: 'g5o_20', gradeBand: 'G5', domain: 'ratio', cognitiveSkills: ['find_numbers','build_model','choose_operation'], text: '甲:乙=2:3，乙:丙=4:5。甲:丙=?', numbers: [], keywords: [], noisePhrases:[], usefulPhrases:['甲:乙=2:3','乙:丙=4:5','甲:丙'], questionMeaningOptions:['8:15','2:5','5:8'], correctMeaning:'8:15', operation:'mixed', equation:'甲:乙=2:3=8:12,乙:丙=4:5=12:15→甲:丙=8:15', answer:'8:15', answerSentence:'甲:丙=8:15。', explanation:'统一乙:甲:乙=2:3=8:12,乙:丙=4:5=12:15。则甲:丙=8:15。', solutionSteps:['统一乙为12','甲:乙=8:12','乙:丙=12:15','甲:丙=8:15'], hints:['用乙做桥梁！统一乙的份数。'], difficulty:2, category:'mixed', visualKey:'ball', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'number_extract', stepCompatibility:['full_solve'],
   },
   { id: 'g5o_21', gradeBand: 'G5', domain: 'ratio', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '三角形三角度数比2:3:4。最大角多少度？是什么三角形？', numbers: [2,3,4], keywords: [{word:'比',type:'multiply'},{word:'最大',type:'multiply'}], noisePhrases:[], usefulPhrases:['三角比2:3:4','最大角?度','内角和180度'], questionMeaningOptions:['80度,锐角','90度,直角','100度,钝角'], correctMeaning:'80度,锐角', operation:'mixed', equation:'180÷(2+3+4)×4=180÷9×4=80', answer:'80°,锐角', answerSentence:'最大角80度，是锐角三角形。', explanation:'三角形内角和180°。2:3:4表示三个角分2份、3份、4份，一共9份。每份180÷9=20°。最大角4份=80°。', solutionSteps:['三角形内角和=180°','总份:2+3+4=9','每份:180÷9=20°','最大角:20×4=80°'], hints:['三角内角和180°，先算总份数！'], difficulty:2, category:'mixed', visualKey:'book', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'number_extract', stepCompatibility:['full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"angle","label":"最大角","answer":80},{"id":"type","label":"三角形类型","answer":"锐角"}],
   },
   // ====== 流水行船进阶 1题 ======
   { id: 'g5o_22', gradeBand: 'G5', domain: 'multiplication_division', cognitiveSkills: ['find_numbers','build_model','multi_step_reasoning'], text: '船顺水5小时行100千米，逆水8小时行96千米。船速和水速各多少？', numbers: [5,100,8,96], keywords: [], noisePhrases:[], usefulPhrases:['顺5h行100km','逆8h行96km'], questionMeaningOptions:['船16水4','船14水6','船18水2'], correctMeaning:'船16水4', operation:'mixed', equation:'顺速=20,逆速=12,船=16,水=4', answer:'船16水4', answerSentence:'船速16km/h，水速4km/h。', explanation:'顺速=100÷5=20(船+水)。逆速=96÷8=12(船-水)。船=(20+12)/2=16。水=(20-12)/2=4。', solutionSteps:['顺:100/5=20','逆:96/8=12','船=(20+12)/2=16','水=(20-12)/2=4'], hints:['顺=船+水，逆=船-水。解和差！'], difficulty:3, category:'mixed', visualKey:'fish', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['find_numbers','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"boatspeed","label":"船速","answer":16},{"id":"waterspeed","label":"水速","answer":4}],
   },
   // ====== 数论初步 2题 ======
   { id: 'g5o_23', gradeBand: 'G5', domain: 'logic_reasoning', cognitiveSkills: ['build_model','choose_operation'], text: '一个两位数，十位数字是个位的3倍。交换数字后所得新数比原数少36。求原数。', numbers: [3,36], keywords: [], noisePhrases:[], usefulPhrases:['十位=个位×3','交换少36'], questionMeaningOptions:['62','93','31'], correctMeaning:'62', operation:'mixed', equation:'十位3x个位x: (30x+x)-(10x+3x)=36,18x=36,x=2,原数62', answer:62, answerSentence:'原数是62。', explanation:'设个位x→十位3x→原数=31x。新数=13x。差=18x=36→x=2。原数=62。验证:62-26=36。', solutionSteps:['原数=30x+x=31x','新数=10x+3x=13x','31x-13x=18x=36→x=2','原数=62'], hints:['设个位为x，用x表示原数和新数！'], difficulty:3, category:'mixed', visualKey:'book', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'number_extract', stepCompatibility:['full_solve'],
@@ -229,11 +237,17 @@ export const g5OlympiadQuestions: Question[] = [
   },
   // ====== 立体几何 2题 ======
   { id: 'g5o_25', gradeBand: 'G5', domain: 'geometry', cognitiveSkills: ['find_numbers','build_model','choose_operation'], text: '长方体长8宽6高4。表面积是多少？体积是多少？切成棱长2的小正方体能切几个？', numbers: [8,6,4,2], keywords: [], noisePhrases:[], usefulPhrases:['长方体8×6×4','表面积','体积','切棱长2正方体'], questionMeaningOptions:['S=208,V=192,24个','S=200,V=180,20个','S=210,V=192,24个'], correctMeaning:'S=208,V=192,24个', operation:'mixed', equation:'S=2(8×6+8×4+6×4)=208,V=8×6×4=192,192/(2³)=24', answer:'208,192,24', answerSentence:'表面积208，体积192，可切24个小正方体。', explanation:'表面积=2(48+32+24)=2×104=208。体积=8×6×4=192。小正方体体积=8。192/8=24个。', solutionSteps:['S=2(48+32+24)=208','V=8×6×4=192','192/8=24个'], hints:['表面积=2(ab+ac+bc)。个数=总体积/小体积。'], difficulty:2, category:'mixed', visualKey:'book', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['find_numbers','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"sa","label":"表面积","answer":208},{"id":"vol","label":"体积","answer":192},{"id":"count","label":"个数","answer":24}],
   },
   { id: 'g5o_26', gradeBand: 'G5', domain: 'geometry', cognitiveSkills: ['find_numbers','build_model','choose_operation'], text: '正方体棱长5厘米。表面涂红后切成棱长1厘米小正方体。三面红、两面红、一面红、零面红的各几个？', numbers: [5,1], keywords: [], noisePhrases:[], usefulPhrases:['棱长5cm','切1cm小正方体','几面红'], questionMeaningOptions:['8,36,54,27','8,36,54,25','4,30,50,30'], correctMeaning:'8,36,54,27', operation:'mixed', equation:'角8,棱(5-2)×4×3=36,面(5-2)²×6=54,心(5-2)³=27', answer:'8,36,54,27', answerSentence:'三面红8个，两面红36个，一面红54个，零面红27个。', explanation:'总计5³=125个。三面=8角。两面=12条棱×(5-2)=36。一面=6个面×(5-2)²=54。零面=(5-2)³=27。验:8+36+54+27=125。', solutionSteps:['总数:5³=125','三面(角):8','两面(棱):12×3=36','一面(面):6×9=54','零面(心):3³=27'], hints:['角上的三面红！棱上的两面红！面中心的一面红！'], difficulty:3, category:'mixed', visualKey:'book', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"three","label":"三面红","answer":8},{"id":"two","label":"两面红","answer":36},{"id":"one","label":"一面红","answer":54},{"id":"zero","label":"零面红","answer":27}],
   },
   // ====== 行程综合 2题 ======
   { id: 'g5o_27', gradeBand: 'G5', domain: 'multiplication_division', cognitiveSkills: ['find_numbers','build_model','multi_step_reasoning'], text: '环形跑道长400米。甲每秒5米乙每秒3米，同向出发。甲第一次追上乙需几秒？此时甲跑了几圈？', numbers: [400,5,3], keywords: [{word:'追',type:'subtract'}], noisePhrases:[], usefulPhrases:['环形400m','甲5m/s乙3m/s','同向追及'], questionMeaningOptions:['200秒,2.5圈','150秒,2圈','250秒,3圈'], correctMeaning:'200秒,2.5圈', operation:'mixed', equation:'400÷(5-3)=200秒,5×200÷400=2.5圈', answer:'200秒,2.5圈', answerSentence:'200秒追上，甲跑了2.5圈。', explanation:'甲每秒比乙快2米。追上需多跑一圈:400÷2=200秒。甲跑了5×200=1000米=2.5圈。', solutionSteps:['速度差:5-3=2m/s','时间:400÷2=200秒','甲距离:5×200=1000m=2.5圈'], hints:['追上=多跑一圈！环形跑道追及时间=周长÷速度差。'], difficulty:3, category:'mixed', visualKey:'child', requiresAnswer:true,lessonType:'number_clue',keywordType:'subtract_action', stepCompatibility:['find_numbers','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"time","label":"时间","answer":200},{"id":"laps","label":"圈数","answer":2.5}],
   },
   { id: 'g5o_28', gradeBand: 'G5', domain: 'multiplication_division', cognitiveSkills: ['find_numbers','build_model','multi_step_reasoning'], text: '火车长200米，速度20米/秒。通过长800米大桥需几秒？', numbers: [200,20,800], keywords: [], noisePhrases:[], usefulPhrases:['火车200m','20m/s','桥800m'], questionMeaningOptions:['50秒','40秒','60秒'], correctMeaning:'50秒', operation:'mixed', equation:'(200+800)÷20=50', answer:50, answerSentence:'需50秒。', explanation:'火车过桥路程=车长+桥长=1000米。时间=1000÷20=50秒。', solutionSteps:['总路程:200+800=1000m','时间:1000÷20=50秒'], hints:['车过桥=车头上桥到车尾离桥。路程=车长+桥长！'], difficulty:2, category:'mixed', visualKey:'toyCar', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['find_numbers','full_solve'],
   },

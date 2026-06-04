@@ -3,12 +3,20 @@ import { Question } from '@/lib/types';
 export const g3OlympiadQuestions: Question[] = [
   // ====== 和倍/差倍 4题 ======
   { id: 'g3o_01', gradeBand: 'G3', domain: 'logic_reasoning', cognitiveSkills: ['find_numbers','build_model','multi_step_reasoning'], text: '甲数是乙数的3倍，两数和是48。甲、乙各是多少？', numbers: [3,48], keywords: [{word:'倍',type:'multiply'},{word:'和',type:'add'}], noisePhrases:[], usefulPhrases:['甲是乙的3倍','和是48'], questionMeaningOptions:['甲36乙12','甲30乙18','甲40乙8'], correctMeaning:'甲36乙12', operation:'mixed', equation:'48÷(3+1)=12, 12×3=36', answer:'甲36乙12', answerSentence:'甲数是36，乙数是12。', explanation:'乙1份，甲3份，共4份=48，每份12。乙=12，甲=36。', solutionSteps:['乙1份+甲3份=4份','48÷4=12(乙)','12×3=36(甲)'], hints:['乙是1份的话，甲是几份？一共几份？'], difficulty:2, category:'mixed', visualKey:'apple', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'times_intro', stepCompatibility:['find_action_words','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"jia","label":"甲数","answer":36},{"id":"yi","label":"乙数","answer":12}],
   },
   { id: 'g3o_02', gradeBand: 'G3', domain: 'logic_reasoning', cognitiveSkills: ['find_numbers','build_model','multi_step_reasoning'], text: '果园里桃树和梨树共120棵，桃树是梨树的4倍。两种树各有多少棵？', numbers: [120,4], keywords: [{word:'倍',type:'multiply'},{word:'共',type:'add'}], noisePhrases:[], usefulPhrases:['共120棵','桃树是梨树4倍'], questionMeaningOptions:['桃96梨24','桃80梨40','桃100梨20'], correctMeaning:'桃96梨24', operation:'mixed', equation:'120÷5=24, 24×4=96', answer:'桃96梨24', answerSentence:'桃树96棵，梨树24棵。', explanation:'梨1份，桃4份，共5份=120。每份=24(梨)，桃=24×4=96。', solutionSteps:['1+4=5份','120÷5=24(梨)','24×4=96(桃)'], hints:['少的看作1份，多的看作几份？一共几份？'], difficulty:2, category:'mixed', visualKey:'flower', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'times_intro', stepCompatibility:['find_action_words','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"tao","label":"桃树","answer":96},{"id":"li","label":"梨树","answer":24}],
   },
   { id: 'g3o_03', gradeBand: 'G3', domain: 'logic_reasoning', cognitiveSkills: ['find_numbers','build_model','multi_step_reasoning'], text: '甲数是乙数的4倍，甲比乙多27。甲、乙各是多少？', numbers: [4,27], keywords: [{word:'倍',type:'multiply'},{word:'比',type:'subtract'},{word:'多',type:'subtract'}], noisePhrases:[], usefulPhrases:['甲是乙的4倍','甲比乙多27'], questionMeaningOptions:['甲36乙9','甲32乙8','甲40乙10'], correctMeaning:'甲36乙9', operation:'mixed', equation:'27÷(4-1)=9, 9×4=36', answer:'甲36乙9', answerSentence:'甲36，乙9。', explanation:'甲4份，乙1份，差3份=27，1份=9(乙)。甲=36。验证:36-9=27,36÷9=4。', solutionSteps:['甲4份-乙1份=3份','27÷3=9(乙)','9×4=36(甲)'], hints:['差对应的份数是几份？'], difficulty:2, category:'mixed', visualKey:'apple', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'times_intro', stepCompatibility:['find_action_words','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"jia","label":"甲数","answer":36},{"id":"yi","label":"乙数","answer":9}],
   },
   { id: 'g3o_04', gradeBand: 'G3', domain: 'logic_reasoning', cognitiveSkills: ['find_numbers','build_model','multi_step_reasoning'], text: '爸爸的年龄是小明的5倍，爸爸比小明大28岁。小明和爸爸各多少岁？', numbers: [5,28], keywords: [{word:'倍',type:'multiply'},{word:'比',type:'subtract'},{word:'大',type:'subtract'}], noisePhrases:[], usefulPhrases:['爸爸是小明的5倍','爸爸比小明大28岁'], questionMeaningOptions:['小明7岁爸爸35岁','小明6岁爸爸30岁','小明8岁爸爸40岁'], correctMeaning:'小明7岁爸爸35岁', operation:'mixed', equation:'28÷(5-1)=7, 7×5=35', answer:'小明7爸爸35', answerSentence:'小明7岁，爸爸35岁。', explanation:'差=4份=28，1份=28÷4=7(小明)，爸爸=7×5=35。', solutionSteps:['5-1=4份','28÷4=7(小明)','7×5=35(爸爸)'], hints:['多的28岁对应几份？'], difficulty:2, category:'mixed', visualKey:'adult', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'times_intro', stepCompatibility:['find_action_words','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"son","label":"小明","answer":7},{"id":"dad","label":"爸爸","answer":35}],
   },
 
   // ====== 植树全类型 3题 ======
@@ -27,16 +35,26 @@ export const g3OlympiadQuestions: Question[] = [
 
   // ====== 鸡兔同笼 3题 ======
   { id: 'g3o_10', gradeBand: 'G3', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '鸡和兔共10只，28条腿。鸡兔各几只？', numbers: [10,28], keywords: [], noisePhrases:[], usefulPhrases:['共10只','28条腿'], questionMeaningOptions:['鸡6兔4','鸡4兔6','鸡5兔5'], correctMeaning:'鸡6兔4', operation:'mixed', equation:'(28-2×10)÷(4-2)=4兔', answer:'鸡6兔4', answerSentence:'鸡6只，兔4只。', explanation:'假设全鸡：2×10=20腿。差28-20=8。兔=8÷(4-2)=4。鸡=10-4=6。验证:6×2+4×4=12+16=28。', solutionSteps:['假设全鸡：20腿','差8腿','兔=8÷2=4','鸡=6'], hints:['假设全是鸡，腿少了多少？每换一只兔多2条腿。'], difficulty:3, category:'mixed', visualKey:'rabbit', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'number_extract', stepCompatibility:['full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"ji","label":"鸡","answer":6},{"id":"tu","label":"兔","answer":4}],
   },
   { id: 'g3o_11', gradeBand: 'G3', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '三轮车和汽车共15辆，50个轮子。各几辆？', numbers: [15,50], keywords: [], noisePhrases:[], usefulPhrases:['15辆','50轮子'], questionMeaningOptions:['三轮10汽车5','三轮5汽车10','三轮8汽车7'], correctMeaning:'三轮10汽车5', operation:'mixed', equation:'(50-3×15)÷(4-3)=5汽车', answer:'三轮10汽车5', answerSentence:'三轮车10辆，汽车5辆。', explanation:'假设全三轮：3×15=45轮。差5轮。汽车多1轮→汽车=5÷1=5辆。三轮=10。验证:10×3+5×4=50。', solutionSteps:['全三轮：45轮','差5轮','汽车=5÷1=5','三轮=10'], hints:['假设全是三轮车！'], difficulty:3, category:'mixed', visualKey:'toyCar', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'number_extract', stepCompatibility:['full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"tricycle","label":"三轮车","answer":10},{"id":"car","label":"汽车","answer":5}],
   },
   { id: 'g3o_12', gradeBand: 'G3', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '5元和2元纸币共18张，共66元。各几张？', numbers: [18,66], keywords: [], noisePhrases:[], usefulPhrases:['18张','66元'], questionMeaningOptions:['5元10张2元8张','5元12张2元6张','5元8张2元10张'], correctMeaning:'5元10张2元8张', operation:'mixed', equation:'(66-2×18)÷(5-2)=10', answer:'5元10张2元8张', answerSentence:'5元10张，2元8张。', explanation:'假设全2元：2×18=36元。差30元。5元=30÷3=10张。2元=8张。验证:10×5+8×2=66。', solutionSteps:['全2元：36元','差30元','5元=30÷3=10','2元=8'], hints:['先从面值小的开始假！'], difficulty:3, category:'mixed', visualKey:'sticker', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'number_extract', stepCompatibility:['full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"five","label":"5元","answer":10},{"id":"two","label":"2元","answer":8}],
   },
 
   // ====== 盈亏问题 2题 ======
   { id: 'g3o_13', gradeBand: 'G3', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '老师分糖。每人3颗多4颗，每人5颗少6颗。多少人？多少糖？', numbers: [3,4,5,6], keywords: [{word:'多',type:'add'},{word:'少',type:'subtract'}], noisePhrases:[], usefulPhrases:['每人3颗多4','每人5颗少6'], questionMeaningOptions:['5人19颗','4人16颗','6人22颗'], correctMeaning:'5人19颗', operation:'mixed', equation:'(4+6)÷(5-3)=5人', answer:'5人19颗', answerSentence:'5个小朋友，19颗糖。', explanation:'人数=(盈+亏)÷每人差=(4+6)÷2=5人。糖=3×5+4=19。验证:5×5-6=19。', solutionSteps:['总差:4+6=10','每人差:5-3=2','人数:10÷2=5','糖:3×5+4=19'], hints:['(盈+亏)÷(两次每人差)=人数。'], difficulty:3, category:'mixed', visualKey:'candy', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'add_action', stepCompatibility:['find_action_words','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"people","label":"人数","answer":5},{"id":"candy","label":"糖数","answer":19}],
   },
   { id: 'g3o_14', gradeBand: 'G3', domain: 'logic_reasoning', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '分铅笔。每人5支多6支，每人7支少4支。几人？几支？', numbers: [5,6,7,4], keywords: [{word:'多',type:'add'},{word:'少',type:'subtract'}], noisePhrases:[], usefulPhrases:['每人5支多6','每人7支少4'], questionMeaningOptions:['5人31支','4人26支','6人36支'], correctMeaning:'5人31支', operation:'mixed', equation:'(6+4)÷(7-5)=5人', answer:'5人31支', answerSentence:'5人，31支铅笔。', explanation:'人数=(6+4)÷(7-5)=5人。笔=5×5+6=31。验证:7×5-4=31。', solutionSteps:['总差:6+4=10','每人差:2','人数:10÷2=5','笔:5×5+6=31'], hints:['同样的盈亏公式！'], difficulty:3, category:'mixed', visualKey:'pencil', requiresAnswer:true,lessonType:'logic_reasoning',keywordType:'add_action', stepCompatibility:['find_action_words','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"people","label":"人数","answer":5},{"id":"pencils","label":"铅笔数","answer":31}],
   },
 
   // ====== 容斥原理 2题 ======
@@ -69,5 +87,7 @@ export const g3OlympiadQuestions: Question[] = [
   },
   // ====== 周期进阶 1题 ======
   { id: 'g3o_25', gradeBand: 'G3', domain: 'pattern', cognitiveSkills: ['find_numbers','build_model','choose_operation'], text: '一周有7天。2026年6月1日周一。这年的6月28日是周几？6月有几个周一？', numbers: [28,7,1], keywords: [], noisePhrases:[], usefulPhrases:['6月1日周一','28日周几','几个周一'], questionMeaningOptions:['周日,4个','周日,5个','周一,4个'], correctMeaning:'周日,4个', operation:'mixed', equation:'(28-1)÷7=3余6, 周一+6=周日', answer:'周日,4个', answerSentence:'6月28日是周日，6月有4个周一。', explanation:'1到28日过27天，27÷7=3周余6天。周一+6=周日。6月30天，1号周一→8,15,22,29号是周一，共4个。', solutionSteps:['过27天:27÷7=3余6','周一+6=周日','周一:1,8,15,22,29→4个'], hints:['从周一开始数，每7天一循环。'], difficulty:2, category:'mixed', visualKey:'book', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['find_numbers','full_solve'],
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"weekday","label":"周几","answer":"周日"},{"id":"count","label":"周一数","answer":4}],
   },
 ];

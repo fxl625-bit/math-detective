@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Edit, Trash2, Check, X, Plus, ShieldCheck, ShieldOff, RefreshCw, AlertTriangle, Info, Zap, RotateCw, Trash } from 'lucide-react';
 import { useGameState } from '@/hooks/useGameState';
@@ -898,6 +899,12 @@ function VersionAndCacheSection() {
       >
         <RotateCw size={14} /> 重建今日任务
       </AppButton>
+
+      <Link href="/parent/test">
+        <AppButton variant="ghost" size="sm" fullWidth>
+          🧪 题型测试模式
+        </AppButton>
+      </Link>
     </div>
   );
 }

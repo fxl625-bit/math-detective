@@ -165,6 +165,8 @@ export const g6Questions: Question[] = [
   },
   {
     id: 'g6_10', gradeBand: 'G6', domain: 'geometry',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"perimeter","label":"周长","answer":31.4},{"id":"area","label":"面积","answer":78.5}],
     cognitiveSkills: ['find_numbers', 'choose_operation', 'build_model'],
     text: '一个圆形花坛的半径是5米，它的周长是多少米？面积是多少平方米？（π取3.14）',
     numbers: [5],
@@ -422,6 +424,8 @@ export const g6Questions: Question[] = [
   },
   {
     id: 'g6_24', gradeBand: 'G6', domain: 'geometry',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"perimeter","label":"周长","answer":31.4},{"id":"area","label":"面积","answer":78.5}],
     cognitiveSkills: ['remove_noise', 'choose_operation'],
     text: '公园里有一座漂亮的圆形喷泉，水花在阳光下闪闪发光。圆形花坛的直径是10米，它的周长是多少米？面积是多少平方米？',
     numbers: [10],

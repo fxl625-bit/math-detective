@@ -75,6 +75,8 @@ export const g4Questions: Question[] = [
   },
   {
     id: 'g4_05', gradeBand: 'G4', domain: 'decimals',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"diff","label":"多多少","answer":6.7},{"id":"total","label":"总共","answer":24.5}],
     cognitiveSkills: ['find_numbers', 'choose_operation'],
     text: '小红有15.6元，小明有8.9元，小红比小明多多少元？两人一共有多少元？',
     numbers: [15.6, 8.9],
@@ -93,6 +95,8 @@ export const g4Questions: Question[] = [
   },
   {
     id: 'g4_06', gradeBand: 'G4', domain: 'geometry',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"area","label":"面积","answer":900},{"id":"count","label":"块数","answer":67}],
     cognitiveSkills: ['find_numbers', 'choose_operation', 'build_model'],
     text: '一块正方形地砖的边长是30厘米，它的面积是多少平方厘米？铺一个长3米、宽2米的地面需要多少块这样的地砖？',
     numbers: [30, 3, 2],
@@ -147,6 +151,8 @@ export const g4Questions: Question[] = [
   },
   {
     id: 'g4_09', gradeBand: 'G4', domain: 'multiplication_division',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"ml","label":"毫升","answer":6000},{"id":"liter","label":"升","answer":6}],
     cognitiveSkills: ['multi_step_reasoning', 'choose_operation'],
     text: '一瓶酸奶的净含量是250毫升，一箱有24瓶，这一箱酸奶一共有多少毫升？合多少升？',
     numbers: [250, 24],
@@ -184,6 +190,8 @@ export const g4Questions: Question[] = [
   },
   {
     id: 'g4_11', gradeBand: 'G4', domain: 'multiplication_division',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"revenue","label":"销售额","answer":256},{"id":"profit","label":"利润","answer":102.4}],
     cognitiveSkills: ['build_model', 'choose_operation'],
     text: '一种铅笔每支售价2元，文具店一天卖了128支，这一天的销售额是多少元？如果每支铅笔的成本是1.2元，利润是多少元？',
     numbers: [2, 128, 1.2],
@@ -220,6 +228,8 @@ export const g4Questions: Question[] = [
   },
   {
     id: 'g4_13', gradeBand: 'G4', domain: 'multiplication_division',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"capacity","label":"能坐","answer":540},{"id":"needed","label":"需要","answer":12}],
     cognitiveSkills: ['multi_step_reasoning', 'build_model'],
     text: '一辆客车可以坐45人，12辆这样的客车可以坐多少人？如果全校有520人出游，需要多少辆这样的客车？',
     numbers: [45, 12, 520],
@@ -292,6 +302,8 @@ export const g4Questions: Question[] = [
   },
   {
     id: 'g4_17', gradeBand: 'G4', domain: 'multiplication_division',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"days","label":"天数","answer":12},{"id":"extra","label":"追加量","answer":45}],
     cognitiveSkills: ['build_model', 'multi_step_reasoning'],
     text: '动物园里一只熊猫每天吃15千克竹子，饲养员准备了180千克竹子，够这只熊猫吃几天？如果还要多喂3天，需要再准备多少千克竹子？',
     numbers: [15, 180, 3],
@@ -404,6 +416,8 @@ export const g4Questions: Question[] = [
   },
   {
     id: 'g4_23', gradeBand: 'G4', domain: 'word_problem_reading',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"spent","label":"花了","answer":30},{"id":"left","label":"剩","answer":20}],
     cognitiveSkills: ['remove_noise', 'choose_operation'],
     text: '文具店的橱窗布置得特别漂亮，吸引了许多小朋友。小明带了50元，买了一支钢笔18元，又买了一本笔记本12元，他花了多少钱？还剩多少钱？',
     numbers: [50, 18, 12],

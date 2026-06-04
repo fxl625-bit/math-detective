@@ -120,6 +120,8 @@ export const olympiadIntroQuestions: Question[] = [
   // ========== 盈亏问题 ==========
   {
     id: 'oi_07', gradeBand: 'OlympiadIntro', domain: 'logic_reasoning',
+  answerType: 'multi_answer',
+  subAnswers: [{"id":"people","label":"人数","answer":5},{"id":"candy","label":"糖数","answer":19}],
     cognitiveSkills: ['build_model', 'multi_step_reasoning'],
     text: '老师给小朋友分糖果，如果每人分3颗，还剩4颗；如果每人分5颗，则少6颗。一共有多少个小朋友？有多少颗糖果？',
     numbers: [3, 4, 5, 6],
