@@ -1,4 +1,5 @@
 import { LessonStepType, GradeBand, type Question } from './types';
+import { getForbiddenTagsForScene, type ThemeTag } from './taxonomy';
 
 // ========== 案件故事模板 ==========
 
@@ -156,13 +157,13 @@ export function saveRecentStoryId(storyId: string, max: number = 5): void {
 
 /**
  * 检查题目是否与故事主题兼容。
- * v2.7.1: 增加 requiredTags 和 themeStrictness 支持。
+ * v2.7.3: 全量治理 — 使用 taxonomy forbidden matrix + requiredTags + generic 拦截。
  *
- * 兼容规则（strict 模式）：
- * 1. forbiddenTags 硬排除
- * 2. allowedSceneTypes 必须匹配
- * 3. requiredTags 必须命中至少一个（如果有）
- * 4. generic sceneType 不再无条件通过 strict 主题
+ * 规则：
+ * 1. forbiddenTags（story 级别 + 全局 matrix）硬排除
+ * 2. generic/shopping 不能单独通过强主题
+ * 3. requiredTags 必须命中至少一个（strict/semi_strict）
+ * 4. allowedSceneTypes 必须匹配
  */
 export function isQuestionCompatibleWithTheme(
   question: Question,
@@ -171,47 +172,54 @@ export function isQuestionCompatibleWithTheme(
   if (!story) return true;
 
   const qScene = question.sceneType || inferSceneType(question);
-  const qTags = question.themeTags?.length ? question.themeTags : inferThemeTags(question);
+  const qTags: string[] = question.themeTags?.length ? question.themeTags : inferThemeTags(question);
   const strictness = story.themeStrictness || 'semi_strict';
 
-  // 1. forbiddenTags 硬排除（所有模式）
+  // 1. 全局 forbidden matrix 排除
+  const globalForbidden = getForbiddenTagsForScene(story.id) || [];
+  if (globalForbidden.length > 0) {
+    const hasGlobalForbidden = qTags.some(tag => globalForbidden.includes(tag as ThemeTag));
+    if (hasGlobalForbidden) return false;
+  }
+
+  // 2. story 级别 forbiddenTags 排除
   if (story.forbiddenTags?.length) {
     const hasForbidden = qTags.some(tag => story.forbiddenTags!.includes(tag));
     if (hasForbidden) return false;
   }
 
-  // generic 模式：不过滤
+  // 3. generic 模式：不过滤
   if (strictness === 'generic') return true;
 
-  // 2. allowedSceneTypes 检查
-  let sceneOk = true;
-  if (story.allowedSceneTypes?.length) {
-    sceneOk = story.allowedSceneTypes.includes(qScene);
-    // generic/math 只有在 allowedSceneTypes 明确包含时才通过
-    if (!sceneOk && (qScene === 'generic' || qScene === 'math')) {
-      sceneOk = story.allowedSceneTypes.includes('generic') || story.allowedSceneTypes.includes('math');
-    }
+  // 4. 判断是否为 generic-only 题目
+  const isGenericOnly = qScene === 'generic' ||
+    (qTags.length > 0 && qTags.every(tag => tag === 'generic' || tag === 'quantity'));
+
+  // 5. generic-only 题目不能进入强主题
+  if (isGenericOnly) {
+    // 只有 generic 主题可以接受 generic 题
+    return false;
   }
 
-  // 3. requiredTags 检查（必须命中至少一个）
+  // 6. requiredTags 检查（必须命中至少一个）
   let requiredOk = true;
   if (story.requiredTags?.length) {
     requiredOk = story.requiredTags.some(tag => qTags.includes(tag));
   }
 
-  // 4. themeTags 交叉检查
-  let tagMatch = true;
-  if (story.themeTags?.length && qTags.length > 0) {
-    tagMatch = qTags.some(tag => story.themeTags!.includes(tag));
+  // 7. allowedSceneTypes 检查
+  let sceneOk = true;
+  if (story.allowedSceneTypes?.length) {
+    sceneOk = story.allowedSceneTypes.includes(qScene);
   }
 
-  // 5. strict 模式：sceneType 和 requiredTags 都必须满足
+  // 8. strict 模式：requiredTags 必须命中
   if (strictness === 'strict') {
-    return sceneOk && requiredOk;
+    return requiredOk;
   }
 
-  // semi_strict 模式：sceneType 或 requiredTags 至少命中一个
-  return (sceneOk || requiredOk) && tagMatch;
+  // 9. semi_strict 模式：requiredTags 必须命中
+  return requiredOk;
 }
 
 /**
@@ -222,8 +230,16 @@ export function checkThemeCompatibility(
   story: CaseStory
 ): { compatible: boolean; reason?: string } {
   const qScene = question.sceneType || inferSceneType(question);
-  const qTags = question.themeTags?.length ? question.themeTags : inferThemeTags(question);
+  const qTags: string[] = question.themeTags?.length ? question.themeTags : inferThemeTags(question);
 
+  // 全局 forbidden matrix
+  const globalForbidden = getForbiddenTagsForScene(story.id) || [];
+  const globalHit = qTags.filter(tag => globalForbidden.includes(tag as ThemeTag));
+  if (globalHit.length > 0) {
+    return { compatible: false, reason: `globalForbidden: ${globalHit.join(',')}` };
+  }
+
+  // story forbiddenTags
   if (story.forbiddenTags?.length) {
     const hit = qTags.filter(tag => story.forbiddenTags!.includes(tag));
     if (hit.length > 0) {
@@ -231,16 +247,18 @@ export function checkThemeCompatibility(
     }
   }
 
+  // generic-only 题目不能进入强主题
+  const isGenericOnly = qScene === 'generic' ||
+    (qTags.length > 0 && qTags.every(tag => tag === 'generic' || tag === 'quantity'));
+  if (isGenericOnly && story.themeStrictness !== 'generic') {
+    return { compatible: false, reason: 'generic-only question cannot enter strong theme' };
+  }
+
+  // requiredTags
   if (story.requiredTags?.length) {
     const hasRequired = story.requiredTags.some(tag => qTags.includes(tag));
     if (!hasRequired) {
       return { compatible: false, reason: `missing requiredTags: need one of [${story.requiredTags.join(',')}]` };
-    }
-  }
-
-  if (story.allowedSceneTypes?.length && !story.allowedSceneTypes.includes(qScene)) {
-    if (qScene !== 'generic' && qScene !== 'math') {
-      return { compatible: false, reason: `sceneType "${qScene}" not in allowedSceneTypes` };
     }
   }
 
@@ -279,27 +297,68 @@ export function inferThemeTags(q: Question): string[] {
   const tags: string[] = [];
   const text = q.text;
 
-  // 场景标签
+  // 购物场景
   if (/超市|商店|购物|价格|优惠|找零/.test(text)) tags.push('shopping', 'price', 'money');
-  if (/元|角|分|花了|找回|付/.test(text)) tags.push('money');
+  if (/元|角|分|花了|找回|付钱|付款/.test(text)) tags.push('money');
   if (/买|卖|进货|库存|卖出/.test(text)) tags.push('shopping');
-  if (/兔子|兔/.test(text)) tags.push('rabbit', 'animal', 'grass');
+
+  // 动物
+  if (/兔子|兔/.test(text)) tags.push('rabbit', 'animal');
   if (/小鸟|鸟/.test(text)) tags.push('bird', 'animal');
-  if (/苹果|桃子|梨|水果/.test(text)) tags.push('fruit', 'food');
-  if (/包子|饭|吃掉/.test(text)) tags.push('food');
+  if (/猫|狗|宠物/.test(text)) tags.push('pet', 'animal', 'cat', 'dog');
+
+  // 食物 — 细分标签
+  if (/酸奶/.test(text)) tags.push('food', 'dairy', 'yogurt', 'fridge', 'home_food');
+  if (/冰箱/.test(text)) tags.push('fridge', 'home_food', 'food');
+  if (/包子/.test(text)) tags.push('food', 'baozi', 'bun', 'canteen_food');
+  if (/面包/.test(text)) tags.push('food', 'bread');
+  if (/饼干/.test(text)) tags.push('food', 'snack', 'dessert');
+  if (/月饼/.test(text)) tags.push('food', 'dessert', 'mooncake');
+  if (/蛋糕/.test(text) && !/派对|生日/.test(text)) tags.push('food', 'dessert', 'cake');
+  if (/糖果|零食/.test(text)) tags.push('food', 'snack', 'candy', 'sweet');
+  if (/牛奶/.test(text)) tags.push('food', 'dairy');
+  if (/苹果|桃子|梨|水果|香蕉|橘子/.test(text)) tags.push('fruit', 'food', 'apple');
+  if (/点心|早餐/.test(text)) tags.push('food', 'breakfast', 'canteen_food');
+  if (/食堂|餐厅/.test(text)) tags.push('canteen_food', 'food');
+  if (/饮料|果汁/.test(text)) tags.push('food', 'drink');
+  if (/吃|吃掉|喝掉|喝/.test(text)) tags.push('food');
+
+  // 玩具/文具
+  if (/玩具|玩偶|小汽车|积木|娃娃/.test(text)) tags.push('toy');
+  if (/铅笔|橡皮|书包|文具/.test(text)) tags.push('stationery');
+
+  // 操场/运动
   if (/操场|跑道/.test(text)) tags.push('playground');
   if (/彩旗|每隔|种树|植树/.test(text)) tags.push('interval', 'planting');
-  if (/年龄|岁/.test(text)) tags.push('age', 'family');
-  if (/正方形|长方形|三角形|圆形|面积|周长|角/.test(text)) tags.push('geometry');
-  if (/名次|比赛|跑步/.test(text)) tags.push('competition', 'ranking');
-  if (/糖果|零食/.test(text)) tags.push('snack', 'food');
-  if (/铅笔|橡皮|书包|文具/.test(text)) tags.push('stationery');
-  if (/牛奶|盒|瓶|箱/.test(text)) tags.push('shopping', 'drink');
-  if (/足球|篮球|皮球|球/.test(text)) tags.push('sports');
-  if (/花|树|草|花园/.test(text)) tags.push('garden', 'nature');
-  if (/鱼|虾|螃蟹|海底|海洋/.test(text)) tags.push('ocean');
-  if (/饼干|月饼|蛋糕/.test(text)) tags.push('food', 'dessert');
-  if (/蛋糕|派对|生日/.test(text)) tags.push('party');
+  if (/足球|篮球|皮球|球/.test(text)) tags.push('sports', 'ball');
+  if (/跑步|比赛|名次/.test(text)) tags.push('race', 'sports');
+
+  // 年龄/家庭
+  if (/年龄|岁|几年后|再过/.test(text)) tags.push('age', 'family');
+
+  // 几何
+  if (/正方形|长方形|三角形|圆形|面积|周长|角|棱|体积|表面积/.test(text)) tags.push('geometry');
+
+  // 逻辑
+  if (/名次|不是第一名|不是最后一名|比.*快|比.*慢/.test(text)) tags.push('logic', 'ranking', 'ordering');
+
+  // 数列/规律
+  if (/规律|第几层|第几个|每次多|一列数/.test(text)) tags.push('sequence', 'pattern');
+
+  // 海洋
+  if (/鱼|虾|螃蟹|海底|海洋|贝壳/.test(text)) tags.push('ocean');
+
+  // 派对
+  if (/派对|生日/.test(text)) tags.push('party');
+
+  // 校园/图书馆
+  if (/图书馆|借阅/.test(text)) tags.push('school', 'library');
+
+  // 银行/利息
+  if (/银行|利息|存/.test(text)) tags.push('bank', 'interest');
+
+  // 科学
+  if (/实验|天文|观测/.test(text)) tags.push('science');
 
   if (tags.length === 0) tags.push('generic');
   return [...new Set(tags)];

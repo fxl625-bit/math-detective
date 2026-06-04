@@ -1,5 +1,21 @@
 # Math Detective Changelog
 
+## v2.7.3 — P0 修复：全量标签与主题治理
+
+### 核心修复
+- **新增 `lib/taxonomy.ts`**：全局标签分类体系，统一 sceneType/themeTag/problemType/answerType 枚举
+- **新增 forbidden matrix**：每个场景的全局禁止标签（toy_store 禁止 food/dairy/yogurt/fridge/baozi/pet/animal 等）
+- **重写 `isQuestionCompatibleWithTheme`**：使用 taxonomy forbidden matrix + requiredTags + generic 拦截
+- **generic/shopping 不能单独通过强主题**：generic-only 题目不能进入 strict/semi_strict 主题
+- **全量重标 20 个 Story**：toy_store requiredTags=[toy,stationery_toy]，pet_shop requiredTags=[pet,animal]
+- **增强 `inferThemeTags`**：酸奶→dairy/yogurt/fridge，冰箱→fridge/home_food，包子→baozi/bun/canteen_food
+- **20/20 Story 通过一致性验证**
+
+### 版本
+- v2.7.1 → v2.7.3
+
+---
+
 ## v2.7.1 — P0 修复：主题错配、重复提示、泄题阻断与 answerType 补全
 
 ### 核心修复
