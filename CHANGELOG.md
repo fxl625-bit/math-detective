@@ -1,8 +1,22 @@
 # Math Detective Changelog
 
-## v2.7.1 — P0 修复：主题错配、重复提示与 step 文案
+## v2.7.1 — P0 修复：主题错配、重复提示、泄题阻断与 answerType 补全
 
 ### 核心修复
+- **宠物店主题不再匹配包子题**：requiredTags=[animal,pet]，strictness=strict，shopping 不再单独放行
+- **20 个 Story 全部增加 requiredTags + themeStrictness**：strict/semi_strict/generic 三级
+- **isQuestionCompatibleWithTheme 重写**：支持 requiredTags 交叉检查，strict 模式要求 sceneType + requiredTags 同时满足
+- **小提示不再重复渲染**：ClueSummary 移除 HintSystem，由 phase 组件统一渲染
+- **find_numbers 阶段不再写"列式并算出答案"**：step description 改为"先找出题目里出现的所有数字"
+- **FAIL/泄题阻断正式抽题**：新增 questionSafety.ts，selectQuestionForStep 过滤不安全题目
+- **289 道题批量标注 answerType**：number/text/ranking/multi_answer 四种
+- **g1t_02 修复**：answerType 从 ranking 改为 text（只问谁最快，不是完整排序）
+- **oi_21 泄题修复**：hints 不再直接显示答案"12-3-4+5=10"
+
+### 新增文件
+- `lib/questionSafety.ts` — 题目安全检查器（泄题 + answerType + multi_answer 完整性）
+- `scripts/add-answertype.mjs` — 批量标注 answerType 脚本
+- `scripts/fix-story-tags.mjs` — 批量修复 Story 标签脚本
 - **宠物店主题错配**：宠物店 forbiddenTags 增加 food_meal/snack/fruit/food/stationery；requiredTags=[animal, pet]；themeStrictness=strict
 - **主题匹配逻辑升级**：CaseStory 新增 requiredTags + themeStrictness；strict 模式要求 sceneType 和 requiredTags 都满足
 - **小提示重复渲染**：ClueSummary 移除 HintSystem 渲染，小提示只由 HintSystem 统一渲染一次

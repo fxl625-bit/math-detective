@@ -842,6 +842,8 @@ export function generateSafeFallbackLesson(gradeBand: GradeBand): TodayLesson {
   ]);
 
   const safePool = pool.filter(q => {
+    // v2.7.1: 基础安全检查
+    if (!isQuestionSafeForLesson(q).safe) return false;
     // 只接受 basic_arithmetic
     if (q.problemType && q.problemType !== 'basic_arithmetic') return false;
     // 禁止词检查
