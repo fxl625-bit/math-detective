@@ -18,6 +18,9 @@ export const extraInfoQuestions: Question[] = [
   lessonType:'irrelevant_info',
   keywordType:'compare',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'spot_extra_info'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'extra_02', gradeBand: 'G3', domain: 'addition_subtraction',
@@ -36,6 +39,9 @@ export const extraInfoQuestions: Question[] = [
   lessonType:'irrelevant_info',
   keywordType:'compare',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","fruit","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'extra_03', gradeBand: 'G4', domain: 'multiplication_division',
@@ -54,6 +60,9 @@ export const extraInfoQuestions: Question[] = [
   lessonType:'irrelevant_info',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
+    sceneType: 'shopping',
+    themeTags: ["money","school","library"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'extra_04', gradeBand: 'G4', domain: 'multiplication_division',
@@ -72,6 +81,9 @@ export const extraInfoQuestions: Question[] = [
   lessonType:'irrelevant_info',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
+    sceneType: 'family_age',
+    themeTags: ["age","family"],
+    problemType: 'age_problem',
   },
   {
     id: 'extra_05', gradeBand: 'G5', domain: 'multiplication_division',
@@ -90,6 +102,9 @@ export const extraInfoQuestions: Question[] = [
   lessonType:'irrelevant_info',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
+    sceneType: 'food_fruit',
+    themeTags: ["fruit","food","shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'extra_06', gradeBand: 'G5', domain: 'addition_subtraction',
@@ -108,6 +123,9 @@ export const extraInfoQuestions: Question[] = [
   lessonType:'irrelevant_info',
   keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","stationery"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'extra_07', gradeBand: 'G6', domain: 'percent',
@@ -126,6 +144,9 @@ export const extraInfoQuestions: Question[] = [
   lessonType:'irrelevant_info',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","price","money","stationery","school","library"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'extra_08', gradeBand: 'G3', domain: 'addition_subtraction',
@@ -144,5 +165,8 @@ export const extraInfoQuestions: Question[] = [
   lessonType:'irrelevant_info',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_extra_info'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
 ];

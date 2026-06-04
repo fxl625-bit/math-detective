@@ -1,5 +1,21 @@
 # Math Detective Changelog
 
+## v2.6.12 — P0 修复：全主题一致性验证
+
+### 核心修复
+- 将 v2.6.11 的超市主题修复扩展为**全 Story 主题治理**
+- 341/350 道题批量标注 sceneType / themeTags / problemType
+- `isQuestionCompatibleWithTheme` 更严格：generic 不再无条件通过
+- `safeNormalizeLesson` 增加 theme-question 匹配检查（渲染前防御）
+- 家长测试模式新增**主题覆盖率**面板（每个 Story 可用题数一目了然）
+- 新增 `npm run validate:themes` 批量验证所有 Story
+- 20/20 Story 全部通过一致性验证
+
+### 版本
+- v2.6.11 → v2.6.12
+
+---
+
 ## v2.6.11 — P0 修复：主题与题目错配
 
 ### 根本原因

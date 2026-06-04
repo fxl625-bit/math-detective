@@ -18,6 +18,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'animal_grass',
+    themeTags: ["rabbit","animal","grass"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_02', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -36,6 +39,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'food_fruit',
+    themeTags: ["fruit","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_03', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -54,6 +60,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'animal_sky',
+    themeTags: ["bird","animal"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_04', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -72,6 +81,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'food_fruit',
+    themeTags: ["fruit","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_05', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -90,6 +102,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_06', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -108,6 +123,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'garden',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_07', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -126,6 +144,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_08', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -144,6 +165,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_09', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -162,6 +186,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_10', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -180,6 +207,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'snack',
+    themeTags: ["snack","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_11', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -198,6 +228,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'food_meal',
+    themeTags: ["food","dessert"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_12', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -216,6 +249,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'ocean',
+    themeTags: ["ocean"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_13', gradeBand: 'G1', domain: 'comparison',
@@ -234,6 +270,9 @@ export const g1Questions: Question[] = [
   lessonType:'compare_more_less',
   keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'snack',
+    themeTags: ["snack","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_14', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -252,6 +291,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'stationery',
+    themeTags: ["toy"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_15', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -270,6 +312,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_16', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -288,6 +333,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'playground',
+    themeTags: ["playground","sports"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_17', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -306,6 +354,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'animal_sky',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_18', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -324,6 +375,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'food_meal',
+    themeTags: ["food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_19', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -342,6 +396,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_20', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -361,6 +418,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'animal_grass',
+    themeTags: ["rabbit","animal","grass"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_21', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -380,6 +440,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'animal_grass',
+    themeTags: ["rabbit","animal","grass","stationery","school","library"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_22', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -399,6 +462,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'food_fruit',
+    themeTags: ["fruit","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_23', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -418,6 +484,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'animal_sky',
+    themeTags: ["bird","animal","stationery","shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_24', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -437,6 +506,9 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","ocean"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1_25', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -456,5 +528,8 @@ export const g1Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'animal_sky',
+    themeTags: ["bird","animal"],
+    problemType: 'basic_arithmetic',
   }
 ];

@@ -19,6 +19,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'compare',
     stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1t_02', gradeBand: 'G1', domain: 'logic_reasoning',
@@ -37,6 +40,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'compare',
     stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'logic_ranking',
   },
   // ========== 找规律：数字序列 ==========
   {
@@ -56,6 +62,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'pattern',
   },
   {
     id: 'g1t_04', gradeBand: 'G1', domain: 'pattern',
@@ -74,6 +83,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'pattern',
   },
   {
     id: 'g1t_05', gradeBand: 'G1', domain: 'pattern',
@@ -92,6 +104,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'pattern',
   },
   // ========== 比多少进阶：推理数量 ==========
   {
@@ -111,6 +126,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'snack',
+    themeTags: ["snack","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1t_07', gradeBand: 'G1', domain: 'comparison',
@@ -129,6 +147,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'compare_more_less',
   keywordType:'compare',
     stepCompatibility: ['find_numbers', 'find_action_words', 'find_compare_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   // ========== 等量代换启蒙 ==========
   {
@@ -148,6 +169,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['simulation', 'full_solve'],
+    sceneType: 'food_fruit',
+    themeTags: ["fruit","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1t_09', gradeBand: 'G1', domain: 'logic_reasoning',
@@ -166,6 +190,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['simulation', 'full_solve'],
+    sceneType: 'animal_grass',
+    themeTags: ["rabbit","animal","grass"],
+    problemType: 'basic_arithmetic',
   },
   // ========== 分类计数 ==========
   {
@@ -185,6 +212,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'geometry_count',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","geometry"],
+    problemType: 'shape_counting',
   },
   // ========== 逻辑推理：排除法 ==========
   {
@@ -204,6 +234,9 @@ export const g1ThinkingQuestions: Question[] = [
     difficulty: 3, category: 'mixed', visualKey: 'pencil', requiresAnswer: true,
   lessonType:'logic_reasoning',
     stepCompatibility: ['full_solve', 'spot_missing_info'],
+    sceneType: 'shopping',
+    themeTags: ["money","stationery","shopping","drink"],
+    problemType: 'basic_arithmetic',
     isInsufficient: true,
   },
   // ========== 简单的多余信息识别 ==========
@@ -225,6 +258,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'stationery',
+    themeTags: ["stationery","shopping","drink","school","library"],
+    problemType: 'basic_arithmetic',
     extraNumbers: [],
   },
   // ========== 比多少：差量还原 ==========
@@ -245,6 +281,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'school',
+    themeTags: ["school","library"],
+    problemType: 'basic_arithmetic',
   },
   // ========== 逻辑推理：年龄比较 ==========
   {
@@ -264,6 +303,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'compare',
     stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'family_age',
+    themeTags: ["age","family"],
+    problemType: 'age_problem',
   },
   // ========== 规律：图形推理 ==========
   {
@@ -282,6 +324,9 @@ export const g1ThinkingQuestions: Question[] = [
     difficulty: 1, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
   lessonType:'logic_reasoning',
     stepCompatibility: ['simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'pattern',
   },
   // ========== 简单的天平推理 ==========
   {
@@ -301,6 +346,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'add_action',
     stepCompatibility: ['find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'food_fruit',
+    themeTags: ["fruit","food"],
+    problemType: 'basic_arithmetic',
   },
   // ========== 逻辑推理：捉迷藏 ==========
   {
@@ -320,6 +368,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'subtract_action',
     stepCompatibility: ['find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   // ========== 规律：倍数启蒙 ==========
   {
@@ -339,6 +390,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","price","money","drink"],
+    problemType: 'pattern',
   },
 
   // ========== 间隔问题启蒙（画图代替公式） ==========
@@ -359,6 +413,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    sceneType: 'playground',
+    themeTags: ["interval","planting"],
+    problemType: 'planting_problem',
   },
   {
     id: 'g1t_20', gradeBand: 'G1', domain: 'measurement',
@@ -377,6 +434,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    sceneType: 'playground',
+    themeTags: ["interval","planting","sports"],
+    problemType: 'planting_problem',
   },
   {
     id: 'g1t_21', gradeBand: 'G1', domain: 'measurement',
@@ -395,6 +455,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'playground',
+    themeTags: ["playground","interval","planting"],
+    problemType: 'planting_problem',
   },
 
   // ========== 简单周期 ==========
@@ -415,6 +478,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1t_23', gradeBand: 'G1', domain: 'pattern',
@@ -433,6 +499,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['full_solve'],
+    sceneType: 'playground',
+    themeTags: ["playground"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1t_24', gradeBand: 'G1', domain: 'pattern',
@@ -451,6 +520,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'pattern',
   },
 
   // ========== 巧数图形 ==========
@@ -471,6 +543,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'geometry_count',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'spot_extra_info', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","geometry"],
+    problemType: 'shape_counting',
   },
   {
     id: 'g1t_26', gradeBand: 'G1', domain: 'geometry',
@@ -489,6 +564,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'geometry_count',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'spot_extra_info', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","geometry"],
+    problemType: 'shape_counting',
   },
 
   // ========== 有序枚举 ==========
@@ -509,6 +587,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1t_28', gradeBand: 'G1', domain: 'logic_reasoning',
@@ -527,6 +608,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
 
   // ========== 数字谜启蒙 ==========
@@ -547,6 +631,9 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g1t_30', gradeBand: 'G1', domain: 'addition_subtraction',
@@ -565,5 +652,8 @@ export const g1ThinkingQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
 ];

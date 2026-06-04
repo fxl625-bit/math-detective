@@ -7,7 +7,8 @@
     "build": "next build --webpack && node scripts/postbuild-css.js",
     "start": "next start",
     "lint": "eslint",
-    "validate:questions": "tsx -r tsconfig-paths/register scripts/validate-questions.ts"
+    "validate:questions": "tsx -r tsconfig-paths/register scripts/validate-questions.ts",
+    "validate:themes": "node scripts/validate-themes.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",

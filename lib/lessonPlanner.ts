@@ -242,24 +242,36 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
     };
   }
 
-  // 12. v2.6.9: 验证当前 step 的题目兼容性并自动修复
+  // 12. v2.6.9 + v2.6.12: 验证当前 step 的题目兼容性（含主题匹配）并自动修复
   const currentStepIdx = currentIdx;
   if (currentStepIdx < n) {
     const current = steps[currentStepIdx];
     if (current.questionId) {
       const q = getQuestionById(current.questionId);
       if (q) {
+        // v2.6.12: 主题-题目匹配检查
+        const lessonStory = lesson.caseStoryId
+          ? allStories.find(s => s.id === lesson.caseStoryId)
+          : undefined;
+        let themeMismatch = false;
+        if (lessonStory) {
+          const themeCompat = isQuestionCompatibleWithTheme(q, lessonStory);
+          if (!themeCompat) {
+            themeMismatch = true;
+            if (typeof window !== 'undefined') {
+              console.warn(`[safeNormalizeLesson] step[${currentStepIdx}].question theme mismatch: q=${q.id} vs story=${lessonStory.id}`);
+            }
+          }
+        }
+
         const compatError = validateStepQuestionCompatibility(current, q);
-        if (compatError) {
+        if (compatError || themeMismatch) {
           if (typeof window !== 'undefined') {
             console.warn(`[safeNormalizeLesson] step[${currentStepIdx}].question incompatible: ${compatError}. Auto-repairing.`);
           }
           // 尝试选合法替换题
           const state = loadState();
           const profile = getLearningProfile();
-          const lessonStory = lesson.caseStoryId
-            ? allStories.find(s => s.id === lesson.caseStoryId)
-            : undefined;
           const usedIds = lesson.steps
             .filter(s => s.questionId && s.questionId !== current.questionId)
             .map(s => s.questionId);

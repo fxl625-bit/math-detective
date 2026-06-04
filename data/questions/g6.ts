@@ -18,6 +18,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g6_02', gradeBand: 'G6', domain: 'fractions',
@@ -36,6 +39,9 @@ export const g6Questions: Question[] = [
   keywordType:'number_extract',
   lessonType:'logic_reasoning',
   stepCompatibility: ['full_solve'],
+    sceneType: 'food_dessert',
+    themeTags: ["food","dessert","party"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g6_03', gradeBand: 'G6', domain: 'fractions',
@@ -54,6 +60,9 @@ export const g6Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g6_04', gradeBand: 'G6', domain: 'ratio',
@@ -72,6 +81,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_05', gradeBand: 'G6', domain: 'ratio',
@@ -90,6 +102,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_06', gradeBand: 'G6', domain: 'percent',
@@ -108,6 +123,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g6_07', gradeBand: 'G6', domain: 'percent',
@@ -126,6 +144,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g6_08', gradeBand: 'G6', domain: 'percent',
@@ -144,6 +165,9 @@ export const g6Questions: Question[] = [
   lessonType:'compare_more_less',
   keywordType:'compare',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_09', gradeBand: 'G6', domain: 'percent',
@@ -162,6 +186,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","finance"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_10', gradeBand: 'G6', domain: 'geometry',
@@ -182,6 +209,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'geometry',
+    themeTags: ["geometry"],
+    problemType: 'planting_problem',
   },
   {
     id: 'g6_11', gradeBand: 'G6', domain: 'geometry',
@@ -200,6 +230,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'geometry',
+    themeTags: ["geometry"],
+    problemType: 'planting_problem',
   },
   {
     id: 'g6_12', gradeBand: 'G6', domain: 'geometry',
@@ -218,6 +251,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","geometry"],
+    problemType: 'shape_counting',
   },
   {
     id: 'g6_13', gradeBand: 'G6', domain: 'ratio',
@@ -236,6 +272,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'adventure',
+    themeTags: ["adventure","ratio"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_14', gradeBand: 'G6', domain: 'multiplication_division',
@@ -254,6 +293,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_15', gradeBand: 'G6', domain: 'fractions',
@@ -272,6 +314,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_16', gradeBand: 'G6', domain: 'percent',
@@ -290,6 +335,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","price","money"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_17', gradeBand: 'G6', domain: 'word_problem_reading',
@@ -309,6 +357,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_18', gradeBand: 'G6', domain: 'multiplication_division',
@@ -327,6 +378,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_19', gradeBand: 'G6', domain: 'geometry',
@@ -345,6 +399,9 @@ export const g6Questions: Question[] = [
   lessonType:'planting_interval',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'geometry',
+    themeTags: ["geometry"],
+    problemType: 'shape_counting',
   },
   {
     id: 'g6_20', gradeBand: 'G6', domain: 'word_problem_reading',
@@ -364,6 +421,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","price","money","drink"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_21', gradeBand: 'G6', domain: 'percent',
@@ -383,6 +443,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'remove_noise', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g6_22', gradeBand: 'G6', domain: 'percent',
@@ -402,6 +465,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","age","family","finance"],
+    problemType: 'age_problem',
   },
   {
     id: 'g6_23', gradeBand: 'G6', domain: 'ratio',
@@ -421,6 +487,9 @@ export const g6Questions: Question[] = [
   lessonType:'compare_more_less',
   keywordType:'compare',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g6_24', gradeBand: 'G6', domain: 'geometry',
@@ -442,6 +511,9 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['remove_noise', 'full_solve'],
+    sceneType: 'geometry',
+    themeTags: ["geometry"],
+    problemType: 'planting_problem',
   },
   {
     id: 'g6_25', gradeBand: 'G6', domain: 'percent',
@@ -461,5 +533,8 @@ export const g6Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'playground',
+    themeTags: ["playground","school","library"],
+    problemType: 'multi_step',
   }
 ];

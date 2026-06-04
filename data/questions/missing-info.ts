@@ -19,6 +19,9 @@ export const missingInfoQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_missing_info'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
     isInsufficient: true,
   },
   {
@@ -39,6 +42,9 @@ export const missingInfoQuestions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_missing_info'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
     isInsufficient: true,
   },
   {
@@ -59,6 +65,9 @@ export const missingInfoQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_missing_info'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","stationery"],
+    problemType: 'basic_arithmetic',
     isInsufficient: true,
   },
   {
@@ -79,6 +88,9 @@ export const missingInfoQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_missing_info'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","price","money","drink"],
+    problemType: 'basic_arithmetic',
     isInsufficient: true,
   },
   {
@@ -99,6 +111,9 @@ export const missingInfoQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_missing_info'],
+    sceneType: 'geometry',
+    themeTags: ["geometry"],
+    problemType: 'basic_arithmetic',
     isInsufficient: true,
   },
   {
@@ -119,6 +134,9 @@ export const missingInfoQuestions: Question[] = [
   lessonType:'compare_more_less',
   keywordType:'compare',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_missing_info'],
+    sceneType: 'school',
+    themeTags: ["school","library"],
+    problemType: 'basic_arithmetic',
     isInsufficient: true,
   },
   {
@@ -139,6 +157,9 @@ export const missingInfoQuestions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_missing_info'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","school","library"],
+    problemType: 'basic_arithmetic',
     isInsufficient: true,
   },
   {
@@ -159,6 +180,9 @@ export const missingInfoQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'full_solve', 'spot_missing_info'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
     isInsufficient: true,
   },
 ];

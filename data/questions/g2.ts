@@ -18,6 +18,9 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_02', gradeBand: 'G2', domain: 'multiplication_division',
@@ -36,6 +39,9 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","fruit","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_03', gradeBand: 'G2', domain: 'addition_subtraction',
@@ -54,6 +60,9 @@ export const g2Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g2_04', gradeBand: 'G2', domain: 'multiplication_division',
@@ -72,6 +81,9 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","price","money","school","library"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_05', gradeBand: 'G2', domain: 'multiplication_division',
@@ -90,6 +102,9 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'snack',
+    themeTags: ["snack","food","shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_06', gradeBand: 'G2', domain: 'addition_subtraction',
@@ -108,6 +123,9 @@ export const g2Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping"],
+    problemType: 'multi_step',
   },
   {
     id: 'g2_07', gradeBand: 'G2', domain: 'time',
@@ -126,6 +144,9 @@ export const g2Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['simulation', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_08', gradeBand: 'G2', domain: 'money',
@@ -144,6 +165,9 @@ export const g2Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","stationery"],
+    problemType: 'multi_step',
   },
   {
     id: 'g2_09', gradeBand: 'G2', domain: 'multiplication_division',
@@ -162,6 +186,9 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'animal_sky',
+    themeTags: ["bird","animal"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_10', gradeBand: 'G2', domain: 'addition_subtraction',
@@ -182,6 +209,9 @@ export const g2Questions: Question[] = [
   lessonType:'compare_more_less',
   keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'school',
+    themeTags: ["school","library"],
+    problemType: 'multi_step',
   },
   {
     id: 'g2_11', gradeBand: 'G2', domain: 'comparison',
@@ -200,6 +230,9 @@ export const g2Questions: Question[] = [
   lessonType:'compare_more_less',
   keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'animal_grass',
+    themeTags: ["rabbit","animal","grass"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_12', gradeBand: 'G2', domain: 'multiplication_division',
@@ -218,6 +251,9 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","stationery"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_13', gradeBand: 'G2', domain: 'measurement',
@@ -236,6 +272,9 @@ export const g2Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_14', gradeBand: 'G2', domain: 'addition_subtraction',
@@ -255,6 +294,9 @@ export const g2Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'food_fruit',
+    themeTags: ["fruit","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_15', gradeBand: 'G2', domain: 'multiplication_division',
@@ -273,6 +315,9 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'garden',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_16', gradeBand: 'G2', domain: 'addition_subtraction',
@@ -291,6 +336,9 @@ export const g2Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'ocean',
+    themeTags: ["ocean"],
+    problemType: 'multi_step',
   },
   {
     id: 'g2_17', gradeBand: 'G2', domain: 'money',
@@ -309,6 +357,9 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_18', gradeBand: 'G2', domain: 'time',
@@ -327,6 +378,9 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_19', gradeBand: 'G2', domain: 'addition_subtraction',
@@ -346,6 +400,9 @@ export const g2Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","snack","food"],
+    problemType: 'multi_step',
   },
   {
     id: 'g2_20', gradeBand: 'G2', domain: 'multiplication_division',
@@ -364,6 +421,9 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_21', gradeBand: 'G2', domain: 'multiplication_division',
@@ -383,6 +443,9 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'stationery',
+    themeTags: ["stationery","shopping","drink","sports"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_22', gradeBand: 'G2', domain: 'addition_subtraction',
@@ -402,6 +465,9 @@ export const g2Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'food_fruit',
+    themeTags: ["fruit","food","animal","pet"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_23', gradeBand: 'G2', domain: 'money',
@@ -421,6 +487,9 @@ export const g2Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","school","library"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_24', gradeBand: 'G2', domain: 'time',
@@ -440,6 +509,9 @@ export const g2Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2_25', gradeBand: 'G2', domain: 'multiplication_division',
@@ -459,5 +531,8 @@ export const g2Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","stationery","school","library"],
+    problemType: 'basic_arithmetic',
   }
 ];

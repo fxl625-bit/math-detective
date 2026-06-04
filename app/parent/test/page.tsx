@@ -11,9 +11,12 @@ import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Play, CheckCircle, XCircle, AlertTriangle, Search } from 'lucide-react';
 import { allQuestions } from '@/data/questions';
+import { allStories } from '@/data/stories';
 import { checkAnswer, resolveAnswerType } from '@/lib/answerChecker';
+import { isQuestionCompatibleWithTheme, inferSceneType, inferThemeTags } from '@/lib/storySystem';
 import { textRevealsAnswer, hintRevealsAnswer } from '@/lib/hintSafety';
 import type { Question, ProblemType, AnswerType } from '@/lib/types';
+import type { CaseStory } from '@/lib/storySystem';
 import AppButton from '@/components/ui/AppButton';
 import AppCard from '@/components/ui/AppCard';
 import PageContainer from '@/components/layout/PageContainer';
@@ -171,6 +174,35 @@ export default function TestModePage() {
         </div>
         <div className="mt-3 text-xs text-gray-500">
           共 {allQuestions.length} 题 | {stats.noProblemType} 题未标注 problemType | {stats.noAnswerType} 题未标注 answerType
+        </div>
+      </AppCard>
+
+      {/* 主题覆盖率 */}
+      <AppCard variant="gray">
+        <h3 className="font-extrabold text-gray-700 mb-3">🎯 主题覆盖率</h3>
+        <div className="space-y-2">
+          {allStories.map(story => {
+            const compatible = allQuestions.filter(q => isQuestionCompatibleWithTheme(q, story));
+            const byGrade = compatible.filter(q => story.gradeBand.includes(q.gradeBand));
+            const enough = byGrade.length >= 6;
+            return (
+              <div key={story.id} className={`flex items-center justify-between p-2 rounded-lg ${enough ? 'bg-green-50' : 'bg-red-50'}`}>
+                <div className="flex items-center gap-2">
+                  {enough ? <CheckCircle size={14} className="text-green-500" /> : <XCircle size={14} className="text-red-500" />}
+                  <span className="text-sm font-bold">{story.title}</span>
+                  <span className="text-xs text-gray-500">[{story.gradeBand.join(',')}]</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className={enough ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+                    {byGrade.length} 题
+                  </span>
+                  {story.allowedSceneTypes && (
+                    <span className="text-gray-400">scene: {story.allowedSceneTypes.slice(0, 3).join(',')}</span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </AppCard>
 

@@ -18,6 +18,9 @@ export const g4Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'stationery',
+    themeTags: ["toy"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g4_02', gradeBand: 'G4', domain: 'geometry',
@@ -36,6 +39,9 @@ export const g4Questions: Question[] = [
   lessonType:'geometry_count',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'geometry',
+    themeTags: ["geometry"],
+    problemType: 'shape_counting',
   },
   {
     id: 'g4_03', gradeBand: 'G4', domain: 'decimals',
@@ -54,6 +60,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","price","money","school","library"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g4_04', gradeBand: 'G4', domain: 'multiplication_division',
@@ -72,6 +81,9 @@ export const g4Questions: Question[] = [
   lessonType:'times_intro',
   keywordType:'times_intro',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'food_fruit',
+    themeTags: ["fruit","food"],
+    problemType: 'ratio_distribution',
   },
   {
     id: 'g4_05', gradeBand: 'G4', domain: 'decimals',
@@ -92,6 +104,9 @@ export const g4Questions: Question[] = [
   lessonType:'compare_more_less',
   keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money"],
+    problemType: 'multi_step',
   },
   {
     id: 'g4_06', gradeBand: 'G4', domain: 'geometry',
@@ -112,6 +127,9 @@ export const g4Questions: Question[] = [
   lessonType:'geometry_count',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'geometry',
+    themeTags: ["geometry"],
+    problemType: 'shape_counting',
   },
   {
     id: 'g4_07', gradeBand: 'G4', domain: 'multiplication_division',
@@ -130,6 +148,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g4_08', gradeBand: 'G4', domain: 'measurement',
@@ -148,6 +169,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g4_09', gradeBand: 'G4', domain: 'multiplication_division',
@@ -168,6 +192,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g4_10', gradeBand: 'G4', domain: 'word_problem_reading',
@@ -187,6 +214,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'playground',
+    themeTags: ["playground","interval","planting"],
+    problemType: 'planting_problem',
   },
   {
     id: 'g4_11', gradeBand: 'G4', domain: 'multiplication_division',
@@ -207,6 +237,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","stationery"],
+    problemType: 'multi_step',
   },
   {
     id: 'g4_12', gradeBand: 'G4', domain: 'geometry',
@@ -225,6 +258,9 @@ export const g4Questions: Question[] = [
   lessonType:'planting_interval',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","geometry"],
+    problemType: 'shape_counting',
   },
   {
     id: 'g4_13', gradeBand: 'G4', domain: 'multiplication_division',
@@ -245,6 +281,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g4_14', gradeBand: 'G4', domain: 'decimals',
@@ -263,6 +302,9 @@ export const g4Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g4_15', gradeBand: 'G4', domain: 'measurement',
@@ -281,6 +323,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g4_16', gradeBand: 'G4', domain: 'money',
@@ -299,6 +344,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","price","money","fruit","food"],
+    problemType: 'multi_step',
   },
   {
     id: 'g4_17', gradeBand: 'G4', domain: 'multiplication_division',
@@ -319,6 +367,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'food_meal',
+    themeTags: ["animal","pet"],
+    problemType: 'multi_step',
   },
   {
     id: 'g4_18', gradeBand: 'G4', domain: 'word_problem_reading',
@@ -338,6 +389,9 @@ export const g4Questions: Question[] = [
   lessonType:'compare_more_less',
   keywordType:'compare',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","bird","animal"],
+    problemType: 'multi_step',
   },
   {
     id: 'g4_19', gradeBand: 'G4', domain: 'multiplication_division',
@@ -356,6 +410,9 @@ export const g4Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g4_20', gradeBand: 'G4', domain: 'addition_subtraction',
@@ -375,6 +432,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","stationery","school","library"],
+    problemType: 'multi_step',
   },
   {
     id: 'g4_21', gradeBand: 'G4', domain: 'multiplication_division',
@@ -394,6 +454,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","drink"],
+    problemType: 'multi_step',
   },
   {
     id: 'g4_22', gradeBand: 'G4', domain: 'measurement',
@@ -413,6 +476,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'remove_noise', 'full_solve'],
+    sceneType: 'geometry',
+    themeTags: ["geometry"],
+    problemType: 'shape_counting',
   },
   {
     id: 'g4_23', gradeBand: 'G4', domain: 'word_problem_reading',
@@ -434,6 +500,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'subtract_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","stationery"],
+    problemType: 'multi_step',
   },
   {
     id: 'g4_24', gradeBand: 'G4', domain: 'measurement',
@@ -453,6 +522,9 @@ export const g4Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'garden',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g4_25', gradeBand: 'G4', domain: 'multiplication_division',
@@ -472,5 +544,8 @@ export const g4Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   }
 ];

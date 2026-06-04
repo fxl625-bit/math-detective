@@ -19,6 +19,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'compare',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'oi_02', gradeBand: 'OlympiadIntro', domain: 'logic_reasoning',
@@ -37,6 +40,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'equal_groups',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   // ========== 年龄问题 ==========
   {
@@ -56,6 +62,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'times_intro',
   stepCompatibility: ['full_solve'],
+    sceneType: 'family_age',
+    themeTags: ["age","family"],
+    problemType: 'age_problem',
   gradeFriendlyEquation: {
     G1: '爸爸一直比儿子大28岁。\n一年一年试：第7年爸爸42岁，儿子14岁，14+14+14=42，正好是3倍！',
     G2: '年龄差28岁不变。3倍时年龄差对应2份：28÷2=14。儿子14岁时是7年后。',
@@ -79,6 +88,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'times_intro',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'family_age',
+    themeTags: ["age","family"],
+    problemType: 'age_problem',
   },
   // ========== 鸡兔同笼 ==========
   {
@@ -98,6 +110,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'animal_grass',
+    themeTags: ["rabbit","animal","grass"],
+    problemType: 'multi_step',
   },
   {
     id: 'oi_06', gradeBand: 'OlympiadIntro', domain: 'logic_reasoning',
@@ -116,6 +131,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   // ========== 盈亏问题 ==========
   {
@@ -137,6 +155,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'add_action',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","snack","food"],
+    problemType: 'multi_step',
   },
   // ========== 植树问题 ==========
   {
@@ -156,6 +177,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'playground',
+    themeTags: ["interval","planting"],
+    problemType: 'planting_problem',
   },
   {
     id: 'oi_09', gradeBand: 'OlympiadIntro', domain: 'measurement',
@@ -174,6 +198,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'playground',
+    themeTags: ["interval","planting","geometry"],
+    problemType: 'planting_problem',
   },
   // ========== 等差数列 ==========
   {
@@ -193,6 +220,8 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
   // v2.7: 多答案题元数据
   problemType: 'pattern',
   answerType: 'multi_answer',
@@ -229,6 +258,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   // ========== 方阵问题 ==========
   {
@@ -248,6 +280,8 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'geometry_count',
   keywordType:'add_action',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'geometry',
+    themeTags: ["geometry"],
   // v2.7: 多答案题元数据
   problemType: 'shape_counting',
   answerType: 'multi_answer',
@@ -333,6 +367,9 @@ export const olympiadIntroQuestions: Question[] = [
     difficulty: 3, category: 'mixed', visualKey: 'apple', requiresAnswer: true,
   lessonType:'logic_reasoning',
   stepCompatibility: ['full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","fruit","food","shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   // ========== 行程问题 ==========
   {
@@ -352,6 +389,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'oi_16', gradeBand: 'OlympiadIntro', domain: 'multiplication_division',
@@ -370,6 +410,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money"],
+    problemType: 'multi_step',
   },
   // ========== 平均数问题 ==========
   {
@@ -389,6 +432,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money"],
+    problemType: 'multi_step',
   },
   // ========== 浓度问题 ==========
   {
@@ -408,6 +454,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   // ========== 页码问题 ==========
   {
@@ -427,6 +476,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'school',
+    themeTags: ["school","library"],
+    problemType: 'multi_step',
   },
   // ========== 抽屉原理 ==========
   {
@@ -446,6 +498,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'guarantee_worst_case',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'sports',
+    themeTags: ["sports"],
+    problemType: 'basic_arithmetic',
   },
   // ========== 数字谜 ==========
   {
@@ -465,6 +520,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   // ========== 归一问题 ==========
   {
@@ -484,6 +542,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   // ========== 容斥问题 ==========
   {
@@ -503,6 +564,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   // ========== 乘法原理 ==========
   {
@@ -522,6 +586,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   // ========== 找规律 ==========
   {
@@ -541,6 +608,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'pattern',
   },
   // ========== 一笔画 / 路线 ==========
   {
@@ -560,6 +630,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'geometry_count',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'geometry',
+    themeTags: ["geometry"],
+    problemType: 'shape_counting',
   },
   // ========== 还原问题 ==========
   {
@@ -579,6 +652,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   // ========== 角度计算 ==========
   {
@@ -598,6 +674,9 @@ export const olympiadIntroQuestions: Question[] = [
   keywordType:'number_extract',
   lessonType:'logic_reasoning',
   stepCompatibility: ['full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","geometry"],
+    problemType: 'shape_counting',
   gradeFriendlyEquation: { G1: '2份+3份+4份=9份, 180分成9份, 每份20, 4份=20+20+20+20=80', G2: '2+3+4=9份, 180÷9=20度, 20×4=80度' },
   },
   // ========== 定义新运算 ==========
@@ -618,6 +697,9 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   // ========== 最不利原则 ==========
   {
@@ -637,5 +719,8 @@ export const olympiadIntroQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'guarantee_worst_case',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
 ];

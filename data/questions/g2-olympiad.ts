@@ -21,6 +21,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'compare',
     stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'snack',
+    themeTags: ["snack","food"],
+    problemType: 'multi_step',
   },
   {
     id: 'g2o_02', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -41,6 +44,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'compare',
     stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'family_age',
+    themeTags: ["age","family"],
+    problemType: 'age_problem',
   },
   {
     id: 'g2o_03', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -59,6 +65,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'add_action',
     stepCompatibility: ['find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'food_fruit',
+    themeTags: ["fruit","food"],
+    problemType: 'multi_step',
   },
   {
     id: 'g2o_04', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -79,6 +88,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'compare',
     stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
 
   // ====== 周期问题（日历/星期）3题 ======
@@ -99,6 +111,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2o_06', gradeBand: 'G2', domain: 'pattern',
@@ -117,6 +132,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'age_problem',
   },
   {
     id: 'g2o_07', gradeBand: 'G2', domain: 'pattern',
@@ -135,6 +153,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
 
   // ====== 植树问题（画图理解）3题 ======
@@ -155,6 +176,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    sceneType: 'playground',
+    themeTags: ["interval","planting"],
+    problemType: 'planting_problem',
   },
   {
     id: 'g2o_09', gradeBand: 'G2', domain: 'measurement',
@@ -173,6 +197,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'remove_noise', 'full_solve'],
+    sceneType: 'playground',
+    themeTags: ["interval","planting"],
+    problemType: 'planting_problem',
   },
   {
     id: 'g2o_10', gradeBand: 'G2', domain: 'measurement',
@@ -191,6 +218,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    sceneType: 'playground',
+    themeTags: ["interval","planting","geometry"],
+    problemType: 'planting_problem',
   },
 
   // ====== 还原问题（倒推法）3题 ======
@@ -211,6 +241,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'add_action',
     stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g2o_12', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -229,6 +262,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'add_action',
     stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","fruit","food"],
+    problemType: 'multi_step',
   },
   {
     id: 'g2o_13', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -247,6 +283,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'subtract_action',
     stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
 
   // ====== 数字谜（竖式推理，全数学验证）3题 ======
@@ -267,6 +306,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2o_15', gradeBand: 'G2', domain: 'addition_subtraction',
@@ -285,6 +327,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2o_16', gradeBand: 'G2', domain: 'addition_subtraction',
@@ -303,6 +348,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
 
   // ====== 巧算（凑整法）2题 ======
@@ -323,6 +371,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2o_18', gradeBand: 'G2', domain: 'addition_subtraction',
@@ -341,6 +392,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
 
   // ====== 有序枚举 2题 ======
@@ -361,6 +415,9 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g2o_20', gradeBand: 'G2', domain: 'logic_reasoning',
@@ -379,5 +436,8 @@ export const g2OlympiadQuestions: Question[] = [
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['simulation', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
 ];

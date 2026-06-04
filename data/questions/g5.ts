@@ -18,6 +18,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_02', gradeBand: 'G5', domain: 'decimals',
@@ -36,6 +39,9 @@ export const g5Questions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_03', gradeBand: 'G5', domain: 'decimals',
@@ -54,6 +60,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","fruit","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_04', gradeBand: 'G5', domain: 'decimals',
@@ -74,6 +83,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'equal_groups',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","price","money","fruit","food"],
+    problemType: 'multi_step',
   },
   {
     id: 'g5_05', gradeBand: 'G5', domain: 'decimals',
@@ -92,6 +104,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'subtract_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","price","money","school","library"],
+    problemType: 'multi_step',
   },
   {
     id: 'g5_06', gradeBand: 'G5', domain: 'equation_thinking',
@@ -110,6 +125,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","school","library"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_07', gradeBand: 'G5', domain: 'equation_thinking',
@@ -128,6 +146,9 @@ export const g5Questions: Question[] = [
   lessonType:'times_intro',
   keywordType:'times_intro',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money"],
+    problemType: 'ratio_distribution',
   },
   {
     id: 'g5_08', gradeBand: 'G5', domain: 'geometry',
@@ -146,6 +167,9 @@ export const g5Questions: Question[] = [
   lessonType:'geometry_count',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","geometry"],
+    problemType: 'shape_counting',
   },
   {
     id: 'g5_09', gradeBand: 'G5', domain: 'geometry',
@@ -164,6 +188,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'geometry',
+    themeTags: ["geometry"],
+    problemType: 'shape_counting',
   },
   {
     id: 'g5_10', gradeBand: 'G5', domain: 'geometry',
@@ -182,6 +209,9 @@ export const g5Questions: Question[] = [
   lessonType:'planting_interval',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g5_11', gradeBand: 'G5', domain: 'fractions',
@@ -202,6 +232,9 @@ export const g5Questions: Question[] = [
   lessonType:'compare_more_less',
   keywordType:'compare',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","food","dessert","party"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_12', gradeBand: 'G5', domain: 'fractions',
@@ -220,6 +253,9 @@ export const g5Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'subtract_action',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_13', gradeBand: 'G5', domain: 'fractions',
@@ -240,6 +276,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'food_meal',
+    themeTags: ["shopping","drink","food","dessert"],
+    problemType: 'multi_step',
   },
   {
     id: 'g5_14', gradeBand: 'G5', domain: 'fractions',
@@ -260,6 +299,9 @@ export const g5Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
   stepCompatibility: ['find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_15', gradeBand: 'G5', domain: 'measurement',
@@ -278,6 +320,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'ocean',
+    themeTags: ["ocean"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_16', gradeBand: 'G5', domain: 'measurement',
@@ -296,6 +341,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['full_solve'],
+    sceneType: 'geometry',
+    themeTags: ["geometry","shopping","drink"],
+    problemType: 'shape_counting',
   },
   {
     id: 'g5_17', gradeBand: 'G5', domain: 'multiplication_division',
@@ -314,6 +362,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'multi_step',
   },
   {
     id: 'g5_18', gradeBand: 'G5', domain: 'multiplication_division',
@@ -332,6 +383,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+    sceneType: 'generic',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_19', gradeBand: 'G5', domain: 'word_problem_reading',
@@ -351,6 +405,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping"],
+    problemType: 'multi_step',
   },
   {
     id: 'g5_20', gradeBand: 'G5', domain: 'measurement',
@@ -369,6 +426,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
   stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","geometry"],
+    problemType: 'shape_counting',
   },
   {
     id: 'g5_21', gradeBand: 'G5', domain: 'decimals',
@@ -388,6 +448,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","price","money","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_22', gradeBand: 'G5', domain: 'decimals',
@@ -407,6 +470,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping"],
+    problemType: 'multi_step',
   },
   {
     id: 'g5_23', gradeBand: 'G5', domain: 'measurement',
@@ -426,6 +492,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'remove_noise', 'full_solve'],
+    sceneType: 'ocean',
+    themeTags: ["ocean"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_24', gradeBand: 'G5', domain: 'fractions',
@@ -447,6 +516,9 @@ export const g5Questions: Question[] = [
   lessonType:'add_sub_action',
   keywordType:'add_action',
     stepCompatibility: ['find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","food","dessert"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g5_25', gradeBand: 'G5', domain: 'equation_thinking',
@@ -466,5 +538,8 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","playground","competition","ranking","sports"],
+    problemType: 'logic_ranking',
   }
 ];

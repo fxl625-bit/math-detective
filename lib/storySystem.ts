@@ -176,8 +176,14 @@ export function isQuestionCompatibleWithTheme(
   // 2. allowedSceneTypes 检查
   if (story.allowedSceneTypes?.length) {
     if (qScene && !story.allowedSceneTypes.includes(qScene)) {
-      // 允许 generic 类型通过
-      if (qScene !== 'generic' && qScene !== 'math') return false;
+      // generic 只有在 allowedSceneTypes 包含 'generic' 时才通过
+      if (qScene === 'generic' || qScene === 'math') {
+        if (!story.allowedSceneTypes.includes('generic') && !story.allowedSceneTypes.includes('math')) {
+          return false;
+        }
+      } else {
+        return false;
+      }
     }
   }
 

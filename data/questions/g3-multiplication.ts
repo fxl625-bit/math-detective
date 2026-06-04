@@ -18,6 +18,9 @@ export const g3MultiplicationQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","stationery","drink"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g3_mul_02', gradeBand: 'G3', domain: 'multiplication_division',
@@ -36,6 +39,9 @@ export const g3MultiplicationQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
+    sceneType: 'playground',
+    themeTags: ["playground"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g3_mul_03', gradeBand: 'G3', domain: 'multiplication_division',
@@ -54,6 +60,9 @@ export const g3MultiplicationQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve', 'find_compare_numbers'],
+    sceneType: 'shopping',
+    themeTags: ["money","shopping","drink","food","dessert","party"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g3_mul_04', gradeBand: 'G3', domain: 'multiplication_division',
@@ -72,6 +81,9 @@ export const g3MultiplicationQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
+    sceneType: 'food_meal',
+    themeTags: ["animal","pet"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g3_mul_05', gradeBand: 'G3', domain: 'multiplication_division',
@@ -90,6 +102,9 @@ export const g3MultiplicationQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve', 'find_compare_numbers'],
+    sceneType: 'school',
+    themeTags: ["school","library"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g3_mul_06', gradeBand: 'G3', domain: 'multiplication_division',
@@ -108,6 +123,9 @@ export const g3MultiplicationQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
+    sceneType: 'competition',
+    themeTags: ["competition","ranking"],
+    problemType: 'logic_ranking',
   },
   {
     id: 'g3_mul_07', gradeBand: 'G3', domain: 'multiplication_division',
@@ -126,6 +144,9 @@ export const g3MultiplicationQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'simulation', 'full_solve', 'find_compare_numbers'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","snack","food"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g3_div_01', gradeBand: 'G3', domain: 'multiplication_division',
@@ -144,6 +165,9 @@ export const g3MultiplicationQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
+    sceneType: 'shopping',
+    themeTags: ["money","stationery"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g3_div_02', gradeBand: 'G3', domain: 'multiplication_division',
@@ -162,6 +186,9 @@ export const g3MultiplicationQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
+    sceneType: 'garden',
+    themeTags: ["generic"],
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g3_div_03', gradeBand: 'G3', domain: 'multiplication_division',
@@ -180,5 +207,8 @@ export const g3MultiplicationQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'equal_groups',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
+    sceneType: 'shopping',
+    themeTags: ["shopping","drink"],
+    problemType: 'basic_arithmetic',
   },
 ];
