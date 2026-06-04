@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "validate:questions": "tsx -r tsconfig-paths/register scripts/validate-questions.ts",
-    "validate:themes": "node scripts/validate-themes.mjs"
+    "validate:themes": "node scripts/validate-themes.mjs",
+    "validate:hints": "node scripts/validate-hints.mjs",
+    "validate:lesson-generation": "node scripts/validate-lesson-generation.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",

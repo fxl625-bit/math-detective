@@ -333,7 +333,7 @@ export const g2OlympiadQuestions: Question[] = [
     answerSentence: '□=5。验证：57-32=25。',
     explanation: '□7 = 25+32 = 57，所以□=5。',
     solutionSteps: ['□7 = 25+32 = 57', '□=5'],
-    hints: ['先算出□7等于多少（25加32）！'],
+    hints: ['先想：□7减去32等于25，那□7应该是多少？'],
     difficulty: 2, category: 'addition', visualKey: 'book', requiresAnswer: true,
   lessonType:'number_clue',
   keywordType:'number_extract',

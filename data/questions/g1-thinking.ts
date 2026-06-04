@@ -517,7 +517,7 @@ export const g1ThinkingQuestions: Question[] = [
     answerSentence: '第11个是男生。',
     explanation: '单数位置是男生（1,3,5,7,9,11...），双数位置是女生（2,4,6,8,10...）。11是单数，所以是男生。',
     solutionSteps: ['单数位置：男生', '双数位置：女生', '11是单数→男生'],
-    hints: ['第1个男生，第2个女生...单数是什么？双数是什么？'],
+    hints: ['先看看第1个、第2个、第3个分别是什么，找找规律！'],
     difficulty: 1, category: 'mixed', visualKey: 'child', requiresAnswer: true,
   lessonType:'logic_reasoning',
   keywordType:'number_extract',

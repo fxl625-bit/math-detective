@@ -6,7 +6,7 @@
  */
 
 export const APP_VERSION =
-  process.env.NEXT_PUBLIC_APP_VERSION || '2.7.4';
+  process.env.NEXT_PUBLIC_APP_VERSION || '2.7.5';
 
 export const APP_BUILD_TIME =
   process.env.NEXT_PUBLIC_BUILD_TIME || '';
