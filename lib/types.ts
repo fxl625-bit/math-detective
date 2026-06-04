@@ -8,6 +8,7 @@ export type ProblemType =
   | 'age_problem'
   | 'shape_counting'
   | 'pattern'              // v2.6.7: 规律题
+  | 'sequence_arithmetic'  // v2.7: 等差数列题
   | 'ratio_distribution'
   | 'logic_ranking'
   | 'logic_truth'
@@ -36,7 +37,22 @@ export interface SolutionStepDetailed {
   revealsAnswer?: boolean;
 }
 
-export type AnswerType = 'number' | 'text' | 'ranking' | 'equation' | 'choice';
+export type AnswerType =
+  | 'number'                    // 数字答案：11, 79
+  | 'text'                      // 文本答案："小华"
+  | 'ranking'                   // 排序答案：完整排序选择
+  | 'multi_answer'              // 多答案：两个或多个输入框
+  | 'choice'                    // 选择题：点击选项
+  | 'expression'                // 表达式：要求输入算式
+  | 'not_enough_information';   // 信息不足：无法计算
+
+/** v2.7: 多答案题的子答案定义 */
+export interface SubAnswer {
+  id: string;              // "term20" / "sum20"
+  label: string;           // "第20个数" / "前20个数的和"
+  answer: number | string; // 79 / 820
+  unit?: string;           // "个" / "人"
+}
 
 /** v2.6.6: 排名选择题选项 */
 export interface RankingOption {
@@ -273,6 +289,8 @@ export interface Question {
   rankingOptions?: RankingOption[];
   /** v2.6.5: 详细解题步骤 */
   solutionStepsDetailed?: SolutionStepDetailed[];
+  /** v2.7: 多答案题的子答案列表 */
+  subAnswers?: SubAnswer[];
 }
 
 // ========== 关卡阶段 ==========

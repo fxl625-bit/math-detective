@@ -1,5 +1,56 @@
 # Math Detective Changelog
 
+## v2.6.10 — P0 修复：多答案题校验 + 统一答案检查器 + 等差数列引导
+
+### 根本原因
+1. **answerType 体系缺失**：266 道题中仅 1 道设置了 answerType，多答案题无法正确校验
+2. **答案检查器分散**：各组件自己写答案判断逻辑，不统一
+3. **多答案题用单输入框**：oi_10（等差数列）有两个问题但只有一个输入框
+4. **等差数列题直接甩公式**：对低年级不友好，缺乏分步引导
+
+### 核心修复
+
+**新增 `lib/answerChecker.ts` — 统一答案检查器**
+- `checkAnswer(input, question)`: 统一入口，根据 answerType 路由到对应 checker
+- 支持 7 种 answerType: number, text, ranking, multi_answer, choice, expression, not_enough_information
+- `checkMultiAnswer()`: 支持多答案逐个校验，返回 partialCorrect 和 fieldResults
+- `resolveAnswerType()`: 兼容未标注旧题，自动推断 answerType
+- 全角数字转半角、中文标点规范化、表达式安全计算
+
+**新增 `components/lesson/MultiAnswerInput.tsx` — 多答案输入组件**
+- 根据 question.subAnswers 动态生成多个输入框
+- 部分正确时给出差异化反馈（"第20个数找对了，再想想前20个数的和"）
+- 提交前检查是否所有字段都填了
+
+**新增 `components/lesson/SequencePatternGuide.tsx` — 等差数列引导组件**
+- 用于 problemType === 'pattern' 或 'sequence_arithmetic'
+- G1/G2 版本：不讲公式，用逐步数和配对法
+- G3+ 版本：展示公式但先解释来源
+- 集成 HintSystem 分层提示
+
+**扩展 `lib/types.ts`**
+- AnswerType 新增: 'multi_answer', 'expression', 'not_enough_information'
+- ProblemType 新增: 'sequence_arithmetic'
+- 新增 SubAnswer 接口（id, label, answer, unit）
+- Question 接口新增 subAnswers 字段
+
+**修改 `app/play/page.tsx`**
+- PhaseAwareStep 新增 SequencePatternGuide 路由
+- EquationAnswerPhase 使用统一 checkAnswer
+- runLessonAction 使用统一 checkAnswer
+
+**修改 `lib/lessonTransaction.ts`**
+- handleSubmitAnswer 使用统一 checkAnswer 替代手动比较
+
+**修复题目数据**
+- oi_10（等差数列）：answerType='multi_answer', subAnswers=[{term20,79},{sum20,820}]
+- oi_12（方阵）：answerType='multi_answer', subAnswers=[{outer,44},{total,144}]
+
+### 版本
+- v2.6.9 → v2.6.10
+
+---
+
 ## v2.6.9 — P0 修复：渲染前修复 + 安全降级课程 + 禁止孩子端卡死
 
 ### 根本原因

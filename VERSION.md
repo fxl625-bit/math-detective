@@ -3,14 +3,34 @@
 | 项目 | 内容 |
 |------|------|
 | **项目名称** | 文字侦探（Math Detective） |
-| **当前版本** | v2.6.9 |
-| **版本历史** | v1.0: 04-29 / v2.0: 04-30 / v2.1: 05-08 / v2.2: 05-08 / v2.3: 05-11 / v2.4: 05-29 / v2.5: 05-29 / v2.6: 06-02 / v2.6.3: 06-03 / v2.6.8: 06-03 / v2.6.9: 06-03 |
+| **当前版本** | v2.6.10 |
+| **版本历史** | v1.0: 04-29 / v2.0: 04-30 / v2.1: 05-08 / v2.2: 05-08 / v2.3: 05-11 / v2.4: 05-29 / v2.5: 05-29 / v2.6: 06-02 / v2.6.3: 06-03 / v2.6.8: 06-03 / v2.6.9: 06-03 / v2.6.10: 06-04 |
 | **项目定位** | 小学低年级数学应用题阅读理解小游戏（奥数渐进体系） |
 | **技术栈** | Next.js 16 (webpack) + React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + localStorage |
 | **部署方式** | Vercel（海外架构，大陆建议 VPN） |
 | **GitHub** | （本仓库） |
 | **Vercel** | https://math-detective.vercel.app |
-| **当前状态** | ✅ v2.6.9 封版，P0 渲染前修复管道 + 安全降级课程 + 禁止卡死页面 |
+| **当前状态** | ✅ v2.6.10 封版，P0 多答案题校验 + 统一答案检查器 + 等差数列引导 |
+
+---
+
+## v2.6.10 - P0 多答案题校验 + 统一答案检查器 + 等差数列引导 (2026-06-04)
+
+### 核心修复
+| 修复 | 文件 | 说明 |
+|------|------|------|
+| 统一答案检查器 | `lib/answerChecker.ts` | 新增 `checkAnswer()` 统一入口，支持 7 种 answerType |
+| 多答案输入组件 | `components/lesson/MultiAnswerInput.tsx` | 动态生成多个输入框，部分正确反馈 |
+| 等差数列引导 | `components/lesson/SequencePatternGuide.tsx` | G1/G2 不讲公式用配对法，G3+ 展示公式 |
+| AnswerType 扩展 | `lib/types.ts` | 新增 multi_answer/expression/not_enough_information |
+| ProblemType 扩展 | `lib/types.ts` | 新增 sequence_arithmetic |
+| SubAnswer 接口 | `lib/types.ts` | 多答案题子答案定义 |
+| 题目数据修复 | `data/questions/olympiadIntro.ts` | oi_10/oi_12 标注 multi_answer + subAnswers |
+| 路由修复 | `app/play/page.tsx` | 数列题路由到 SequencePatternGuide |
+| 事务系统修复 | `lib/lessonTransaction.ts` | 使用统一 checkAnswer |
+
+### 版本
+- v2.6.9 → v2.6.10
 
 ---
 

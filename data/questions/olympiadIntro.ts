@@ -182,15 +182,32 @@ export const olympiadIntroQuestions: Question[] = [
     keywords: [],
     noisePhrases: [], usefulPhrases: ['3 7 11 15 19', '第20个数', '前20个数的和'],
     questionMeaningOptions: ['问第20项和前20项和', '问第几项', '问规律'],
-    correctMeaning: '问第20项和前20项和', operation: 'mixed', equation: '3 + (20-1)×4 = ? ; (3+79)×20÷2 = ?', answer: '第20项79，和820',
+    correctMeaning: '问第20项和前20项和', operation: 'mixed', equation: '3 + (20-1)×4 = 79 ; (3+79)×20÷2 = 820', answer: 79,
     answerSentence: '第20个数是79，前20个数的和是820。',
     explanation: '公差=7-3=4，等差数列。第20项：3+(20-1)×4=3+76=79。和：(3+79)×20÷2=82×10=820。',
     solutionSteps: ['公差：7-3=4', '第20项：3+19×4=79', '和：(首+末)×项数÷2=(3+79)×20÷2=820'],
-    hints: ['等差数列第n项=首项+(n-1)×公差！求和=(首+末)×项数÷2。'],
+    hints: ['先看看每两个相邻数字之间差多少。'],
     difficulty: 3, category: 'mixed', visualKey: 'ball', requiresAnswer: true,
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['find_numbers', 'full_solve'],
+  // v2.7: 多答案题元数据
+  problemType: 'pattern',
+  answerType: 'multi_answer',
+  requiresEquation: false,
+  subAnswers: [
+    { id: 'term20', label: '第20个数', answer: 79 },
+    { id: 'sum20', label: '前20个数的和', answer: 820 },
+  ],
+  structuredHints: {
+    light: '先看看每两个相邻数字之间差多少。',
+    medium: '从3到7多了4，从7到11也多了4。每次都多4！',
+    fullSteps: [
+      { stepTitle: '找规律', explanation: '3→7多了4，7→11多了4，11→15多了4。每次都多4。' },
+      { stepTitle: '算第20个数', explanation: '从第1个到第20个，走了19次，每次多4。第20个 = 3 + 19×4 = 3 + 76 = 79。' },
+      { stepTitle: '算前20个数的和', explanation: '配对法：第1个+第20个=3+79=82，每一对都是82。20个数分成10对。总和=82×10=820。' },
+    ],
+  },
   },
   // ========== 周期问题 ==========
   {
@@ -220,15 +237,31 @@ export const olympiadIntroQuestions: Question[] = [
     keywords: [{ word: '一共', type: 'add' }],
     noisePhrases: [], usefulPhrases: ['方阵每边12人', '最外层一共多少人', '方阵一共多少人'],
     questionMeaningOptions: ['问最外层和总人数', '问每边几人', '问有几层'],
-    correctMeaning: '问最外层和总人数', operation: 'mixed', equation: '(12-1)×4=? ; 12×12=?', answer: '最外层44人，总共144人',
+    correctMeaning: '问最外层和总人数', operation: 'mixed', equation: '(12-1)×4=44 ; 12×12=144', answer: 44,
     answerSentence: '最外层有44人，方阵一共有144人。',
     explanation: '最外层=(每边-1)×4=(12-1)×4=44人。总人数=12×12=144人。',
     solutionSteps: ['最外层：(12-1)×4=44', '总人数：12×12=144'],
-    hints: ['方阵最外层=(每边人数-1)×4！注意角上的人不能重复算。'],
+    hints: ['先想最外层：四个边上的人加起来，但角上的人会重复算。'],
     difficulty: 2, category: 'mixed', visualKey: 'child', requiresAnswer: true,
   lessonType:'geometry_count',
   keywordType:'add_action',
   stepCompatibility: ['find_action_words', 'full_solve'],
+  // v2.7: 多答案题元数据
+  problemType: 'shape_counting',
+  answerType: 'multi_answer',
+  requiresEquation: false,
+  subAnswers: [
+    { id: 'outer', label: '最外层人数', answer: 44, unit: '人' },
+    { id: 'total', label: '方阵总人数', answer: 144, unit: '人' },
+  ],
+  structuredHints: {
+    light: '先想最外层：四条边上的人加起来，但角上的人会重复算。',
+    medium: '每边12人，4条边共12×4=48人，但4个角上的人各被算了两次，所以要减去4。',
+    fullSteps: [
+      { stepTitle: '算最外层', explanation: '每边12人，4条边共12×4=48人。但4个角上的人各被两条边共用，多算了一次。48-4=44人。' },
+      { stepTitle: '算总人数', explanation: '方阵是正方形，每边12人。总人数=12×12=144人。' },
+    ],
+  },
   },
   // ========== 逻辑推理 ==========
   {

@@ -14,6 +14,7 @@ import type { GameState, TodayLesson, LessonStep, StepPhase, LessonStepType, Que
 import { normalizeLesson, normalizeStep, advancePhase, completeCurrentStep, saveTodayLesson, getCurrentStep, getCurrentPhase, getDefaultPhasesForStepType, buildStepFromQuestion, selectQuestionForStep, validateStepQuestionCompatibility, clearTodayLesson, generateSafeFallbackLesson } from './lessonPlanner';
 import { getQuestionById } from '@/data/questions';
 import { loadState } from './storage';
+import { checkAnswer } from './answerChecker';
 
 // ========== v2.6.6: Ranking 答案校验 ==========
 
@@ -206,28 +207,9 @@ function handleSubmitAnswer(
     return noChangeResult(lesson, gameState, 'question not found', source);
   }
 
-  const correctStr = String(question.answer);
-
-  // v2.6.6: ranking 答案类型校验（完整校验函数）
-  let isCorrect: boolean;
-  if (question.answerType === 'ranking' && question.correctRanking) {
-    isCorrect = isRankingAnswerCorrect(inputAnswer, question);
-    if (!isCorrect) {
-      const expectedOrder = question.correctRanking.order || [
-        question.correctRanking.first, question.correctRanking.second,
-        question.correctRanking.third, question.correctRanking.fourth,
-        question.correctRanking.fifth,
-      ].filter(Boolean) as string[];
-      // 检查是否是部分答案
-      if (expectedOrder.length > 1 && expectedOrder.slice(0, 1).every(n => inputAnswer.trim().includes(n)) && !expectedOrder.slice(1).every(n => inputAnswer.trim().includes(n))) {
-        console.log('[Transaction] ranking answer: partial answer (only first place?), not accepted as correct', { input: inputAnswer.slice(0, 80), expected: expectedOrder });
-      }
-    }
-  } else {
-    isCorrect =
-      inputAnswer.trim() === correctStr ||
-      parseFloat(inputAnswer.trim()) === question.answer;
-  }
+  // v2.7: 使用统一答案检查器
+  const answerResult = checkAnswer(inputAnswer, question);
+  const isCorrect = answerResult.correct;
 
   // v2.6.4: stats 已由 runLessonAction 通过 hook 的 completeQuestion 记录
   // 此处只负责 lesson 状态推进，不重复记录 stats

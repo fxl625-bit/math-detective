@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Check, X, ArrowUpRight, ArrowDownRight, ShieldCheck, Lightbulb, Calculator } from 'lucide-react';
 import LogicRankingGuide from '@/components/LogicRankingGuide';
+import SequencePatternGuide from '@/components/lesson/SequencePatternGuide';
 import { useGameState } from '@/hooks/useGameState';
 import { loadState, getAccuracyStats } from '@/lib/storage';
 import { getTodayLesson, normalizeLesson, safeNormalizeLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson } from '@/lib/lessonPlanner';
@@ -15,6 +16,7 @@ import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/t
 import type { Question, KeywordItem } from '@/lib/types';
 import { needsAddSubtractPrompt, getKeywordTypeDescription, classifyKeyword } from '@/data/keywordRules';
 import { inferLessonType, extractNumbers, classifyNumberRole } from '@/lib/questionValidation';
+import { checkAnswer, resolveAnswerType } from '@/lib/answerChecker';
 import { textRevealsAnswer, hintRevealsAnswer, stringStepsRevealAnswer } from '@/lib/hintSafety';
 import { grantDailyRewardOnce, markDailyRewardShown } from '@/lib/rewardSystem';
 import { commitLessonTransaction, updateDebugState, assertCorrectAnswerAdvanced, assertRepairContinued, getDebugState, type LessonAction, type LearningState, type LessonActionPayload } from '@/lib/lessonTransaction';
@@ -109,30 +111,23 @@ export default function PlayPage() {
       const currentLesson = lessonRef.current;
       if (!currentLesson) return;
 
-      // v2.6.4: submit_answer / information_check / identify_extra_info — 通过 hook 记录 stats
+      // v2.7: submit_answer / information_check / identify_extra_info — 使用统一 checker
       const isAnswerAction = action === 'submit_answer' || action === 'information_check' || action === 'identify_extra_info';
       if (isAnswerAction && payload.questionId && payload.inputAnswer) {
         const q = getQuestionForLesson(currentLesson);
         if (q) {
-          // v2.6.6: ranking 答案类型正确性判断（完整校验）
-          let isCorrect: boolean;
-          if (q.answerType === 'ranking' && q.correctRanking) {
-            isCorrect = isRankingAnswerCorrect(payload.inputAnswer, q);
-          } else {
-            const correctStr = String(q.answer);
-            isCorrect = payload.inputAnswer.trim() === correctStr ||
-                       parseFloat(payload.inputAnswer.trim()) === q.answer;
-          }
-          completeQuestion(payload.questionId, isCorrect, isCorrect ? undefined : {
+          // v2.7: 使用统一答案检查器
+          const answerResult = checkAnswer(payload.inputAnswer, q);
+          completeQuestion(payload.questionId, answerResult.correct, answerResult.correct ? undefined : {
             questionId: q.id,
             questionText: q.text,
-            myAnswer: payload.inputAnswer,
+            myAnswer: typeof payload.inputAnswer === 'string' ? payload.inputAnswer : JSON.stringify(payload.inputAnswer),
             correctAnswer: q.answer,
             errorType: 'answer_wrong',
             retriedCorrect: false,
           });
           // 答错只记录 stats，不推进 lesson
-          if (!isCorrect) {
+          if (!answerResult.correct) {
             return;
           }
         }
@@ -658,17 +653,34 @@ function PhaseAwareStep({
         problemType: question.problemType,
         phase,
       });
-      // 自动切到安全的 phase
-      const safePhase = 'understand_clues';
-      console.warn(`[P0] Auto-redirecting logic question from ${phase} to ${safePhase}`);
-    }
-    if (phase === 'answer' && question.answerType === 'ranking') {
-      console.warn('[UX] Logic ranking question in answer phase — should be ranking_answer');
     }
     return (
       <LogicRankingGuide
         question={question}
         phase={phase}
+        onPhaseAdvance={onPhaseAdvance}
+        onPhaseBack={onPhaseBack}
+        onSubmitAnswer={onSubmitAnswer}
+      />
+    );
+  }
+
+  // v2.7: 等差数列/规律题使用 SequencePatternGuide
+  const isSequenceQuestion = question.problemType === 'pattern'
+    || question.problemType === 'sequence_arithmetic'
+    || (question.answerType === 'multi_answer' && question.subAnswers?.length);
+
+  if (isSequenceQuestion) {
+    // 运行时防御：数列题不应进入方程构建器
+    if (phase === 'build_equation') {
+      console.warn('[P0] Sequence question routed to build_equation, redirecting to choose_operation');
+    }
+    const gradeBand = question.gradeBand || 'G1';
+    return (
+      <SequencePatternGuide
+        question={question}
+        phase={phase}
+        gradeBand={gradeBand}
         onPhaseAdvance={onPhaseAdvance}
         onPhaseBack={onPhaseBack}
         onSubmitAnswer={onSubmitAnswer}
@@ -924,21 +936,10 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
     const input = userAnswer.trim();
     if (!input) return;
 
-    // v2.6.6: 运行时防御 — 非计算题不应进入数字答案流程
-    if (question.requiresEquation === false || question.problemType?.startsWith('logic')) {
-      console.error('[P0] Non-equation question rendered equation answer UI', {
-        questionId: question.id,
-        text: question.text.slice(0, 50),
-        problemType: question.problemType,
-        operation: question.operation,
-      });
-      // 自动切换为安全处理：将输入内容交给状态机
-    }
+    // v2.7: 使用统一答案检查器
+    const answerResult = checkAnswer(input, question);
 
-    const correctStr = String(question.answer);
-    const isCorrect = input === correctStr || parseFloat(input) === question.answer;
-
-    if (isCorrect) {
+    if (answerResult.correct) {
       setAnswered(true);
       setWrongFeedback(null);
       // v2.6.4: 使用统一事务提交 — 一次点击完成提交+推进
@@ -954,15 +955,8 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
       const newAttempts = wrongAttempts + 1;
       setWrongAttempts(newAttempts);
       onWrongAnswer(input);
-      // v2.6.7: 递进式错误反馈，不直接爆答案
-      const op = question.operation;
-      if (newAttempts === 1) {
-        setWrongFeedback('还差一点，先看看相邻两层的变化。再算算看～');
-      } else if (newAttempts === 2) {
-        setWrongFeedback('每一层都比上一层多同样的数量，注意看规律哦～');
-      } else {
-        setWrongFeedback('这道题有点难，可以点击下面的"看完整推理"来学习思路～');
-      }
+      // v2.7: 使用统一 checker 的反馈
+      setWrongFeedback(answerResult.feedback || '再想想哦～');
     }
   }
 
