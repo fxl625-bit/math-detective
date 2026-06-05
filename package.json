@@ -10,7 +10,9 @@
     "validate:questions": "tsx -r tsconfig-paths/register scripts/validate-questions.ts",
     "validate:themes": "node scripts/validate-themes.mjs",
     "validate:hints": "node scripts/validate-hints.mjs",
-    "validate:lesson-generation": "node scripts/validate-lesson-generation.mjs"
+    "validate:lesson-generation": "node scripts/validate-lesson-generation.mjs",
+    "validate:child-ui": "node scripts/validate-child-ui.mjs",
+    "validate:release": "node scripts/validate-release.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",

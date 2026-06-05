@@ -1,5 +1,28 @@
 # Math Detective Changelog
 
+## v2.8.0 — 稳定化版本：P0 回归测试与发布闸门
+
+### 进入稳定化阶段，冻结新功能
+
+### 核心修复
+- **修复 /play 无限跳回首页**：非法 step 不再 redirect，就地重建 safe fallback lesson
+- **修复 g1t_08/g1t_09 等量代换题**：stepCompatibility 移除 find_action_words，防止进入动作词关卡
+- **新增 validate:child-ui**：扫描孩子端 UI 禁止工程异常文案
+- **新增 validate:release**：发布闸门，依次运行所有验证
+
+### 验证结果
+```
+validate:child-ui: ✅ 通过 (8 文件扫描)
+validate:hints: ✅ 通过 (324 题)
+validate:themes: ✅ 通过 (20 Story)
+build: ✅ 通过
+```
+
+### 版本
+- v2.7.6 → v2.8.0
+
+---
+
 ## v2.7.6 — P0 修复：奖励弹窗幂等与 /play 修复死循环
 
 ### 核心修复
