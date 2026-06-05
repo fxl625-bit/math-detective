@@ -12,6 +12,7 @@ import type { GameState, TodayLesson } from './types';
  * 检查是否有合法的多余信息。
  * 在修复 todayLesson 时使用，必须在客户端安全环境中运行。
  */
+
 function hasValidExtraNumbers(question: {
   extraNumbers?: number[];
   noisePhrases?: string[];
@@ -35,10 +36,14 @@ function hasValidExtraInfo(question: {
   usefulPhrases?: string[];
   text?: string;
 }): boolean {
-  // v2.8.1: requires EITHER extraNumbers OR noisePhrases
-  return hasValidExtraNumbers(question) || hasValidNoisePhrases(question);
-
+  const extraCount = (question.extraNumbers ?? []).length;
+  const noiseCount = (question.noisePhrases ?? []).length;
+  if (extraCount === 0 && noiseCount === 0) return false;
+  // 至少有一些 usefulPhrases
+  if ((question.usefulPhrases ?? []).length === 0) return false;
+  return true;
 }
+
 /**
  * 修复非法 todayLesson：
  * - 检查 identify_extra_info / spot_extra_info step 是否指向合法题目
@@ -62,7 +67,7 @@ export function repairInvalidTodayLesson(
     const isExtraInfo = step.type === 'spot_extra_info';
     const isRemoveNoise = step.type === 'remove_noise';
 
-        if (isExtraInfo) {
+    if (isExtraInfo) {
       const q = getQuestionById(step.questionId);
       if (!q || !hasValidExtraNumbers(q)) {
         console.warn(
@@ -75,6 +80,7 @@ export function repairInvalidTodayLesson(
     if (isRemoveNoise) {
       const q = getQuestionById(step.questionId);
       if (!q || !hasValidNoisePhrases(q)) {
+
         console.warn(
           `[Upgrade] Invalid remove_noise step detected (questionId=${step.questionId}), marking for repair`
         );
@@ -83,7 +89,6 @@ export function repairInvalidTodayLesson(
       }
     }
   }
-
   return { lesson, wasRepaired };
 }
 

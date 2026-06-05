@@ -579,16 +579,14 @@ export function selectQuestionForStep(params: {
     const compatible = themeCompatible.filter(q =>
       q.stepCompatibility?.includes(stepType) || (!q.stepCompatibility && isCompatible(q))
     ).filter(q => {
-      // v2.8.1: spot_extra_info MUST have extraNumbers even when stepCompatibility matches
       if (stepType === 'spot_extra_info') {
         return Array.isArray(q.extraNumbers) && q.extraNumbers.length > 0;
       }
-      // v2.8.1: remove_noise MUST have noisePhrases even when stepCompatibility matches
       if (stepType === 'remove_noise') {
         return Array.isArray(q.noisePhrases) && q.noisePhrases.length > 0;
       }
       return true;
-    })
+    });
 
     if (compatible.length > 0) {
       for (let i = compatible.length - 1; i > 0; i--) {
@@ -1182,7 +1180,7 @@ export function validateStepQuestionCompatibility(
     return '年龄倍数题不适合动作线索关卡';
   }
 
-    // 4. spot_extra_info: MUST have extraNumbers (NOT noisePhrases!)
+  // 4. spot_extra_info: MUST have extraNumbers (NOT noisePhrases)
   if (st === 'spot_extra_info') {
     if (!Array.isArray(question.extraNumbers) || question.extraNumbers.length === 0) {
       return 'spot_extra_info requires extraNumbers non-empty (noisePhrases do NOT count)';
@@ -1196,7 +1194,7 @@ export function validateStepQuestionCompatibility(
     }
   }
 
-// 5. simulation: 必须有 visualKey
+  // 5.// 5. simulation: 必须有 visualKey
   if (st === 'simulation') {
     if (!question.visualKey) {
       return '没有可视化素材，不适合演示关卡';
