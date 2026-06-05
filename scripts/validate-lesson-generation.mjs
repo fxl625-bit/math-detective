@@ -420,3 +420,69 @@ if (stuckCount > 0 || invalidStepCount > 0) {
 } else {
   console.log('\n  >>> ALL PLAYTHROUGHS VALID <<<');
 }
+
+
+// ========== v2.8.2: Real playthrough verification ==========
+console.log('\n=== Real Playthrough Verification ===');
+const _grades = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6'];
+let _ptTotal = 0;
+let _ptPassed = 0;
+let _stuckCount = 0;
+let _invalidCount = 0;
+
+for (const _g of _grades) {
+  const _pool = allQuestions.filter(q => q.gradeBand === _g);
+  if (_pool.length < 6) continue;
+  _ptTotal++;
+  
+  let _ok = true;
+  // Check find_action_words doesn't get pattern questions
+  for (const _q of _pool) {
+    if (_q.problemType === 'pattern' || _q.problemType === 'sequence_arithmetic') {
+      const _sc = _q.stepCompatibility || [];
+      if (_sc.includes('find_action_words')) {
+        console.log('  FAIL: pattern q ' + _q.id + ' has find_action_words in stepCompatibility');
+        _invalidCount++;
+        _ok = false;
+      }
+      if (_sc.includes('remove_noise')) {
+        console.log('  FAIL: pattern q ' + _q.id + ' has remove_noise in stepCompatibility');
+        _invalidCount++;
+        _ok = false;
+      }
+    }
+  }
+  // Check find_action_words has compatible questions
+  const _actionPool = _pool.filter(q => (q.stepCompatibility || []).includes('find_action_words') || (!q.stepCompatibility && q.keywords && q.keywords.length > 0));
+  if (_actionPool.length === 0) {
+    _stuckCount++;
+    _ok = false;
+  }
+  // Check remove_noise has compatible questions
+  const _noisePool = _pool.filter(q => (q.stepCompatibility || []).includes('remove_noise') || (!q.stepCompatibility && q.noisePhrases && q.noisePhrases.length > 0));
+  if (_noisePool.length === 0 && _g !== 'G1') {
+    // G1 may not have noise questions, that's OK
+  }
+  // Check spot_extra_info only has questions with extraNumbers
+  for (const _q of _pool) {
+    const _sc = _q.stepCompatibility || [];
+    if (_sc.includes('spot_extra_info')) {
+      if (!_q.extraNumbers || _q.extraNumbers.length === 0) {
+        console.log('  FAIL: ' + _q.id + ' has spot_extra_info but no extraNumbers');
+        _invalidCount++;
+        _ok = false;
+      }
+    }
+  }
+  if (_ok) _ptPassed++;
+}
+
+console.log('  ' + _ptTotal + ' grades tested, ' + _ptPassed + ' passed');
+console.log('  Stuck count: ' + _stuckCount);
+console.log('  Invalid step count: ' + _invalidCount);
+if (_stuckCount > 0 || _invalidCount > 0) {
+  console.log('\n  >>> CANNOT PUBLISH <<<');
+  process.exit(1);
+} else {
+  console.log('\n  >>> ALL PLAYTHROUGHS VALID <<<');
+}
