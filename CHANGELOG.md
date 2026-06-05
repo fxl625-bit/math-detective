@@ -1,3 +1,23 @@
+## v2.8.1 - P0 Fix: Separate remove_noise from identify_extra_info
+
+### Root Cause
+`validateStepQuestionCompatibility` and `hasValidExtraInfo` treated noisePhrases (filler text) as equivalent to extraNumbers (irrelevant digits), allowing questions with only filler text to enter the "spot extra info" step where children are forced to pick a "useless number" from actually useful digits.
+
+### Fixes
+- **types.ts**: Added `irrelevantNumbers`, `usefulNumbers`, `hasNoiseText`, `hasIrrelevantNumbers`, `qualityStatus` fields to Question interface
+- **lessonPlanner.ts**: `selectQuestionForStep` now enforces extraNumbers non-empty for spot_extra_info even when stepCompatibility matches; `validateStepQuestionCompatibility` split checks: spot_extra_info requires extraNumbers, remove_noise requires noisePhrases (never cross-check)
+- **versionUpgrade.ts**: `hasValidExtraInfo` split into `hasValidExtraNumbers` and `hasValidNoisePhrases`
+- **g1-thinking.ts**: Fixed g1t_25/g1t_26 (removed spot_extra_info from stepCompatibility), fixed g1t_12 (removed spot_extra_info from cognitiveSkills)
+- **g1-thinking.ts + g2-olympiad.ts**: Removed remove_noise from 4 questions with empty noisePhrases
+- **migrations.ts**: STATE_VERSION 6 -> 7 to force clean rebuild of bad lessons
+- **validate-release.mjs**: Upgraded to 10-gate release blocker including no-irrelevant-number-step E2E test
+- **validate-lesson-generation.mjs**: Added stepCompatibility consistency audit
+- **reports/extra-info-audit.json**: Full audit of 350 questions
+- **tests/e2e/no-irrelevant-number-step.spec.ts**: New E2E tests
+
+### Breaking Changes
+- Old localStorage lessons with spot_extra_info steps pointing to questions without extraNumbers will be cleared and rebuilt on next /play visit
+
 # Math Detective Changelog
 
 ## v2.8.0 — 稳定化版本：P0 回归测试与发布闸门

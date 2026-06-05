@@ -12,11 +12,31 @@ import type { GameState, TodayLesson } from './types';
  * 检查是否有合法的多余信息。
  * 在修复 todayLesson 时使用，必须在客户端安全环境中运行。
  */
+function hasValidExtraNumbers(question: {
+  extraNumbers?: number[];
+  noisePhrases?: string[];
+  usefulPhrases?: string[];
+  text?: string;
+}): boolean {
+  // v2.8.1: spot_extra_info ONLY checks extraNumbers, NOT noisePhrases
+  return Array.isArray(question.extraNumbers) && question.extraNumbers.length > 0;
+}
+
+function hasValidNoisePhrases(question: {
+  noisePhrases?: string[];
+}): boolean {
+  // v2.8.1: remove_noise ONLY checks noisePhrases
+  return Array.isArray(question.noisePhrases) && question.noisePhrases.length > 0;
+}
+
 function hasValidExtraInfo(question: {
   extraNumbers?: number[];
   noisePhrases?: string[];
   usefulPhrases?: string[];
   text?: string;
+}): boolean {
+  // v2.8.1: requires EITHER extraNumbers OR noisePhrases
+  return hasValidExtraNumbers(question) || hasValidNoisePhrases(question);
 }): boolean {
   const extraCount = (question.extraNumbers ?? []).length;
   const noiseCount = (question.noisePhrases ?? []).length;
