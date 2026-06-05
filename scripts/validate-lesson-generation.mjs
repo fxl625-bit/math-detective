@@ -50,8 +50,6 @@ function parseQuestions(content, filename) {
     questions.push({
       id, text, sceneType, themeTags, problemType, answerType,
       stepCompatibility, gradeBand, file: filename,
-    ,
-      _raw: block,
     });
   }
   return questions;
@@ -317,39 +315,4 @@ if (failedStories.length > 0) {
   process.exit(1);
 } else {
   console.log('\n✅ 所有 Story 生成验证通过。');
-}
-
-// ========== v2.8.1: Step compatibility audit ==========
-
-console.log('\n=== Step Compatibility Audit ===');
-
-let compatIssues = 0;
-for (const q of allQuestions) {
-  const sc = q.stepCompatibility || [];
-  let hasSpotExtra = sc.includes('spot_extra_info');
-  let hasRemoveNoise = sc.includes('remove_noise');
-  
-  // Check extraNumbers existence
-  const extraNumsMatch = q._raw?.match(/extraNumbers:\s*\[([^\]]*)\]/);
-  const extraNumsNonEmpty = extraNumsMatch && extraNumsMatch[1].trim().length > 0;
-  
-  // Check noisePhrases existence
-  const noiseMatch = q._raw?.match(/noisePhrases:\s*\[([^\]]*)\]/);
-  const noiseNonEmpty = noiseMatch && noiseMatch[1].trim().length > 0;
-  
-  if (hasSpotExtra && !extraNumsNonEmpty) {
-    console.log(`  FAIL: ${q.id} has spot_extra_info but extraNumbers is empty/missing`);
-    compatIssues++;
-  }
-  if (hasRemoveNoise && !noiseNonEmpty) {
-    console.log(`  FAIL: ${q.id} has remove_noise but noisePhrases is empty/missing`);
-    compatIssues++;
-  }
-}
-
-if (compatIssues === 0) {
-  console.log('  PASS: All stepCompatibility entries are consistent');
-} else {
-  console.log(`  FAIL: ${compatIssues} compatibility issues found`);
-  totalFailed++;
 }

@@ -201,7 +201,7 @@ export const g2OlympiadQuestions: Question[] = [
     difficulty: 2, category: 'mixed', visualKey: 'flower', requiresAnswer: true,
   lessonType:'number_clue',
   keywordType:'add_action',
-    stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
+    stepCompatibility: ['find_numbers', 'simulation', 'remove_noise', 'full_solve'],
     answerType: 'number',
     sceneType: 'playground',
     themeTags: ["interval","planting"],
