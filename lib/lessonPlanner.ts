@@ -578,7 +578,15 @@ export function selectQuestionForStep(params: {
 
     const compatible = themeCompatible.filter(q =>
       q.stepCompatibility?.includes(stepType) || (!q.stepCompatibility && isCompatible(q))
-    );
+    ).filter(q => {
+      if (stepType === 'spot_extra_info') {
+        return Array.isArray(q.extraNumbers) && q.extraNumbers.length > 0;
+      }
+      if (stepType === 'remove_noise') {
+        return Array.isArray(q.noisePhrases) && q.noisePhrases.length > 0;
+      }
+      return true;
+    });
 
     if (compatible.length > 0) {
       for (let i = compatible.length - 1; i > 0; i--) {
@@ -1172,16 +1180,21 @@ export function validateStepQuestionCompatibility(
     return '年龄倍数题不适合动作线索关卡';
   }
 
-  // 4. spot_extra_info: 必须有多余数据
+  // 4. spot_extra_info: MUST have extraNumbers (NOT noisePhrases)
   if (st === 'spot_extra_info') {
-    const hasExtra = (question.extraNumbers && question.extraNumbers.length > 0) ||
-      (question.noisePhrases && question.noisePhrases.length > 0);
-    if (!hasExtra) {
-      return '没有多余信息，不适合识别多余信息关卡';
+    if (!Array.isArray(question.extraNumbers) || question.extraNumbers.length === 0) {
+      return 'spot_extra_info requires extraNumbers non-empty (noisePhrases do NOT count)';
     }
   }
 
-  // 5. simulation: 必须有 visualKey
+  // 4b. remove_noise: MUST have noisePhrases
+  if (st === 'remove_noise') {
+    if (!Array.isArray(question.noisePhrases) || question.noisePhrases.length === 0) {
+      return 'remove_noise requires noisePhrases non-empty';
+    }
+  }
+
+  // 5.// 5. simulation: 必须有 visualKey
   if (st === 'simulation') {
     if (!question.visualKey) {
       return '没有可视化素材，不适合演示关卡';

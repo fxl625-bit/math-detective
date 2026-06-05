@@ -291,6 +291,13 @@ export interface Question {
   solutionStepsDetailed?: SolutionStepDetailed[];
   /** v2.7: 多答案题的子答案列表 */
   subAnswers?: SubAnswer[];
+  /** v2.8.1 */
+  hasNoiseText?: boolean;
+  hasIrrelevantNumbers?: boolean;
+  irrelevantNumbers?: Array<{ value: number | string; phrase: string; reason: string; }>;
+  usefulNumbers?: Array<{ value: number | string; phrase: string; role: string; }>;
+  qualityStatus?: 'pass' | 'fail' | 'unsafe' | 'needs_review';
+
 }
 
 // ========== 关卡阶段 ==========

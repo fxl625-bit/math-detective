@@ -12,6 +12,24 @@ import type { GameState, TodayLesson } from './types';
  * 检查是否有合法的多余信息。
  * 在修复 todayLesson 时使用，必须在客户端安全环境中运行。
  */
+
+function hasValidExtraNumbers(question: {
+  extraNumbers?: number[];
+  noisePhrases?: string[];
+  usefulPhrases?: string[];
+  text?: string;
+}): boolean {
+  // v2.8.1: spot_extra_info ONLY checks extraNumbers, NOT noisePhrases
+  return Array.isArray(question.extraNumbers) && question.extraNumbers.length > 0;
+}
+
+function hasValidNoisePhrases(question: {
+  noisePhrases?: string[];
+}): boolean {
+  // v2.8.1: remove_noise ONLY checks noisePhrases
+  return Array.isArray(question.noisePhrases) && question.noisePhrases.length > 0;
+}
+
 function hasValidExtraInfo(question: {
   extraNumbers?: number[];
   noisePhrases?: string[];
@@ -49,18 +67,28 @@ export function repairInvalidTodayLesson(
     const isExtraInfo = step.type === 'spot_extra_info';
     const isRemoveNoise = step.type === 'remove_noise';
 
-    if (isExtraInfo || isRemoveNoise) {
+    if (isExtraInfo) {
       const q = getQuestionById(step.questionId);
-      if (!q || !hasValidExtraInfo(q)) {
+      if (!q || !hasValidExtraNumbers(q)) {
         console.warn(
-          `[Upgrade] Invalid ${step.type} step detected (questionId=${step.questionId}), marking for repair`
+          `[Upgrade] Invalid spot_extra_info step detected (questionId=${step.questionId}), marking for repair`
         );
         wasRepaired = true;
-        break; // 一个无效即需重建整体
+        break;
+      }
+    }
+    if (isRemoveNoise) {
+      const q = getQuestionById(step.questionId);
+      if (!q || !hasValidNoisePhrases(q)) {
+
+        console.warn(
+          `[Upgrade] Invalid remove_noise step detected (questionId=${step.questionId}), marking for repair`
+        );
+        wasRepaired = true;
+        break;
       }
     }
   }
-
   return { lesson, wasRepaired };
 }
 
