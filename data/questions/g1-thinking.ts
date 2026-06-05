@@ -1,4 +1,4 @@
-import { Question } from '@/lib/types';
+﻿import { Question } from '@/lib/types';
 
 export const g1ThinkingQuestions: Question[] = [
   // ========== 逻辑推理：排名 ==========
@@ -404,7 +404,7 @@ export const g1ThinkingQuestions: Question[] = [
     explanation: '每层加2瓶：第1层2瓶→第2层4瓶→第3层6瓶→第4层8瓶→第5层10瓶。',
     solutionSteps: ['找规律：每层多2瓶', '第4层：6+2=8', '第5层：8+2=10'],
     hints: ['每往下一层多几瓶？一层层加出来！'],
-    difficulty: 2, category: 'ad['find_action_words', 'full_solve']
+    difficulty: 2, category: 'mixed', visualKey: 'bottle', requiresAnswer: true,
   lessonType:'number_clue',
   keywordType:'number_extract',
     stepCompatibility: ['find_numbers', 'simulation', 'full_solve'],
@@ -494,14 +494,16 @@ export const g1ThinkingQuestions: Question[] = [
     correctMeaning: '黄色', operation: 'logic', equation: '8 ÷ 3 = 2...2', answer: '黄色',
     answerSentence: '第8个灯笼是黄色。',
     explanation: '红黄蓝3个一循环。8÷3=2组余2个。余2就是第3个位置的颜色：红(1)→黄(2)。',
-    solutionSteps: ['一组3个：红黄蓝', '8个里有几组：8÷3=2组...余2', '余2对['find_numbers', 'simulation', 'full_solve']lty: 2, category: 'mixed', visualKey: 'balloon', requiresAnswer: true,
+    solutionSteps: ['一组3个：红黄蓝', '8个里有几组：8÷3=2组...余2', '余2对应黄色'],
+    hints: ['先找一组循环：红、黄、蓝，再看第8个落在这一组的第几个。'],
+    difficulty: 2, category: 'mixed', visualKey: 'balloon', requiresAnswer: true,
   lessonType:'logic_reasoning',
   keywordType:'number_extract',
     stepCompatibility: ['full_solve'],
     answerType: 'text',
     sceneType: 'generic',
     themeTags: ["generic"],
-    problemType: 'basic_arithmetic',
+    problemType: 'pattern',
   },
   {
     id: 'g1t_23', gradeBand: 'G1', domain: 'pattern',

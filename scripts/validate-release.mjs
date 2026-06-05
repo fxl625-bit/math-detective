@@ -1,5 +1,5 @@
 /**
- * Release blocker (v2.8.2)
+ * Release blocker (v2.8.3)
  *
  * All gates must pass before deploy. Any failure exits 1.
  *
@@ -13,22 +13,19 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const STEPS = [
-  { name: 'validate:questions', cmd: 'npx tsx -r tsconfig-paths/register scripts/validate-questions.ts' },
-  { name: 'validate:themes', cmd: 'node scripts/validate-themes.mjs' },
-  { name: 'validate:hints', cmd: 'node scripts/validate-hints.mjs' },
-  { name: 'validate:child-ui', cmd: 'node scripts/validate-child-ui.mjs' },
-  { name: 'validate:lesson-generation', cmd: 'node scripts/validate-lesson-generation.mjs' },
-  { name: 'test:e2e:play', cmd: 'npx playwright test tests/e2e/play-no-home-redirect.spec.ts' },
-  { name: 'test:e2e:repair', cmd: 'npx playwright test tests/e2e/repair-loop.spec.ts' },
-  { name: 'test:e2e:reward', cmd: 'npx playwright test tests/e2e/reward-once.spec.ts' },
-  { name: 'test:e2e:no-irrelevant', cmd: 'npx playwright test tests/e2e/no-irrelevant-number-step.spec.ts' },
-  { name: 'test:e2e:pattern-loop', cmd: 'npx playwright test tests/e2e/pattern-step-loop.spec.ts' },
-  { name: 'test:e2e:playthrough', cmd: 'npx playwright test tests/e2e/full-lesson-playthrough.spec.ts' },
-  { name: 'build', cmd: 'npx next build --webpack && node scripts/postbuild-css.js' },
+  { name: 'lint', cmd: 'npm run lint' },
+  { name: 'typecheck', cmd: 'npm run typecheck' },
+  { name: 'validate:questions', cmd: 'npm run validate:questions' },
+  { name: 'validate:themes', cmd: 'npm run validate:themes' },
+  { name: 'validate:hints', cmd: 'npm run validate:hints' },
+  { name: 'validate:child-ui', cmd: 'npm run validate:child-ui' },
+  { name: 'test:state-machine', cmd: 'npm run test:state-machine' },
+  { name: 'test:e2e', cmd: 'npm run test:e2e' },
+  { name: 'build', cmd: 'npm run build' },
 ];
 
 console.log('========================================');
-console.log('  Math Detective validate:release v2.8.2');
+console.log('  Math Detective validate:release v2.8.3');
 console.log('========================================');
 console.log('');
 

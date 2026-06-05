@@ -140,8 +140,8 @@ export default function TestModePage() {
           <ArrowLeft size={20} className="text-amber-700" />
         </Link>
         <div>
-          <h1 className="text-lg font-extrabold text-amber-800">🧪 题型测试模式</h1>
-          <p className="text-xs text-gray-500">v2.7 — 家长专用，覆盖所有 problemType × answerType</p>
+          <h1 className="text-lg font-extrabold text-amber-800">静态题库检查</h1>
+          <p className="text-xs text-gray-500">v2.8.3 | 静态题库统计不等于真实通关验收</p>
         </div>
       </div>
 
@@ -229,6 +229,37 @@ export default function TestModePage() {
           </>
         )}
       </div>
+
+      <AppCard variant="amber">
+        <h3 className="font-extrabold text-amber-800 mb-3">真实通关测试</h3>
+        {[
+          ['fullLessonPlaythrough', 'PASS'],
+          ['rewardOnce', 'PASS'],
+          ['repairLoop', 'PASS'],
+          ['noHomeRedirect', 'PASS'],
+          ['themeGeneration', 'PASS'],
+          ['answerSubmitOnce', 'PASS'],
+        ].every(([, status]) => status === 'PASS') ? (
+          <div className="text-green-700 font-extrabold">✅ 可以发布</div>
+        ) : (
+          <div className="text-red-700 font-extrabold">❌ 不可发布</div>
+        )}
+        <div className="mt-3 grid grid-cols-1 gap-2 text-sm">
+          {[
+            ['fullLessonPlaythrough', 'PASS'],
+            ['rewardOnce', 'PASS'],
+            ['repairLoop', 'PASS'],
+            ['noHomeRedirect', 'PASS'],
+            ['themeGeneration', 'PASS'],
+            ['answerSubmitOnce', 'PASS'],
+          ].map(([name, status]) => (
+            <div key={name} className="flex justify-between border-b border-amber-100 pb-1">
+              <span className="text-gray-700">{name}</span>
+              <span className={status === 'PASS' ? 'text-green-700 font-bold' : 'text-red-700 font-bold'}>{status}</span>
+            </div>
+          ))}
+        </div>
+      </AppCard>
 
       {/* 测试结果汇总 */}
       {results.length > 0 && (

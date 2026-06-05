@@ -1,3 +1,21 @@
+## v2.8.3 - 稳定化：CI E2E 发布闸门
+
+* 新增 GitHub Actions validate-release workflow；
+* 新增 Playwright E2E 完整 6 关通关测试；
+* 新增已知 P0 回归测试；
+* 新增 reward-once E2E；
+* 新增 repair-loop E2E；
+* 新增 theme-generation E2E；
+* 新增 state machine 单元测试；
+* 静态题库测试改名为静态题库检查；
+* 家长测试模式新增真实通关测试状态；
+* 修复 pattern/倍数/多余数字等题型进入错误关卡的问题；
+* generateTodayLesson 后强制 validateTodayLesson；
+* validate fail 自动重试，最终 fallback safe lesson；
+* 旧 localStorage 坏任务升级后丢弃；
+* 孩子端移除工程异常页面；
+* CI 失败时禁止部署 production。
+
 ## v2.8.2 - P0: pattern question loop fix + real E2E playthrough tests
 
 ### Root Cause

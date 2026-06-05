@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowLeft, Check, X, ArrowUpRight, ArrowDownRight, ShieldCheck, Lightbulb, Calculator } from 'lucide-react';
@@ -37,10 +37,32 @@ import NumberLine from '@/components/NumberLine';
 import CountingBlocks from '@/components/CountingBlocks';
 import BalanceScale from '@/components/BalanceScale';
 
+declare global {
+  interface Window {
+    MATH_DETECTIVE_TEST?: {
+      getLesson: () => unknown;
+      getState: () => Record<string, unknown>;
+      getCorrectAnswer: () => number | string | null;
+      submitAnswer: () => boolean;
+      goNext: () => boolean;
+      getValidationStatus: () => Record<string, unknown>;
+    };
+  }
+}
+
 const STEP_ORDER: LessonStepType[] = ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve', 'find_compare_numbers', 'spot_extra_info', 'spot_missing_info'];
 
 export default function PlayPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-orange-50" />}>
+      <PlayPageContent />
+    </Suspense>
+  );
+}
+
+function PlayPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { state, completeQuestion } = useGameState();
 
   const [lesson, setLesson] = useState<TodayLesson | null>(null);
@@ -297,6 +319,73 @@ export default function PlayPage() {
     ? (getQuestionForLesson(lesson!) || null)
     : null;
   const visual = question ? getVisual(question.visualKey) : null;
+
+  useEffect(() => {
+    const e2eEnabled = process.env.NODE_ENV !== 'production' && searchParams.get('e2e') === '1';
+    if (!e2eEnabled || typeof window === 'undefined') return;
+
+    const testApi = {
+      getLesson: () => lessonRef.current,
+      getState: () => {
+        const currentLesson = lessonRef.current;
+        const step = currentLesson ? getCurrentStep(currentLesson) : null;
+        const q = currentLesson ? getQuestionForLesson(currentLesson) : null;
+        return {
+          lesson: currentLesson,
+          currentStepIndex: currentLesson?.currentStepIndex ?? null,
+          currentPhaseIndex: step?.currentPhaseIndex ?? null,
+          currentPhase: currentLesson ? getCurrentPhase(currentLesson) : null,
+          questionId: step?.questionId ?? null,
+          stepType: step?.type ?? null,
+          completed: currentLesson?.completed ?? false,
+          rewardClaimed: currentLesson?.rewardClaimed ?? false,
+          rewardShown: currentLesson?.rewardShown ?? false,
+          answerType: q ? resolveAnswerType(q) : null,
+        };
+      },
+      getCorrectAnswer: () => {
+        const q = lessonRef.current ? getQuestionForLesson(lessonRef.current) : null;
+        return q?.answer ?? null;
+      },
+      submitAnswer: () => {
+        const currentLesson = lessonRef.current;
+        const step = currentLesson ? getCurrentStep(currentLesson) : null;
+        const q = currentLesson ? getQuestionForLesson(currentLesson) : null;
+        if (!step || !q) return false;
+        handleSubmitAnswer(String(q.answer), q.id);
+        return true;
+      },
+      goNext: () => {
+        const currentLesson = lessonRef.current;
+        const phase = currentLesson ? getCurrentPhase(currentLesson) : null;
+        if (!currentLesson || currentLesson.completed) return false;
+        if (phase === 'explain') {
+          handleStepComplete(true);
+        } else {
+          handlePhaseAdvance();
+        }
+        return true;
+      },
+      getValidationStatus: () => {
+        const currentLesson = lessonRef.current;
+        const step = currentLesson ? getCurrentStep(currentLesson) : null;
+        const q = step ? getQuestionById(step.questionId) : null;
+        return {
+          hasLesson: Boolean(currentLesson),
+          hasStep: Boolean(step),
+          hasQuestion: Boolean(q),
+          compatibilityError: step && q ? validateStepQuestionCompatibility(step, q) : null,
+        };
+      },
+    };
+
+    window.MATH_DETECTIVE_TEST = testApi;
+    return () => {
+      if (window.MATH_DETECTIVE_TEST === testApi) {
+        delete window.MATH_DETECTIVE_TEST;
+      }
+    };
+  }, [lesson, searchParams, handleSubmitAnswer, handleStepComplete, handlePhaseAdvance]);
 
   // Phase back (v2.6.4: 走事务系统，消除闭包陈旧问题)
   const handlePhaseBack = useCallback(() => {
@@ -2016,6 +2105,7 @@ function CompareNumbersPhased({
 function SpotExtraInfoPhased({
   phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer,
 }: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
+  const [foundExtra, setFoundExtra] = useState<Set<number>>(new Set());
   // v2.6.9: data-layer repair ensures valid questions. Safety net only.
   const extraNumbers = question.extraNumbers ?? [];
   const noiseCount = question.noisePhrases?.length ?? 0;
@@ -2027,7 +2117,6 @@ function SpotExtraInfoPhased({
   }
   
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
-  const [foundExtra, setFoundExtra] = useState<Set<number>>(new Set());
   const allExtraFound = extraNumbers.length > 0 && foundExtra.size === extraNumbers.length;
 
   if (phase === 'read') {

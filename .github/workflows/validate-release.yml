@@ -1,0 +1,63 @@
+name: Validate Release
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    name: Release Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Validate questions
+        run: npm run validate:questions
+
+      - name: Validate themes
+        run: npm run validate:themes
+
+      - name: Validate hints
+        run: npm run validate:hints
+
+      - name: Validate child UI
+        run: npm run validate:child-ui
+
+      - name: State machine tests
+        run: npm run test:state-machine
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: E2E tests
+        run: npm run test:e2e
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

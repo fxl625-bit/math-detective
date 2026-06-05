@@ -1,64 +1,41 @@
-/**
- * E2E 测试: 每日奖励只弹一次
- *
- * 验证：
- * 1. 完成任务后奖励弹窗出现一次
- * 2. 关闭后不再弹
- * 3. 刷新后不再弹
- */
+import { expect, test } from '@playwright/test';
+import { openPlayE2E, playThroughLesson, seedG1State } from './helpers';
 
-import { test, expect } from '@playwright/test';
+test.describe('daily reward is shown once', () => {
+  test('completion reward flags remain stable across navigation and reload', async ({ page }) => {
+    await seedG1State(page);
+    await openPlayE2E(page);
+    await playThroughLesson(page, 6);
 
-test.describe('每日奖励幂等', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-    await page.evaluate(() => {
-      localStorage.clear();
+    const afterCompletion = await page.evaluate(() => {
+      const lesson = JSON.parse(localStorage.getItem('math-detective-today-lesson') || 'null');
+      const state = JSON.parse(localStorage.getItem('math-detective-state') || 'null');
+      return { lesson, state };
     });
-  });
+    expect(afterCompletion.lesson.rewardClaimed).toBe(true);
+    expect(afterCompletion.lesson.rewardShown).toBe(true);
+    const stars = afterCompletion.state?.stars ?? 0;
+    const exp = afterCompletion.state?.exp ?? 0;
+    const streak = afterCompletion.state?.streak ?? 0;
 
-  test('rewardShown 标记持久化', async ({ page }) => {
-    // 先打开页面让 JS 加载
     await page.goto('/');
-    await page.waitForTimeout(1000);
-    // 写入已完成且奖励已展示的 lesson
-    // 使用 full_solve step type + g1_01 (basic_arithmetic) 确保兼容
-    await page.evaluate(() => {
-      const today = new Date().toISOString().split('T')[0];
-      const lesson = {
-        date: today,
-        currentStepIndex: 0,
-        completed: true,
-        rewardClaimed: true,
-        rewardShown: true,
-        rewardClaimedAt: new Date().toISOString(),
-        rewardShownAt: new Date().toISOString(),
-        steps: [{
-          id: 'test_step_1',
-          type: 'full_solve',
-          title: '完整破案',
-          description: '从头到尾破解',
-          questionId: 'g1_01',
-          phases: ['read', 'find_numbers', 'find_keywords', 'choose_operation', 'build_equation', 'answer', 'explain', 'completed'],
-          currentPhaseIndex: 6,
-          status: 'completed',
-          requiresAnswer: true,
-        }],
-      };
-      localStorage.setItem('math-detective-today-lesson', JSON.stringify(lesson));
-      // 设置版本号防止 migration 清除
-      localStorage.setItem('math-detective-app-version', '2.8.0');
-    });
-    // 刷新页面
+    await page.waitForTimeout(500);
+    await page.goto('/play?e2e=1');
+    await page.waitForTimeout(500);
+    await page.goto('/');
     await page.reload();
-    await page.waitForTimeout(2000);
-    // 检查 localStorage 中 rewardShown 仍为 true
-    const rewardShown = await page.evaluate(() => {
-      const raw = localStorage.getItem('math-detective-today-lesson');
-      if (!raw) return false;
-      const lesson = JSON.parse(raw);
-      return lesson.rewardShown === true;
+
+    const afterReload = await page.evaluate(() => {
+      const lesson = JSON.parse(localStorage.getItem('math-detective-today-lesson') || 'null');
+      const state = JSON.parse(localStorage.getItem('math-detective-state') || 'null');
+      return { lesson, state };
     });
-    expect(rewardShown).toBe(true);
+    if (afterReload.lesson) {
+      expect(afterReload.lesson.rewardClaimed).toBe(true);
+      expect(afterReload.lesson.rewardShown).toBe(true);
+    }
+    expect(afterReload.state?.stars ?? 0).toBe(stars);
+    expect(afterReload.state?.exp ?? 0).toBe(exp);
+    expect(afterReload.state?.streak ?? 0).toBe(streak);
   });
 });

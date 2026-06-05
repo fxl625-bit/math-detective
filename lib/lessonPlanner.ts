@@ -80,7 +80,7 @@ export function getDefaultPhasesForStepType(type: LessonStepType, question?: Que
       return ['read', 'find_numbers', 'answer'];
     }
     if (type === 'full_solve') {
-      return ['read', 'find_numbers', 'understand_pattern', 'answer', 'explain'];
+      return ['read', 'find_numbers', 'understand_clues', 'answer', 'explain'];
     }
     return ['read', 'answer'];
   }
@@ -288,51 +288,10 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
           if (typeof window !== 'undefined') {
             console.warn(`[safeNormalizeLesson] step[${currentStepIdx}].question incompatible: ${compatError}. Auto-repairing.`);
           }
-          // 尝试选合法替换题
           const state = loadState();
-          const profile = getLearningProfile();
-          const usedIds = lesson.steps
-            .filter(s => s.questionId && s.questionId !== current.questionId)
-            .map(s => s.questionId);
-          let replacementQ = selectQuestionForStep({
-            stepType: current.type,
-            profile,
-            usedQuestionIds: usedIds,
-            story: lessonStory,
-          });
-          if (!replacementQ && current.type !== 'full_solve') {
-            replacementQ = selectQuestionForStep({
-              stepType: 'full_solve',
-              profile,
-              usedQuestionIds: usedIds,
-              story: lessonStory,
-            });
-          }
-          if (replacementQ) {
-            const stepMeta = buildStepFromQuestion({
-              question: replacementQ,
-              stepType: replacementQ.stepCompatibility?.includes(current.type) ? current.type : 'full_solve',
-              gradeBand: profile.gradeBand,
-            });
-            steps[currentStepIdx] = {
-              ...stepMeta,
-              status: 'current' as const,
-              currentPhaseIndex: 0,
-            };
-            saveTodayLesson({
-              date: today,
-              steps,
-              currentStepIndex: currentStepIdx,
-              completed: false,
-              caseStoryId: lesson.caseStoryId,
-            });
-          } else {
-            // 找不到替换题 → 生成安全降级课程
-            console.error(`[safeNormalizeLesson] No replacement found for step ${currentStepIdx}, generating safe fallback.`);
-            const fallback = generateSafeFallbackLesson(state.parentSettings.gradeBand);
-            saveTodayLesson(fallback);
-            return fallback;
-          }
+          const fallback = generateSafeFallbackLesson(state.parentSettings.gradeBand);
+          saveTodayLesson(fallback);
+          return fallback;
         }
       }
     }
@@ -433,7 +392,7 @@ export function getStepTypesForGrade(grade: GradeBand): LessonStepType[] {
 
   // G1/G2: 基础 + 随机进阶关卡（从一年级开始培养比较和筛选能力）
   if (grade === 'G1' || grade === 'G2') {
-    const g1Advanced: LessonStepType[] = ['find_compare_numbers', 'spot_extra_info', 'spot_missing_info'];
+    const g1Advanced: LessonStepType[] = ['find_compare_numbers'];
     shuffleArray(g1Advanced);
     base.push('simulation', 'remove_noise');
     base.push(...g1Advanced.slice(0, 1), 'full_solve');
@@ -807,12 +766,13 @@ function buildDailyLesson(
       });
       if (lastQ) {
         usedQuestionIds.push(lastQ.id);
-        const phases = [...getDefaultPhasesForStepType(st, lastQ)];
+        const actualType: LessonStepType = 'full_solve';
+        const phases = [...getDefaultPhasesForStepType(actualType, lastQ)];
         steps.push({
-          id: `${today}_${st}_${i}_${lastQ.id}`,
-          type: st,
-          title: getDynamicStepTitle(st, lastQ),
-          description: getDynamicStepDescription(st, lastQ),
+          id: `${today}_${actualType}_${i}_${lastQ.id}`,
+          type: actualType,
+          title: getDynamicStepTitle(actualType, lastQ),
+          description: getDynamicStepDescription(actualType, lastQ),
           questionId: lastQ.id,
           phases,
           currentPhaseIndex: 0,
@@ -922,7 +882,10 @@ function buildSafeLessonFromPool(pool: Question[], today: string, gradeBand: Gra
 
     const st = stepTypes[i] || 'full_solve';
     // 如果是 find_action_words 但题不合适，降为 full_solve
-    const actualType = (st === 'find_action_words' && !isSafeForActionWords(q)) ? 'full_solve' : st;
+    const actualType: LessonStepType =
+      validateStepQuestionCompatibility({ type: st, questionId: q.id } as LessonStep, q)
+        ? 'full_solve'
+        : st;
 
     const phases = [...getDefaultPhasesForStepType(actualType, q)];
     steps.push({
