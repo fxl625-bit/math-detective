@@ -291,16 +291,6 @@ export interface Question {
   solutionStepsDetailed?: SolutionStepDetailed[];
   /** v2.7: 多答案题的子答案列表 */
   subAnswers?: SubAnswer[];
-  /** v2.8.1: Computed noise-text flag */
-  hasNoiseText?: boolean;
-  /** v2.8.1: Computed irrelevant-numbers flag */
-  hasIrrelevantNumbers?: boolean;
-  /** v2.8.1: Structured irrelevant numbers */
-  irrelevantNumbers?: Array<{ value: number | string; phrase: string; reason: string; }>;
-  /** v2.8.1: Structured useful numbers */
-  usefulNumbers?: Array<{ value: number | string; phrase: string; role: string; }>;
-  /** v2.8.1: Quality gate status */
-  qualityStatus?: 'pass' | 'fail' | 'unsafe' | 'needs_review';
 }
 
 // ========== 关卡阶段 ==========

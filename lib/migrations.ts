@@ -1,7 +1,7 @@
 import { GameState, DEFAULT_GAME_STATE, TodayLesson, LessonStepType } from './types';
 import { normalizeLesson, normalizeStep, getDefaultPhasesForStepType } from './lessonPlanner';
 
-export const LEARNING_STATE_VERSION = 7;
+export const LEARNING_STATE_VERSION = 6;
 
 // ========== 扩展状态类型（带 version） ==========
 
