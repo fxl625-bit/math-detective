@@ -9,7 +9,7 @@ import LogicRankingGuide from '@/components/LogicRankingGuide';
 import SequencePatternGuide from '@/components/lesson/SequencePatternGuide';
 import { useGameState } from '@/hooks/useGameState';
 import { loadState, getAccuracyStats } from '@/lib/storage';
-import { getTodayLesson, normalizeLesson, safeNormalizeLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson, validateStepQuestionCompatibility } from '@/lib/lessonPlanner';
+import { getTodayLesson, normalizeLesson, safeNormalizeLesson, generateSafeFallbackLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson, validateStepQuestionCompatibility } from '@/lib/lessonPlanner';
 import { getQuestionById } from '@/data/questions';
 import { getStepNarrative } from '@/lib/storySystem';
 import { getVisual } from '@/data/visualItems';
@@ -55,10 +55,44 @@ export default function PlayPage() {
     setMounted(true);
     const raw = getTodayLesson();
     const validated = safeNormalizeLesson(raw);
-    lessonRef.current = validated;
-    setLesson(validated);
+    
+    // v2.8.2: Loop detection
+    if (validated && validated._loopDetected) {
+      const safe = generateSafeFallbackLesson(
+        loadState()?.parentSettings?.gradeBand || 'G1'
+      );
+      saveTodayLesson(safe);
+      lessonRef.current = safe;
+      setLesson(safe);
+    } else {
+      lessonRef.current = validated;
+      setLesson(validated);
+    }
 
-    // v2.6.9: 版本迁移检测
+    // v2.8.2: Track transitions
+    if (validated && !validated?._loopDetected && raw && raw.steps && validated.steps) {
+      const transitions = validated.lastTransitions || [];
+      const newStepIdx = validated.currentStepIndex;
+      const last = transitions[transitions.length - 1];
+      if (last && newStepIdx < last.toStepIndex && last.toStepIndex - newStepIdx > 1) {
+        console.error('[P0] unexpected step rollback');
+        const safe = generateSafeFallbackLesson(loadState()?.parentSettings?.gradeBand || 'G1');
+        saveTodayLesson(safe);
+        lessonRef.current = safe;
+        setLesson(safe);
+      }
+      const recentQids = transitions.slice(-5).map(t => t.questionId);
+      const curQid = validated.steps[newStepIdx]?.questionId;
+      if (curQid && recentQids.filter(q => q === curQid).length >= 2) {
+        console.error('[P0] question loop detected');
+        const safe = generateSafeFallbackLesson(loadState()?.parentSettings?.gradeBand || 'G1');
+        saveTodayLesson(safe);
+        lessonRef.current = safe;
+        setLesson(safe);
+      }
+    }
+
+// v2.6.9: 版本迁移检测
     if (typeof window !== 'undefined') {
       const lastVersion = localStorage.getItem('math-detective-app-version');
       if (lastVersion !== '2.6.9') {
@@ -108,8 +142,17 @@ export default function PlayPage() {
     clearTodayLesson();
     const fresh = getTodayLesson();
     const validated = safeNormalizeLesson(fresh);
-    lessonRef.current = validated;
-    setLesson(validated);
+    if (validated && validated._loopDetected) {
+      const safe = generateSafeFallbackLesson(
+        loadState()?.parentSettings?.gradeBand || 'G1'
+      );
+      saveTodayLesson(safe);
+      lessonRef.current = safe;
+      setLesson(safe);
+    } else {
+      lessonRef.current = validated;
+      setLesson(validated);
+    }
     setFeedback({ show: false, type: 'info', message: '' });
   }, []);
 

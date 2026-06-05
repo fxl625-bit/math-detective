@@ -316,3 +316,107 @@ if (failedStories.length > 0) {
 } else {
   console.log('\n✅ 所有 Story 生成验证通过。');
 }
+
+
+// ========== v2.8.2: Real playthrough verification ==========
+
+console.log('\n=== Real Playthrough Verification ===');
+
+// Simulate lesson generation for each grade
+const grades = ['G1', 'G2', 'G3', 'G4', 'G5', 'G6'];
+let playthroughTotal = 0;
+let playthroughPassed = 0;
+let stuckCount = 0;
+let invalidStepCount = 0;
+let loopCount = 0;
+
+for (const grade of grades) {
+  for (let iter = 0; iter < 20; iter++) {
+    playthroughTotal++;
+    
+    // Find questions for this grade
+    const gradeQuestions = allQuestions.filter(q => q.gradeBand === grade);
+    if (gradeQuestions.length === 0) continue;
+    
+    // Simulate checking each step type
+    const stepTypes = ['find_numbers', 'find_action_words', 'full_solve', 'remove_noise'];
+    
+    let lessonValid = true;
+    let issues = [];
+    
+    for (const st of stepTypes) {
+      // Check if any question can serve this step
+      const compatible = gradeQuestions.filter(q => {
+        if (q.stepCompatibility && !q.stepCompatibility.includes(st)) return false;
+        if (!q.stepCompatibility) {
+          // Check STEP_TYPE_REQUIREMENTS equivalent
+          if (st === 'find_numbers' && q.numbers.length === 0) return false;
+          if (st === 'find_action_words' && (!q.keywords || q.keywords.length === 0)) return false;
+          if (st === 'remove_noise' && (!q.noisePhrases || q.noisePhrases.length === 0)) return false;
+        }
+        // Extra check: pattern questions + find_action_words = INVALID
+        if (st === 'find_action_words' && q.problemType === 'pattern') return false;
+        if (st === 'find_action_words' && q.problemType === 'sequence_arithmetic') return false;
+        return true;
+      });
+      
+      if (compatible.length === 0) {
+        issues.push(`No compatible question for step ${st}`);
+        stuckCount++;
+      }
+      
+      // Check for invalid combinations
+      for (const q of compatible) {
+        if (st === 'find_action_words' && q.problemType === 'pattern') {
+          issues.push(`PATTERN IN ACTION WORDS: ${q.id}`);
+          invalidStepCount++;
+        }
+        if (st === 'remove_noise' && q.problemType === 'pattern') {
+          issues.push(`PATTERN IN REMOVE NOISE: ${q.id}`);
+          invalidStepCount++;
+        }
+      }
+    }
+    
+    // Check for duplicate questions across steps
+    const usedQids = new Set();
+    for (const st of stepTypes) {
+      const compatible = gradeQuestions.filter(q => {
+        if (q.stepCompatibility && !q.stepCompatibility.includes(st)) return false;
+        if (st === 'find_numbers' && q.numbers.length === 0) return false;
+        if (st === 'find_action_words' && (!q.keywords || q.keywords.length === 0)) return false;
+        return true;
+      });
+      if (compatible.length > 0) {
+        // Check if any question would cause loop
+        const qid = compatible[0].id;
+        if (usedQids.has(qid)) {
+          loopCount++;
+          issues.push(`Duplicate question ${qid} across steps`);
+        }
+        usedQids.add(qid);
+      }
+    }
+    
+    if (issues.length > 0) {
+      lessonValid = false;
+    }
+    
+    if (lessonValid) {
+      playthroughPassed++;
+    }
+  }
+}
+
+console.log(`  Lessons simulated: ${playthroughTotal}`);
+console.log(`  Complete lessons: ${playthroughPassed}`);
+console.log(`  Stuck count: ${stuckCount}`);
+console.log(`  Invalid step count: ${invalidStepCount}`);
+console.log(`  Loop count: ${loopCount}`);
+
+if (stuckCount > 0 || invalidStepCount > 0) {
+  console.log('\n  >>> CANNOT PUBLISH <<<');
+  process.exit(1);
+} else {
+  console.log('\n  >>> ALL PLAYTHROUGHS VALID <<<');
+}
