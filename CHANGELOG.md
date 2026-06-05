@@ -1,3 +1,27 @@
+## v2.8.2 - P0: pattern question loop fix + real E2E playthrough tests
+
+### Root Cause
+Pattern questions like "2、4、6、8、__" had no dedicated routing in getDefaultPhasesForStepType,
+causing them to enter incompatible steps (find_action_words) and trigger repair loops.
+No real E2E playthrough tests existed to catch this.
+
+### Fixes
+- **lessonPlanner.ts**: Added pattern/sequence routing in getDefaultPhasesForStepType - pattern questions
+  use ['read', 'find_numbers', 'understand_pattern', 'answer', 'explain'] and never enter find_action_words
+- **lessonPlanner.ts**: generateSafeFallbackLesson strengthened to filter pattern questions
+- **types.ts**: Added lastTransitions field to TodayLesson for state machine diagnostics
+- **state machine**: Loop detection with forced safe fallback on detection
+- **theme matching**: Pattern questions without scene tags can't enter strong theme stories
+  (already handled by existing isQuestionCompatibleWithTheme logic)
+- **tests/e2e/pattern-step-loop.spec.ts**: New E2E test verifying pattern questions don't cause loops
+- **tests/e2e/full-lesson-playthrough.spec.ts**: New E2E test simulating complete 6-step lesson
+- **validate-release.mjs**: Now includes pattern-loop and playthrough E2E tests
+- **STATE_VERSION**: 6 -> 8 to clear old bad lessons from localStorage
+- **version**: 2.8.1 -> 2.8.2
+
+### Breaking Changes
+- Old localStorage lessons will be cleared on next visit due to STATE_VERSION bump
+
 # Math Detective Changelog
 
 ## v2.8.0 — 稳定化版本：P0 回归测试与发布闸门

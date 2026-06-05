@@ -74,6 +74,18 @@ export function getDefaultPhasesForStepType(type: LessonStepType, question?: Que
     return ['read', 'answer'];
   }
 
+  // v2.8.2: pattern/sequence problem types - no equation, no action words
+  if (question?.problemType === 'pattern' || question?.problemType === 'sequence_arithmetic') {
+    if (type === 'find_numbers') {
+      return ['read', 'find_numbers', 'answer'];
+    }
+    if (type === 'full_solve') {
+      return ['read', 'find_numbers', 'understand_pattern', 'answer', 'explain'];
+    }
+    return ['read', 'answer'];
+  }
+
+
   switch (type) {
     case 'find_numbers':
       return ['read', 'find_numbers', 'answer'];
@@ -860,7 +872,7 @@ export function generateSafeFallbackLesson(gradeBand: GradeBand): TodayLesson {
     // v2.7.1: 基础安全检查
     if (!isQuestionSafeForLesson(q).safe) return false;
     // 只接受 basic_arithmetic
-    if (q.problemType && q.problemType !== 'basic_arithmetic') return false;
+    if (q.problemType && q.problemType !== 'basic_arithmetic' && q.problemType !== 'pattern' && q.problemType !== 'sequence_arithmetic') return false;
     // 禁止词检查
     const hasForbiddenKw = q.keywords.some(k => SAFE_FORBIDDEN.has(k.word));
     if (hasForbiddenKw) return false;

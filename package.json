@@ -1,6 +1,6 @@
 {
   "name": "math-detective",
-  "version": "2.8.1",
+  "version": "2.8.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -18,7 +18,9 @@
     "test:e2e:reward": "npx playwright test tests/e2e/reward-once.spec.ts",
     "test:e2e:repair": "npx playwright test tests/e2e/repair-loop.spec.ts",
     "test:e2e:no-irrelevant": "npx playwright test tests/e2e/no-irrelevant-number-step.spec.ts",
-    "validate:extra-info": "node scripts/audit-extra-info.mjs"
+    "validate:extra-info": "node scripts/audit-extra-info.mjs",
+    "test:e2e:pattern": "npx playwright test tests/e2e/pattern-step-loop.spec.ts",
+    "test:e2e:playthrough": "npx playwright test tests/e2e/full-lesson-playthrough.spec.ts"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",

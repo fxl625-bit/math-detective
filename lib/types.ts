@@ -369,6 +369,20 @@ export interface TodayLesson {
   rewardClaimedAt?: string;
   /** v2.6.3: 奖励弹窗展示时间 */
   rewardShownAt?: string;
+  /** v2.8.2: state machine transition tracking */
+  lastTransitions?: Array<{
+    at: string;
+    fromStepIndex: number;
+    toStepIndex: number;
+    fromPhaseIndex: number;
+    toPhaseIndex: number;
+    action: string;
+    questionId: string;
+    reason?: string;
+  }>;
+  /** v2.8.2: loop detected flag */
+  _loopDetected?: boolean;
+
 }
 
 // ========== 错题记录 ==========
