@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack && node scripts/postbuild-css.js",
+    "build": "next build && node scripts/postbuild-css.js",
     "start": "next start",
     "lint": "eslint",
     "validate:questions": "tsx -r tsconfig-paths/register scripts/validate-questions.ts",

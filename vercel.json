@@ -1,7 +1,0 @@
-{
-  "framework": "nextjs",
-  "buildCommand": "next build --webpack && node scripts/postbuild-css.js",
-  "outputDirectory": ".next",
-  "installCommand": "npm install",
-  "nodeVersion": "20.x"
-}
