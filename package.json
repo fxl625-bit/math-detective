@@ -12,7 +12,11 @@
     "validate:hints": "node scripts/validate-hints.mjs",
     "validate:lesson-generation": "node scripts/validate-lesson-generation.mjs",
     "validate:child-ui": "node scripts/validate-child-ui.mjs",
-    "validate:release": "node scripts/validate-release.mjs"
+    "validate:release": "node scripts/validate-release.mjs",
+    "test:e2e": "npx playwright test",
+    "test:e2e:play": "npx playwright test tests/e2e/play-no-home-redirect.spec.ts",
+    "test:e2e:reward": "npx playwright test tests/e2e/reward-once.spec.ts",
+    "test:e2e:repair": "npx playwright test tests/e2e/repair-loop.spec.ts"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",
@@ -22,6 +26,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

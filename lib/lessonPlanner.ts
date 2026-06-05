@@ -152,6 +152,12 @@ export function normalizeLesson(lesson: TodayLesson | null): TodayLesson | null 
     currentStepIndex,
     completed: Boolean(lesson.completed),
     caseStoryId: lesson.caseStoryId,
+    // v2.8.0: 保留 reward 幂等字段
+    rewardClaimed: lesson.rewardClaimed,
+    rewardShown: lesson.rewardShown,
+    rewardClaimedAt: lesson.rewardClaimedAt,
+    rewardShownAt: lesson.rewardShownAt,
+    completedAt: lesson.completedAt,
   };
 }
 
