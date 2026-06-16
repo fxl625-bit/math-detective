@@ -1,3 +1,43 @@
+## v2.8.4 - P0 修复：积分发放与数据导出 (2026-06-16)
+
+### 核心修复
+* **P0: 修复孩子做完题后每日奖励星星不增加的问题**
+  - 根因：`grantDailyRewardOnce` 返回的 `updatedState.stars` 从未通过 `update()` 写入 localStorage（stale closure bug）
+  - 修复：新增 `useGameState.addStars()`，每日奖励通过此路径写入；`grantDailyRewardOnce` 现在返回 `bonusStars` 而非直接修改 state
+* 单题答对幂等标记：`LessonStep.awardedAt` — 同一关卡不重复加分
+* `rewardClaimed` = 奖励是否已发放（独立于弹窗）
+* `rewardShown` = 弹窗是否已展示（不影响星星发放）
+* 修复：`rewardShown=true` 不再阻止单题积分
+
+### 新增文档
+* `docs/SCORING_RULES.md` — 积分规则唯一权威文档，防止后续 AI 改歪
+
+### 数据备份与导出
+* 新增 `lib/dataExport.ts`：只读快照函数 `createDataSnapshot()`
+  - 深拷贝，不修改任何 localStorage
+  - 不触发 migration，不重置 stars/mistakes/rewards
+  - 计算 checksum
+* 家长设置页新增"数据备份与导出"面板
+  - 导出全部数据 JSON（含 stars/mistakes/rewards/decorations/settings）
+  - 复制备份 JSON 到剪贴板
+  - 导出错题本（独立 JSON）
+  - 导出学习报告（摘要+每周趋势）
+  - 导入预留按钮（后续开放，本轮不实现覆盖）
+  - 导出文件名：`math-detective-backup-YYYYMMDD-HHmm.json`
+
+### 家长调试增强
+* 家长报告页新增"积分诊断"面板
+  - 显示：stars/level/correctCount/answerAttempts/totalCompleted/completedToday
+  - 显示：todayLesson.completed/rewardClaimed/rewardShown
+  - 显示：各 step awardedAt 幂等状态
+  - 显示：最近 5 次答题记录
+  - 自动诊断结论：是否存在 rewardClaimed/rewardShown 不一致、stars 数据异常
+
+### 测试
+* 新增 `npm run test:scoring`（12 个用例，全部通过）
+* 新增 `npm run test:data-export`（12 个用例，全部通过）
+* `npm run validate:release` 新增 test:scoring + test:data-export 两道闸门
+
 ## v2.8.3 - 稳定化：CI E2E 发布闸门
 
 * 新增 GitHub Actions validate-release workflow；

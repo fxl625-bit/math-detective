@@ -302,6 +302,21 @@ export function useGameState() {
     return globalState ?? loadState();
   }, []);
 
+  /**
+   * v2.8.4: 每日奖励星星发放 — 通过 update() 写入 localStorage + 通知所有订阅者
+   * grantDailyRewardOnce 返回的 updatedState 需要通过此路径保存，
+   * 不能用 saveTodayLesson 代替（那只存 lesson，不存 GameState）
+   */
+  const addStars = useCallback((amount: number) => {
+    update((s) => {
+      if (amount <= 0) return s;
+      const newStars = s.stars + amount;
+      const newLevel = calculateLevel(newStars);
+      const newBadges = checkBadges({ ...s, stars: newStars, level: newLevel });
+      return { ...s, stars: newStars, level: newLevel, badges: newBadges };
+    });
+  }, []);
+
   const toggleDecoration = useCallback((decorationId: string) => {
     update((s) => {
       const current = new Set(s.decorations || []);
@@ -366,6 +381,7 @@ export function useGameState() {
     toggleDecoration,
     doCheckin,
     getState,
+    addStars,
     refresh,
   };
 }

@@ -63,7 +63,7 @@ export default function PlayPage() {
 function PlayPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { state, completeQuestion } = useGameState();
+  const { state, completeQuestion, addStars } = useGameState();
 
   const [lesson, setLesson] = useState<TodayLesson | null>(null);
   const lessonRef = useRef<TodayLesson | null>(null);
@@ -201,16 +201,26 @@ function PlayPageContent() {
       if (isAnswerAction && payload.questionId && payload.inputAnswer) {
         const q = getQuestionForLesson(currentLesson);
         if (q) {
+          // v2.8.4: 幂等检查 — 如果当前 step 已经 awarded，不重复加分
+          const curStep = getCurrentStep(currentLesson);
+          const alreadyAwarded = curStep && curStep.awardedAt != null;
+
           // v2.7: 使用统一答案检查器
           const answerResult = checkAnswer(payload.inputAnswer, q);
-          completeQuestion(payload.questionId, answerResult.correct, answerResult.correct ? undefined : {
-            questionId: q.id,
-            questionText: q.text,
-            myAnswer: typeof payload.inputAnswer === 'string' ? payload.inputAnswer : JSON.stringify(payload.inputAnswer),
-            correctAnswer: q.answer,
-            errorType: 'answer_wrong',
-            retriedCorrect: false,
-          });
+
+          if (!alreadyAwarded) {
+            completeQuestion(payload.questionId, answerResult.correct, answerResult.correct ? undefined : {
+              questionId: q.id,
+              questionText: q.text,
+              myAnswer: typeof payload.inputAnswer === 'string' ? payload.inputAnswer : JSON.stringify(payload.inputAnswer),
+              correctAnswer: q.answer,
+              errorType: 'answer_wrong',
+              retriedCorrect: false,
+            });
+          } else if (answerResult.correct) {
+            console.info('[v2.8.4] Step already awarded, skipping duplicate star grant', { questionId: q.id });
+          }
+
           // 答错只记录 stats，不推进 lesson
           if (!answerResult.correct) {
             return;
@@ -261,8 +271,16 @@ function PlayPageContent() {
           completedAt: result.nextLesson.completedAt || now,
         };
 
-        const { lesson: rewardedLesson } = grantDailyRewardOnce(state, completedLesson);
+        // v2.8.4 修复：grantDailyRewardOnce 返回 bonusStars，
+        // 通过 addStars() 走 update() 路径真正写入 localStorage，
+        // 而不是只更新 React state 的快照（之前的 stale closure bug）
+        const { lesson: rewardedLesson, bonusStars } = grantDailyRewardOnce(state, completedLesson);
         completedLesson = rewardedLesson;
+        if (bonusStars > 0) {
+          addStars(bonusStars);
+          console.info(`[v2.8.4] Daily reward: +${bonusStars} stars written via addStars()`);
+        }
+
         const { lesson: shownLesson } = markDailyRewardShown(state, completedLesson);
         completedLesson = shownLesson;
 
@@ -274,7 +292,7 @@ function PlayPageContent() {
         setFeedback({
           show: true,
           type: 'success',
-          message: '🎉 今天的侦探任务完成！你获得了今日宝箱！',
+          message: `🎉 今天的侦探任务完成！获得 ${bonusStars} 颗星！`,
         });
       } else if (result.nextLesson.currentStepIndex !== currentLesson.currentStepIndex) {
         const steps = result.nextLesson.steps;

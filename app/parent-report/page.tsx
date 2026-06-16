@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Target, TrendingUp, Lightbulb, Settings, Check, Brain, GraduationCap, Bug } from 'lucide-react';
+import { BarChart3, Target, TrendingUp, Lightbulb, Settings, Check, Brain, GraduationCap, Bug, Download, Copy, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useGameState } from '@/hooks/useGameState';
 import type { GradeBand, CognitiveSkill, TodayLesson } from '@/lib/types';
 import StarDisplay from '@/components/StarDisplay';
@@ -18,6 +18,7 @@ import { getQuestionById } from '@/data/questions';
 import { validateStepQuestionMatch } from '@/lib/questionValidation';
 import { getRepairAttemptsSnapshot, getRepairRecordsSnapshot } from '@/lib/lessonTransaction';
 import { classifyKeyword } from '@/data/keywordRules';
+import { createDataSnapshot, downloadExportFile, copyExportToClipboard, estimateLocalStorageSize, formatBytes, type ExportPayload } from '@/lib/dataExport';
 
 const GRADE_OPTIONS: { value: GradeBand; label: string }[] = [
   { value: 'G1', label: '一年级' },
@@ -48,7 +49,12 @@ export default function ParentReportPage() {
   const [mounted, setMounted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
+  const [showScoreDiag, setShowScoreDiag] = useState(false);
+  const [showDataExport, setShowDataExport] = useState(false);
   const [debugLesson, setDebugLesson] = useState<TodayLesson | null>(null);
+  const [exportPayload, setExportPayload] = useState<ExportPayload | null>(null);
+  const [exportStatus, setExportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [exportMessage, setExportMessage] = useState('');
 
   // Settings form state
   const [formDailyGoal, setFormDailyGoal] = useState(state.parentSettings.dailyGoal);
@@ -301,6 +307,132 @@ export default function ParentReportPage() {
         </ul>
       </AppCard>
 
+      {/* v2.8.4: 积分诊断面板 */}
+      <AppCard variant="amber">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="font-extrabold text-gray-800 flex items-center gap-2">
+            <AlertCircle size={20} className="text-amber-500" />积分诊断
+          </h2>
+          <button
+            className="px-3 py-1 rounded-lg text-xs font-bold bg-amber-100 hover:bg-amber-200 transition-colors"
+            onClick={() => {
+              if (!showScoreDiag) {
+                const lesson = (() => { try { return getTodayLesson(); } catch { return null; } })();
+                setDebugLesson(lesson);
+              }
+              setShowScoreDiag(!showScoreDiag);
+            }}
+          >
+            {showScoreDiag ? '收起' : '检查积分状态'}
+          </button>
+        </div>
+
+        {showScoreDiag && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2 text-sm">
+            {/* 积分字段 */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="p-2 bg-white rounded-lg">
+                <div className="text-xs text-gray-500">stars（主积分）</div>
+                <div className="text-xl font-extrabold text-amber-600">{state.stars}</div>
+              </div>
+              <div className="p-2 bg-white rounded-lg">
+                <div className="text-xs text-gray-500">level（等级）</div>
+                <div className="text-xl font-extrabold text-purple-600">{state.level}</div>
+              </div>
+              <div className="p-2 bg-white rounded-lg">
+                <div className="text-xs text-gray-500">correctCount（答对总数）</div>
+                <div className="text-xl font-extrabold text-green-600">{state.correctCount}</div>
+              </div>
+              <div className="p-2 bg-white rounded-lg">
+                <div className="text-xs text-gray-500">answerAttempts（提交总次数）</div>
+                <div className="text-xl font-extrabold text-blue-600">{state.answerAttempts}</div>
+              </div>
+              <div className="p-2 bg-white rounded-lg">
+                <div className="text-xs text-gray-500">totalCompleted（历史完成）</div>
+                <div className="text-xl font-extrabold text-gray-700">{state.totalCompleted}</div>
+              </div>
+              <div className="p-2 bg-white rounded-lg">
+                <div className="text-xs text-gray-500">completedToday（今日完成）</div>
+                <div className="text-xl font-extrabold text-gray-700">{state.completedToday}</div>
+              </div>
+            </div>
+
+            {/* 今日课程状态 */}
+            {debugLesson && (
+              <div className="p-3 bg-white rounded-lg space-y-1">
+                <div className="text-xs font-bold text-gray-600 mb-1">今日课程状态</div>
+                <ScoreDiagRow label="todayLesson.completed" value={String(debugLesson.completed)} ok={!debugLesson.completed || debugLesson.rewardClaimed === true} />
+                <ScoreDiagRow label="todayLesson.rewardClaimed" value={String(debugLesson.rewardClaimed ?? 'undefined')} ok={debugLesson.rewardClaimed === true || !debugLesson.completed} />
+                <ScoreDiagRow label="todayLesson.rewardShown" value={String(debugLesson.rewardShown ?? 'undefined')} ok />
+                <ScoreDiagRow
+                  label="rewardClaimed/rewardShown 一致性"
+                  value={
+                    debugLesson.rewardShown === true && debugLesson.rewardClaimed !== true
+                      ? '⚠️ 异常：rewardShown=true 但 rewardClaimed=false'
+                      : '✅ 正常'
+                  }
+                  ok={!(debugLesson.rewardShown === true && debugLesson.rewardClaimed !== true)}
+                />
+              </div>
+            )}
+
+            {/* 当前 step awarded 状态 */}
+            {debugLesson && debugLesson.steps && (
+              <div className="p-3 bg-white rounded-lg space-y-1">
+                <div className="text-xs font-bold text-gray-600 mb-1">各 Step 幂等积分状态</div>
+                {debugLesson.steps.map((step, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs">
+                    <span className={`w-3 h-3 rounded-full flex-shrink-0 ${step.status === 'completed' ? 'bg-green-400' : step.status === 'current' ? 'bg-blue-400' : 'bg-gray-300'}`} />
+                    <span className="text-gray-600 flex-1 truncate">{step.type}</span>
+                    {step.awardedAt
+                      ? <span className="text-green-600 font-bold text-[10px]">已发 ✓</span>
+                      : <span className="text-gray-400 text-[10px]">未发</span>
+                    }
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 近期答题记录 */}
+            {state.attemptRecords && state.attemptRecords.length > 0 && (
+              <div className="p-3 bg-white rounded-lg">
+                <div className="text-xs font-bold text-gray-600 mb-1">最近 5 次答题记录</div>
+                {[...state.attemptRecords].reverse().slice(0, 5).map((r, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                    <span>{r.isCorrect ? '✅' : '❌'}</span>
+                    <span className="font-mono truncate">{r.questionId.slice(0, 12)}</span>
+                    <span className="text-gray-400">{new Date(r.submittedAt).toLocaleTimeString()}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 诊断结论 */}
+            <div className="p-3 bg-amber-50 rounded-lg text-xs space-y-1">
+              <div className="font-bold text-amber-800">诊断结论</div>
+              {state.answerAttempts === 0 && state.correctCount > 0 && (
+                <div className="text-red-600">⚠️ answerAttempts=0 但 correctCount{'>'}0，统计数据可能异常</div>
+              )}
+              {state.correctCount > state.answerAttempts && (
+                <div className="text-red-600">⚠️ correctCount {'>'} answerAttempts，数据不一致</div>
+              )}
+              {debugLesson?.completed && debugLesson.rewardClaimed !== true && (
+                <div className="text-red-600">⚠️ 课程已完成但 rewardClaimed=false，每日奖励未发放</div>
+              )}
+              {debugLesson?.rewardShown === true && debugLesson.rewardClaimed !== true && (
+                <div className="text-red-600">⚠️ rewardShown=true 但 rewardClaimed=false，需修复</div>
+              )}
+              {!(state.answerAttempts === 0 && state.correctCount > 0) &&
+               !(state.correctCount > state.answerAttempts) &&
+               !(debugLesson?.completed && debugLesson.rewardClaimed !== true) &&
+               !(debugLesson?.rewardShown === true && debugLesson.rewardClaimed !== true) && (
+                <div className="text-green-700">✅ 积分状态正常，未检测到已知异常</div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AppCard>
+
       {/* v2.6.9: 调试面板 — Step/Question/Theme 匹配信息 */}
       <AppCard variant="gray">
         <div className="flex items-center justify-between mb-2">
@@ -334,6 +466,203 @@ export default function ParentReportPage() {
                   repairAttempts={getRepairAttemptsSnapshot()}
                   repairRecords={getRepairRecordsSnapshot()}
                 />
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AppCard>
+
+      {/* v2.8.4: 数据备份与导出 */}
+      <AppCard variant="blue">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="font-extrabold text-gray-800 flex items-center gap-2">
+            <Download size={20} className="text-blue-600" />数据备份与导出
+          </h2>
+          <button
+            className="px-3 py-1 rounded-lg text-xs font-bold bg-blue-100 hover:bg-blue-200 transition-colors"
+            onClick={() => setShowDataExport(!showDataExport)}
+          >
+            {showDataExport ? '收起' : '展开'}
+          </button>
+        </div>
+
+        {showDataExport && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+            <p className="text-xs text-gray-500 leading-relaxed">
+              导出只会<strong>复制</strong>当前本地学习数据，不会修改或清空任何记录。
+              积分、错题、奖励、打卡记录在导出前后完全一致。
+            </p>
+
+            {/* 当前数据摘要 */}
+            <div className="grid grid-cols-3 gap-2 text-xs">
+              <div className="p-2 bg-white rounded-lg text-center">
+                <div className="text-amber-600 font-extrabold text-lg">{state.stars}</div>
+                <div className="text-gray-500">当前星星</div>
+              </div>
+              <div className="p-2 bg-white rounded-lg text-center">
+                <div className="text-red-500 font-extrabold text-lg">{state.mistakes.length}</div>
+                <div className="text-gray-500">错题数量</div>
+              </div>
+              <div className="p-2 bg-white rounded-lg text-center">
+                <div className="text-green-600 font-extrabold text-lg">{state.streak}</div>
+                <div className="text-gray-500">连续打卡</div>
+              </div>
+            </div>
+
+            <div className="text-xs text-gray-400">
+              本地数据大小：{formatBytes(estimateLocalStorageSize())}
+            </div>
+
+            {/* 导出状态提示 */}
+            {exportStatus !== 'idle' && (
+              <div className={`p-3 rounded-lg text-xs flex items-start gap-2 ${
+                exportStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+              }`}>
+                {exportStatus === 'success'
+                  ? <CheckCircle2 size={14} className="flex-shrink-0 mt-0.5" />
+                  : <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
+                }
+                <span>{exportMessage}</span>
+              </div>
+            )}
+
+            {/* 按钮组 */}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 active:scale-95 transition-all"
+                onClick={() => {
+                  try {
+                    const payload = createDataSnapshot();
+                    setExportPayload(payload);
+                    const { filename, sizeBytes } = downloadExportFile(payload);
+                    setExportStatus('success');
+                    setExportMessage(
+                      `已导出 ${filename}（${formatBytes(sizeBytes)}）。包含：星星 ${payload.summary.stars}颗、错题 ${payload.summary.mistakesCount}道、打卡 ${payload.summary.streak}天。当前学习数据没有被修改。`
+                    );
+                    setTimeout(() => setExportStatus('idle'), 8000);
+                  } catch (e) {
+                    setExportStatus('error');
+                    setExportMessage('导出失败：' + (e instanceof Error ? e.message : '未知错误'));
+                  }
+                }}
+              >
+                <Download size={14} />导出全部数据 JSON
+              </button>
+
+              <button
+                className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 active:scale-95 transition-all"
+                onClick={async () => {
+                  try {
+                    const payload = exportPayload ?? createDataSnapshot();
+                    setExportPayload(payload);
+                    const ok = await copyExportToClipboard(payload);
+                    setExportStatus(ok ? 'success' : 'error');
+                    setExportMessage(ok
+                      ? '已复制备份 JSON 到剪贴板。当前学习数据没有被修改。'
+                      : '复制失败，请尝试"导出全部数据"下载文件。'
+                    );
+                    setTimeout(() => setExportStatus('idle'), 5000);
+                  } catch {
+                    setExportStatus('error');
+                    setExportMessage('复制失败，请尝试"导出全部数据"。');
+                  }
+                }}
+              >
+                <Copy size={14} />复制备份 JSON
+              </button>
+
+              <button
+                className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 active:scale-95 transition-all"
+                onClick={() => {
+                  try {
+                    const fullPayload = createDataSnapshot();
+                    // 只保留错题数据
+                    const mistakesOnly = {
+                      ...fullPayload,
+                      data: {
+                        ...fullPayload.data,
+                        learningState: null,
+                        todayLesson: null,
+                        rewards: null,
+                        avatar: null,
+                        settings: null,
+                        // mistakes 保留
+                      },
+                    };
+                    const json = JSON.stringify(mistakesOnly, null, 2);
+                    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    const now = new Date();
+                    a.download = `math-detective-mistakes-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.json`;
+                    a.href = url;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    setExportStatus('success');
+                    setExportMessage(`已导出错题本（共 ${fullPayload.summary.mistakesCount} 道）。数据未被修改。`);
+                    setTimeout(() => setExportStatus('idle'), 5000);
+                  } catch (e) {
+                    setExportStatus('error');
+                    setExportMessage('导出失败：' + (e instanceof Error ? e.message : '未知错误'));
+                  }
+                }}
+              >
+                <FileText size={14} />导出错题本
+              </button>
+
+              <button
+                className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 active:scale-95 transition-all"
+                onClick={() => {
+                  try {
+                    const payload = createDataSnapshot();
+                    // 学习报告：摘要 + 统计字段
+                    const report = {
+                      exportedAt: payload.exportedAt,
+                      appVersion: payload.appVersion,
+                      summary: payload.summary,
+                      weeklySnapshots: (payload.data.learningState as any)?.weeklySnapshots || [],
+                      attemptRecords: (payload.data.learningState as any)?.attemptRecords || [],
+                      badges: (payload.data.learningState as any)?.badges || [],
+                    };
+                    const json = JSON.stringify(report, null, 2);
+                    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    const now = new Date();
+                    a.download = `math-detective-report-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.json`;
+                    a.href = url;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    setExportStatus('success');
+                    setExportMessage('已导出学习报告。数据未被修改。');
+                    setTimeout(() => setExportStatus('idle'), 5000);
+                  } catch (e) {
+                    setExportStatus('error');
+                    setExportMessage('导出失败：' + (e instanceof Error ? e.message : '未知错误'));
+                  }
+                }}
+              >
+                <BarChart3 size={14} />导出学习报告
+              </button>
+            </div>
+
+            {/* 导入预留按钮 */}
+            <button
+              disabled
+              className="w-full flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-gray-50 text-gray-400 text-xs font-bold cursor-not-allowed border border-dashed border-gray-300"
+            >
+              导入备份（后续开放）
+            </button>
+
+            {/* 导出时间 */}
+            {exportPayload && (
+              <div className="text-xs text-gray-400 text-center">
+                最近导出：{new Date(exportPayload.exportedAt).toLocaleString('zh-CN')}
+                &nbsp;·&nbsp;checksum: {exportPayload.checksum}
               </div>
             )}
           </motion.div>
@@ -415,6 +744,17 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
     <div className="flex justify-between items-center">
       <span className="text-sm text-gray-600">{label}</span>
       <span className="font-extrabold text-gray-800">{value}</span>
+    </div>
+  );
+}
+
+/** v2.8.4: 积分诊断行 */
+function ScoreDiagRow({ label, value, ok }: { label: string; value: string; ok: boolean }) {
+  return (
+    <div className="flex items-start gap-2 text-xs">
+      <span className="flex-shrink-0 mt-0.5">{ok ? '✅' : '⚠️'}</span>
+      <span className="text-gray-500 flex-shrink-0 w-48">{label}:</span>
+      <span className={`font-mono ${ok ? 'text-gray-700' : 'text-red-600 font-bold'}`}>{value}</span>
     </div>
   );
 }

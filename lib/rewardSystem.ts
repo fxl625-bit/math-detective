@@ -27,9 +27,9 @@ export function shouldShowDailyRewardModal(lesson: TodayLesson | undefined): boo
 export function grantDailyRewardOnce(
   state: GameState,
   lesson: TodayLesson
-): { state: GameState; lesson: TodayLesson } {
+): { state: GameState; lesson: TodayLesson; bonusStars: number } {
   if (!shouldGrantDailyReward(lesson)) {
-    return { state, lesson };
+    return { state, lesson, bonusStars: 0 };
   }
 
   const now = new Date().toISOString();
@@ -41,16 +41,14 @@ export function grantDailyRewardOnce(
     rewardClaimedAt: now,
   };
 
-  const updatedState: GameState = {
-    ...state,
-    stars: state.stars + bonusStars,
-  };
-
+  // v2.8.4 修复：只更新 lesson 的 rewardClaimed 标志
+  // stars 实际写入由调用方通过 addStars(bonusStars) 完成，
+  // 不在此处修改 state.stars（避免 stale closure 问题）
   console.info(
-    `[Reward] Granted daily reward: ${bonusStars} stars, date=${lesson.date}`
+    `[Reward] Granting daily reward: ${bonusStars} stars, date=${lesson.date}`
   );
 
-  return { state: updatedState, lesson: updatedLesson };
+  return { state, lesson: updatedLesson, bonusStars };
 }
 
 function calculatedDailyStars(lesson: TodayLesson): number {

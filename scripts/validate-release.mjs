@@ -1,5 +1,5 @@
 /**
- * Release blocker (v2.8.3)
+ * Release blocker (v2.8.4)
  *
  * All gates must pass before deploy. Any failure exits 1.
  *
@@ -20,12 +20,14 @@ const STEPS = [
   { name: 'validate:hints', cmd: 'npm run validate:hints' },
   { name: 'validate:child-ui', cmd: 'npm run validate:child-ui' },
   { name: 'test:state-machine', cmd: 'npm run test:state-machine' },
+  { name: 'test:scoring', cmd: 'npm run test:scoring' },
+  { name: 'test:data-export', cmd: 'npm run test:data-export' },
   { name: 'test:e2e', cmd: 'npm run test:e2e' },
   { name: 'build', cmd: 'npm run build' },
 ];
 
 console.log('========================================');
-console.log('  Math Detective validate:release v2.8.3');
+console.log('  Math Detective validate:release v2.8.4');
 console.log('========================================');
 console.log('');
 

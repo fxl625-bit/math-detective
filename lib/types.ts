@@ -351,6 +351,9 @@ export interface LessonStep {
   currentPhaseIndex: number;
   status: 'locked' | 'current' | 'completed';
   requiresAnswer: boolean;
+  /** v2.8.4: 幂等积分标记 — 若已发奖励则不重复加分 */
+  awardedStars?: number;
+  awardedAt?: string;
 }
 
 export interface TodayLesson {

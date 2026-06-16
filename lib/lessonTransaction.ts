@@ -232,7 +232,13 @@ function handleSubmitAnswer(
     // 还有后续 phase（如 answer → explain）
     const steps = [...lesson.steps];
     const stepIdx = lesson.currentStepIndex;
-    const step = { ...steps[stepIdx], phases, currentPhaseIndex: currentPhaseIdx + 1 };
+    // v2.8.4: 写入幂等 awardedAt，防止重复加分
+    const step = {
+      ...steps[stepIdx],
+      phases,
+      currentPhaseIndex: currentPhaseIdx + 1,
+      awardedAt: steps[stepIdx].awardedAt || new Date().toISOString(),
+    };
     steps[stepIdx] = step;
 
     const nextLesson: TodayLesson = {
