@@ -141,7 +141,7 @@ export default function TestModePage() {
         </Link>
         <div>
           <h1 className="text-lg font-extrabold text-amber-800">静态题库检查</h1>
-          <p className="text-xs text-gray-500">v2.8.3 | 静态题库统计不等于真实通关验收</p>
+          <p className="text-xs text-gray-500">v2.8.4 | 静态题库统计不等于真实通关验收</p>
         </div>
       </div>
 
