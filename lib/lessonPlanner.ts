@@ -1,4 +1,4 @@
-import { Question, MistakeRecord, GradeBand, CognitiveSkill, LessonStepType, StepPhase, LessonStep, TodayLesson, LearningProfile, TomorrowLessonPreview, VirtualReward } from './types';
+import { Question, MistakeRecord, GradeBand, CognitiveSkill, LessonStepType, StepPhase, LessonStep, TodayLesson, LearningProfile, TomorrowLessonPreview, VirtualReward, GameState } from './types';
 import type { Semester, LearnerProfile as CurriculumLearnerProfile, UsageStage } from './curriculum/types';
 import { getQuestionById, allQuestions, questionsByGrade, getQuestionsByFilter } from '@/data/questions';
 import { loadState, getAccuracyStats } from './storage';
@@ -477,14 +477,38 @@ export function getTodayLesson(): TodayLesson {
       const saved = localStorage.getItem('math-detective-today-lesson');
       if (saved) {
         const parsed: TodayLesson = JSON.parse(saved);
-        // 先用 safeNormalizeLesson 校验，异常数据自动修复
-        const safe = safeNormalizeLesson(parsed);
-        if (safe) {
-          // 自动修复后重新保存
-          if (JSON.stringify(safe) !== saved) {
-            saveTodayLesson(safe);
+
+        // v2.9.0 FIX: 版本检查 — 旧版本生成的 lesson 必须重建
+        const version = (parsed as any).generatedByVersion;
+        const lessonSemester = (parsed as any).curriculumSnapshot?.semester;
+        const state = loadState();
+        const currentSemester = state.curriculumProfile?.semester;
+
+        const needsRebuild =
+          // 没有 version 标记（旧版本生成）
+          !version ||
+          // version 低于 2（v2.9.0 之前）
+          (version && version !== 'v2.9.0') ||
+          // 学期不匹配（用户切换了学期设置）
+          (lessonSemester && currentSemester && lessonSemester !== currentSemester);
+
+        if (!needsRebuild) {
+          // 先用 safeNormalizeLesson 校验，异常数据自动修复
+          const safe = safeNormalizeLesson(parsed);
+          if (safe && safe.date === today) {
+            // 自动修复后重新保存
+            if (JSON.stringify(safe) !== saved) {
+              saveTodayLesson(safe);
+            }
+            if (typeof window !== 'undefined') {
+              console.log('[getTodayLesson] Reusing existing lesson, version:', version);
+            }
+            return safe;
           }
-          return safe;
+        } else {
+          if (typeof window !== 'undefined') {
+            console.warn(`[getTodayLesson] Stale lesson detected: version=${version || 'none'}, lessonSemester=${lessonSemester || 'none'}, currentSemester=${currentSemester || 'none'}. Rebuilding.`);
+          }
         }
       }
     } catch { /* ignore */ }
@@ -713,15 +737,17 @@ function getDueReviewQuestions(
 
 // ========== 每日课程构建 ==========
 
-function buildDailyLesson(
+export function buildDailyLesson(
   profile: LearningProfile,
   completedIds: string[],
-  mistakes: MistakeRecord[]
+  mistakes: MistakeRecord[],
+  overrideState?: GameState,
 ): TodayLesson {
   const today = getDateStr();
 
   // Load full state for v2.9.0 features
-  const fullState = loadState();
+  // In browser: loadState() from localStorage; in tests: use overrideState
+  const fullState = overrideState || loadState();
   const ctx = getUsageContext(fullState);
   const { usageStage, semester, grade, learnerProfile } = ctx;
   const maxDifficulty = getEffectiveMaxDifficulty(profile, learnerProfile);
@@ -770,32 +796,22 @@ function buildDailyLesson(
     // First try curriculum-aware selection if we have a learnerProfile
     if (learnerProfile && slotPlan) {
       const pool = questionsByGrade[profile.gradeBand] || allQuestions;
-      const candidates = selectQuestionsForSlot({
-        pool,
-        targetDifficulty: params.targetDiff,
-        learnerProfile,
-        usageStage,
-        grade,
-        semester,
-        excludeIds: params.usedIds,
-        slotCategory: (params.forceSlot as any) || 'currentCore',
-      });
 
-      // Filter by step compatibility and theme
-      const compatible = candidates.filter(q => {
-        const stReq = STEP_TYPE_REQUIREMENTS[params.stepType];
-        if (!stReq) return true;
-        if (!stReq(q)) return false;
-        if (params.story && !params.story.fallbackToGeneric) {
-          if (!isQuestionCompatibleWithTheme(q, params.story)) return false;
-        }
-        if (!isQuestionSafeForLesson(q).safe) return false;
-        // v2.9.0: enforce single-digit limit
-        if (isSingleDigitReview(q) && singleDigitUsed >= singleDigitLimit) return false;
-        return true;
-      });
+      // Try with the requested step type first
+      let picked = tryCurriculumSelection(pool, params, 'full');
 
-      const picked = pickQuestionFromCandidates(compatible);
+      // v2.9.0 FIX: If step type requirements filtered out ALL candidates,
+      // retry with relaxed step type (full_solve accepts any question).
+      // This is the key fix: curriculum skills matter more than step type.
+      if (!picked && params.stepType !== 'full_solve') {
+        picked = tryCurriculumSelection(pool, { ...params, stepType: 'full_solve' as LessonStepType }, 'step_degraded');
+      }
+
+      // v2.9.0 FIX: If still empty, try without theme filtering
+      if (!picked) {
+        picked = tryCurriculumSelection(pool, { ...params, stepType: 'full_solve' as LessonStepType, story: null }, 'theme_degraded');
+      }
+
       if (picked) {
         if (isSingleDigitReview(picked)) singleDigitUsed++;
         return picked;
@@ -810,6 +826,46 @@ function buildDailyLesson(
       targetDifficulty: params.targetDiff,
       story: params.story,
     });
+  };
+
+  // Helper: attempt curriculum-aware selection with given params
+  const tryCurriculumSelection = (
+    pool: Question[],
+    params: {
+      stepType: LessonStepType;
+      usedIds: string[];
+      targetDiff: number;
+      story?: CaseStory | null;
+      forceSlot?: string;
+    },
+    _reason: string,
+  ): Question | null => {
+    const candidates = selectQuestionsForSlot({
+      pool,
+      targetDifficulty: params.targetDiff,
+      learnerProfile: learnerProfile!,
+
+      usageStage,
+      grade,
+      semester,
+      excludeIds: params.usedIds,
+      slotCategory: (params.forceSlot as any) || 'currentCore',
+    });
+
+    const compatible = candidates.filter(q => {
+      const stReq = STEP_TYPE_REQUIREMENTS[params.stepType];
+      if (!stReq) return true;
+      if (!stReq(q)) return false;
+      if (params.story && !params.story.fallbackToGeneric) {
+        if (!isQuestionCompatibleWithTheme(q, params.story)) return false;
+      }
+      if (!isQuestionSafeForLesson(q).safe) return false;
+      // v2.9.0: enforce single-digit limit
+      if (isSingleDigitReview(q) && singleDigitUsed >= singleDigitLimit) return false;
+      return true;
+    });
+
+    return pickQuestionFromCandidates(compatible);
   };
 
   // Place review questions in early slots
@@ -898,16 +954,74 @@ function buildDailyLesson(
 
   // If no steps at all, generate safe fallback
   if (steps.length === 0) {
+    console.warn('[buildDailyLesson] No steps generated — using safe fallback');
     return generateSafeFallbackLesson(profile.gradeBand);
   }
 
-  return {
+  // v2.9.0: Version stamp + curriculum snapshot for stale detection
+  const lesson: TodayLesson = {
     date: today,
     steps,
     currentStepIndex: 0,
     completed: false,
     caseStoryId,
   };
+
+  // Attach version metadata
+  (lesson as any).generatedByVersion = 'v2.9.0';
+  (lesson as any).generatorVersion = 2;
+  (lesson as any).curriculumSnapshot = {
+    grade,
+    semester,
+    usageStage,
+    currentDifficultyLevel: learnerProfile?.currentDifficultyLevel ?? profile.skillLevel,
+    singleDigitLimit,
+  };
+  (lesson as any).learnerProfileSnapshot = learnerProfile ? {
+    totalCompleted: learnerProfile.totalCompleted,
+    recentAccuracy: learnerProfile.recentAccuracy,
+    currentDifficultyLevel: learnerProfile.currentDifficultyLevel,
+  } : null;
+
+  // ===== DEV DIAGNOSTICS =====
+  if (typeof window !== 'undefined' && (process as any).env?.NODE_ENV === 'development') {
+    try {
+      console.log('========== LESSON GENERATION DIAGNOSTICS ==========');
+      console.table({
+        appVersion: 'v2.9.0',
+        grade: `G${grade}`,
+        semester,
+        textbookEdition: fullState.parentSettings.textbookEdition || 'default',
+        usageStage: `${usageStage} (${usageStage === 0 ? 'new' : usageStage === 1 ? 'beginner' : usageStage === 2 ? 'active' : 'experienced'})`,
+        currentDifficultyLevel: learnerProfile?.currentDifficultyLevel ?? profile.skillLevel,
+        totalCompleted: fullState.totalCompleted,
+        recentAccuracy: learnerProfile?.recentAccuracy ?? 'N/A',
+        hasLearnerProfile: !!learnerProfile,
+        hasSlotPlan: !!slotPlan,
+        totalSteps: steps.length,
+        fallbackUsed: false,
+        reusedOldLesson: false,
+      });
+      console.table(
+        steps.map((step, idx) => {
+          const q = getQuestionById(step.questionId);
+          return {
+            slot: idx + 1,
+            stepType: step.type,
+            questionId: step.questionId,
+            text: q?.text?.substring(0, 50) || '???',
+            difficulty: q?.difficulty ?? '?',
+            skillIds: q?.skillIds?.join(', ') || 'none',
+            isReview: q?.isReview ? 'YES' : 'no',
+            isStretch: q?.isStretch ? 'YES' : 'no',
+            operation: q?.operation || '?',
+          };
+        })
+      );
+    } catch { /* diagnostic error, ignore */ }
+  }
+
+  return lesson;
 }
 
 // ========== v2.6.9: 安全降级课程生成器 ==========
@@ -1003,12 +1117,20 @@ function buildSafeLessonFromPool(pool: Question[], today: string, gradeBand: Gra
     });
   }
 
-  return {
+  const lesson: TodayLesson = {
     date: today,
     steps,
     currentStepIndex: 0,
     completed: false,
   };
+
+  // v2.9.0: Version stamp even for fallback
+  (lesson as any).generatedByVersion = 'v2.9.0';
+  (lesson as any).generatorVersion = 2;
+  (lesson as any).fallbackUsed = true;
+  (lesson as any).fallbackReason = 'safe_fallback_no_candidates';
+
+  return lesson;
 }
 
 function isSafeForActionWords(q: Question): boolean {

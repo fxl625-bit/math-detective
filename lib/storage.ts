@@ -32,6 +32,29 @@ export function loadState(): GameState {
       state.usageStage = stageInfo.stage;
     }
 
+    // v2.9.0 FIX: Auto-migrate — build learnerProfile if missing
+    // This was the ROOT CAUSE of v2.9.0 adaptive engine never activating
+    if (!state.learnerProfile) {
+      state.learnerProfile = buildLearnerProfile({
+        curriculumProfile: state.curriculumProfile as any,
+        attemptRecords: state.attemptRecords || [],
+        totalCompleted: state.totalCompleted || 0,
+      });
+    } else {
+      // Rebuild learnerProfile to refresh accuracy/difficulty from current attemptRecords
+      state.learnerProfile = buildLearnerProfile({
+        existingProfile: state.learnerProfile as any,
+        curriculumProfile: state.curriculumProfile as any,
+        attemptRecords: state.attemptRecords || [],
+        totalCompleted: state.totalCompleted || 0,
+      });
+    }
+
+    // Persist migrated state
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch { /* storage full, ignore */ }
+
     return state;
   } catch {
     return { ...DEFAULT_GAME_STATE };
