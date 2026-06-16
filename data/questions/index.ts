@@ -14,10 +14,25 @@ import { olympiadIntroQuestions } from './olympiadIntro';
 import { g3MultiplicationQuestions } from './g3-multiplication';
 import { extraInfoQuestions } from './extra-info';
 import { missingInfoQuestions } from './missing-info';
+import { allG1Annotations } from './annotations';
 
-// ========== 全部题库 ==========
+// ========== v2.9.0: Annotation merge ==========
 
-export const allQuestions: Question[] = [
+/**
+ * Merge annotation patches into question data.
+ * Annotation patches add curriculum metadata without modifying original data files.
+ */
+function applyAnnotations(questions: Question[], annotations: Record<string, Partial<Question>>): Question[] {
+  return questions.map(q => {
+    const patch = annotations[q.id];
+    if (!patch) return q;
+    return { ...q, ...patch };
+  });
+}
+
+// ========== 全部题库（含v2.9.0标注合并） ==========
+
+export const allQuestions: Question[] = applyAnnotations([
   ...g1Questions,
   ...g1ThinkingQuestions,
   ...g2Questions,
@@ -33,18 +48,18 @@ export const allQuestions: Question[] = [
   ...extraInfoQuestions,
   ...missingInfoQuestions,
   ...olympiadIntroQuestions,
-];
+], allG1Annotations);
 
-// ========== 按年级分组 ==========
+// ========== 按年级分组（使用标注后的 allQuestions） ==========
 
 export const questionsByGrade: Record<GradeBand, Question[]> = {
-  'G1': [...g1Questions, ...g1ThinkingQuestions, ...olympiadIntroQuestions],
-  'G2': [...g2Questions, ...g2OlympiadQuestions, ...olympiadIntroQuestions],
-  'G3': [...g3Questions, ...g3MultiplicationQuestions, ...g3OlympiadQuestions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G3'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G3'), ...olympiadIntroQuestions],
-  'G4': [...g4Questions, ...g4OlympiadQuestions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G4'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G4'), ...olympiadIntroQuestions],
-  'G5': [...g5Questions, ...g5OlympiadQuestions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G5'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G5'), ...olympiadIntroQuestions],
-  'G6': [...g6Questions, ...extraInfoQuestions.filter(q => q.gradeBand === 'G6'), ...missingInfoQuestions.filter(q => q.gradeBand === 'G6'), ...olympiadIntroQuestions],
-  'OlympiadIntro': olympiadIntroQuestions.map(q => ({ ...q, isExtendedThinking: true })),
+  'G1': allQuestions.filter(q => q.gradeBand === 'G1'),
+  'G2': allQuestions.filter(q => q.gradeBand === 'G2'),
+  'G3': allQuestions.filter(q => q.gradeBand === 'G3'),
+  'G4': allQuestions.filter(q => q.gradeBand === 'G4'),
+  'G5': allQuestions.filter(q => q.gradeBand === 'G5'),
+  'G6': allQuestions.filter(q => q.gradeBand === 'G6'),
+  'OlympiadIntro': allQuestions.filter(q => q.gradeBand === 'OlympiadIntro' || (q as any).isExtendedThinking).map(q => ({ ...q, isExtendedThinking: true })),
 };
 
 // ========== 按年级和领域筛选 ==========

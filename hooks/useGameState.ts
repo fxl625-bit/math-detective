@@ -119,7 +119,7 @@ export function useGameState() {
     });
   }, []);
 
-  const setParentSettings = useCallback((settings: { dailyGoal?: number; gradeBand?: import('@/lib/types').GradeBand }) => {
+  const setParentSettings = useCallback((settings: Partial<import('@/lib/types').ParentSettings>) => {
     update((s) => ({
       ...s,
       parentSettings: { ...s.parentSettings, ...settings },

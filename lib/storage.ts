@@ -1,4 +1,6 @@
 import { GameState, DEFAULT_GAME_STATE, MistakeRecord } from './types';
+import { initCurriculumProfile, buildLearnerProfile, detectUsageStage } from './learnerProfile';
+import type { Semester } from './curriculum/types';
 
 const STORAGE_KEY = 'math-detective-state';
 
@@ -8,7 +10,29 @@ export function loadState(): GameState {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return { ...DEFAULT_GAME_STATE };
     const parsed = JSON.parse(raw);
-    return { ...DEFAULT_GAME_STATE, ...parsed };
+    const state: GameState = { ...DEFAULT_GAME_STATE, ...parsed };
+
+    // v2.9.0: Auto-migrate — initialize curriculumProfile if missing
+    if (!state.curriculumProfile) {
+      const gradeMatch = state.parentSettings.gradeBand.match(/G(\d+)/);
+      const grade = gradeMatch ? parseInt(gradeMatch[1]) : 1;
+      state.curriculumProfile = initCurriculumProfile({
+        grade,
+        textbookEdition: state.parentSettings.textbookEdition,
+        semesterOverride: state.parentSettings.semesterOverride as Semester | undefined,
+      });
+    }
+
+    // v2.9.0: Auto-migrate — detect usage stage if missing
+    if (state.usageStage === undefined) {
+      const stageInfo = detectUsageStage(
+        Math.max(1, Math.ceil((state.totalCompleted || 0) / 5)),
+        state.totalCompleted || 0,
+      );
+      state.usageStage = stageInfo.stage;
+    }
+
+    return state;
   } catch {
     return { ...DEFAULT_GAME_STATE };
   }

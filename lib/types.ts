@@ -1,3 +1,19 @@
+// v2.9.0: Curriculum type re-exports (actual types defined in lib/curriculum/types.ts)
+export type {
+  SkillId,
+  CurriculumProfile,
+  LearnerProfile,
+  TextbookEdition,
+  Semester,
+  MasteryStatus,
+  SkillMastery,
+  UsageStage,
+  DifficultyDistribution,
+  DailyDifficultyPlan,
+  CurriculumAnnotation,
+  KnowledgePoint,
+} from './curriculum/types';
+
 // ========== 年级与领域 ==========
 
 export type ProblemType =
@@ -297,7 +313,13 @@ export interface Question {
   irrelevantNumbers?: Array<{ value: number | string; phrase: string; reason: string; }>;
   usefulNumbers?: Array<{ value: number | string; phrase: string; role: string; }>;
   qualityStatus?: 'pass' | 'fail' | 'unsafe' | 'needs_review';
-
+  // v2.9.0: Curriculum annotation
+  skillIds?: string[];
+  curriculumGrade?: number;
+  curriculumSemester?: 'upper' | 'lower' | 'both';
+  isReview?: boolean;
+  isStretch?: boolean;
+  prerequisiteSkills?: string[];
 }
 
 // ========== 关卡阶段 ==========
@@ -507,6 +529,11 @@ export interface ParentSettings {
   gradeBand: GradeBand;
   dailyGoal: number;
   maxDifficulty: number;
+  // v2.9.0: Curriculum settings
+  textbookEdition?: 'PEP' | 'BNUP' | 'XISHi' | 'generic_cn';
+  semester?: 'upper' | 'lower';
+  semesterOverride?: 'upper' | 'lower';
+  difficultyBias?: number;
 }
 
 // ========== 学习画像 ==========
@@ -581,6 +608,38 @@ export interface GameState {
   questionReviewCounts: Record<string, number>;
   /** v2.6.8: 每次提交答案的详细记录（用于精准正确率统计），最多保留200条 */
   attemptRecords: AttemptRecord[];
+  // v2.9.0: Curriculum-aware fields
+  curriculumProfile?: {
+    country: string;
+    textbookEdition: string;
+    grade: number;
+    semester: 'upper' | 'lower';
+    semesterOverride?: 'upper' | 'lower';
+    detectedAt: string;
+  };
+  learnerProfile?: {
+    skillMastery: Record<string, {
+      skillId: string;
+      attempts: number;
+      correct: number;
+      firstTryCorrect: number;
+      streakCorrect: number;
+      streakWrong: number;
+      masteryScore: number;
+      lastPracticedAt: string;
+      status: 'unseen' | 'learning' | 'practicing' | 'mastered';
+      currentDifficulty: 1 | 2 | 3 | 4 | 5;
+    }>;
+    currentDifficultyLevel: number;
+    startedAt: string;
+    totalCompleted: number;
+    recentAccuracy: number;
+    recentFirstTryAccuracy: number;
+    averageAttempts: number;
+    fullHintRate: number;
+    difficultyBias: number;
+  };
+  usageStage?: number;
 }
 
 export const DEFAULT_GAME_STATE: GameState = {

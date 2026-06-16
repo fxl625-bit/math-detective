@@ -14,11 +14,13 @@ import AppButton from '@/components/ui/AppButton';
 import PageContainer from '@/components/layout/PageContainer';
 import { getLevelInfo, getAccuracyStats } from '@/lib/storage';
 import { getTodayLesson } from '@/lib/lessonPlanner';
-import { getQuestionById } from '@/data/questions';
+import { getQuestionById, questionsByGrade } from '@/data/questions';
 import { validateStepQuestionMatch } from '@/lib/questionValidation';
 import { getRepairAttemptsSnapshot, getRepairRecordsSnapshot } from '@/lib/lessonTransaction';
 import { classifyKeyword } from '@/data/keywordRules';
 import { createDataSnapshot, downloadExportFile, copyExportToClipboard, estimateLocalStorageSize, formatBytes, type ExportPayload } from '@/lib/dataExport';
+import { detectUsageStage, buildLearnerProfile, initCurriculumProfile } from '@/lib/learnerProfile';
+import type { Semester, TextbookEdition, SkillId } from '@/lib/curriculum/types';
 
 const GRADE_OPTIONS: { value: GradeBand; label: string }[] = [
   { value: 'G1', label: '一年级' },
@@ -27,6 +29,18 @@ const GRADE_OPTIONS: { value: GradeBand; label: string }[] = [
   { value: 'G4', label: '四年级' },
   { value: 'G5', label: '五年级' },
   { value: 'G6', label: '六年级' },
+];
+
+const SEMESTER_OPTIONS: { value: Semester; label: string }[] = [
+  { value: 'lower', label: '下学期' },
+  { value: 'upper', label: '上学期' },
+];
+
+const TEXTBOOK_OPTIONS: { value: TextbookEdition; label: string }[] = [
+  { value: 'PEP', label: '人教版 (PEP)' },
+  { value: 'BNUP', label: '北师大版' },
+  { value: 'XISHi', label: '西师大版' },
+  { value: 'generic_cn', label: '通用版' },
 ];
 
 const SKILL_LABELS: Record<CognitiveSkill, string> = {
@@ -59,6 +73,13 @@ export default function ParentReportPage() {
   // Settings form state
   const [formDailyGoal, setFormDailyGoal] = useState(state.parentSettings.dailyGoal);
   const [formGrade, setFormGrade] = useState<GradeBand>(state.parentSettings.gradeBand);
+  const [formSemester, setFormSemester] = useState<Semester>(
+    (state.parentSettings.semesterOverride || state.parentSettings.semester || 'lower') as Semester
+  );
+  const [formTextbook, setFormTextbook] = useState<TextbookEdition>(
+    (state.parentSettings.textbookEdition || 'PEP') as TextbookEdition
+  );
+  const [showSkillProgress, setShowSkillProgress] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -100,6 +121,9 @@ export default function ParentReportPage() {
     setParentSettings({
       dailyGoal: formDailyGoal,
       gradeBand: formGrade,
+      semester: formSemester,
+      semesterOverride: formSemester,
+      textbookEdition: formTextbook,
     });
     setShowSettings(false);
   }
@@ -138,6 +162,40 @@ export default function ParentReportPage() {
             </div>
           </div>
 
+          {/* v2.9.0: Semester selection */}
+          <div>
+            <label className="text-sm font-bold text-gray-600 mb-2 block">📅 学期选择</label>
+            <div className="flex gap-2">
+              {SEMESTER_OPTIONS.map((s) => (
+                <button key={s.value}
+                  className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
+                    formSemester === s.value ? 'bg-blue-400 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  onClick={() => setFormSemester(s.value)}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* v2.9.0: Textbook edition */}
+          <div>
+            <label className="text-sm font-bold text-gray-600 mb-2 block">📖 教材版本</label>
+            <div className="flex flex-wrap gap-2">
+              {TEXTBOOK_OPTIONS.map((t) => (
+                <button key={t.value}
+                  className={`px-3 py-2 rounded-xl font-bold text-sm transition-all ${
+                    formTextbook === t.value ? 'bg-purple-400 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  onClick={() => setFormTextbook(t.value)}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Daily goal */}
           <div>
             <label className="text-sm font-bold text-gray-600 mb-2 block">🎯 每日目标关数</label>
@@ -162,11 +220,25 @@ export default function ParentReportPage() {
 
       {/* Current grade info */}
       <AppCard variant="purple">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <GraduationCap size={20} className="text-purple-600" />
           <span className="text-sm font-bold text-purple-800">
             当前年级：{GRADE_OPTIONS.find(g => g.value === state.parentSettings.gradeBand)?.label || '未设置'}
           </span>
+          {state.curriculumProfile && (
+            <span className="text-xs text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">
+              {state.curriculumProfile.semester === 'lower' ? '下学期' : '上学期'}
+              {' · '}
+              {TEXTBOOK_OPTIONS.find(t => t.value === (state.curriculumProfile as any)?.textbookEdition)?.label || '通用版'}
+            </span>
+          )}
+          {state.usageStage !== undefined && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${
+              state.usageStage >= 2 ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+            }`}>
+              使用阶段 {state.usageStage}
+            </span>
+          )}
         </div>
       </AppCard>
 
@@ -238,6 +310,76 @@ export default function ParentReportPage() {
         </h2>
         <SkillRadarChart skillMistakes={skillMistakes} totalCompleted={state.totalCompleted} />
         <p className="text-xs text-gray-400 text-center mt-2">越靠近中心表示该技能越弱（错误次数越多）</p>
+      </AppCard>
+
+      {/* v2.9.0: 学习进度面板 — 技能掌握情况 */}
+      {state.learnerProfile && Object.keys(state.learnerProfile.skillMastery).length > 0 && (
+        <AppCard variant="green">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-extrabold text-gray-800 flex items-center gap-2">
+              <GraduationCap size={20} className="text-green-600" />课程掌握进度
+            </h2>
+            <span className="text-xs text-gray-400">
+              难度等级 {state.learnerProfile.currentDifficultyLevel}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {Object.entries(state.learnerProfile.skillMastery)
+              .filter(([, m]: [string, any]) => m.attempts > 0)
+              .sort(([, a]: [string, any], [, b]: [string, any]) => b.masteryScore - a.masteryScore)
+              .slice(0, 12)
+              .map(([skillId, mastery]: [string, any]) => (
+                <div key={skillId} className="flex items-center gap-2">
+                  <span className="text-xs text-gray-600 flex-1 truncate" title={skillId}>
+                    {skillId.split(':').pop()?.replace(/_/g, ' ') || skillId}
+                  </span>
+                  <div className="flex-1">
+                    <ProgressBar
+                      value={Math.round(mastery.masteryScore * 100)}
+                      max={100}
+                      color={
+                        mastery.status === 'mastered' ? 'bg-green-400'
+                        : mastery.status === 'practicing' ? 'bg-blue-400'
+                        : mastery.status === 'learning' ? 'bg-amber-400'
+                        : 'bg-gray-300'
+                      }
+                    />
+                  </div>
+                  <span className={`text-[10px] font-bold w-12 text-right ${
+                    mastery.status === 'mastered' ? 'text-green-600'
+                    : mastery.status === 'practicing' ? 'text-blue-600'
+                    : mastery.status === 'learning' ? 'text-amber-600'
+                    : 'text-gray-400'
+                  }`}>
+                    {mastery.status === 'mastered' ? '已掌握' : mastery.status === 'practicing' ? '练习中' : mastery.status === 'learning' ? '学习中' : '未学习'}
+                  </span>
+                  <span className="text-[10px] text-gray-400 w-16 text-right">
+                    {mastery.correct}/{mastery.attempts}
+                  </span>
+                </div>
+              ))}
+          </div>
+        </AppCard>
+      )}
+
+      {/* v2.9.0: 题目分布诊断（最近30题） */}
+      <AppCard variant="gray">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="font-extrabold text-gray-800 flex items-center gap-2">
+            <BarChart3 size={20} className="text-gray-500" />题目分布诊断
+          </h2>
+          <button
+            className="px-3 py-1 rounded-lg text-xs font-bold bg-gray-200 hover:bg-gray-300 transition-colors"
+            onClick={() => setShowSkillProgress(!showSkillProgress)}
+          >
+            {showSkillProgress ? '收起' : '展开'}
+          </button>
+        </div>
+        {showSkillProgress && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3 text-sm">
+            <QuestionDistributionDiagnostic state={state} />
+          </motion.div>
+        )}
       </AppCard>
 
       {/* Weekly Trend */}
@@ -755,6 +897,185 @@ function ScoreDiagRow({ label, value, ok }: { label: string; value: string; ok: 
       <span className="flex-shrink-0 mt-0.5">{ok ? '✅' : '⚠️'}</span>
       <span className="text-gray-500 flex-shrink-0 w-48">{label}:</span>
       <span className={`font-mono ${ok ? 'text-gray-700' : 'text-red-600 font-bold'}`}>{value}</span>
+    </div>
+  );
+}
+
+// ========== v2.9.0: 题目分布诊断 ==========
+
+const SKILL_LABELS_CN: Record<string, string> = {
+  'addition_subtraction:single_digit_addition': '一位数加法',
+  'addition_subtraction:singledigit_subtraction': '一位数减法',
+  'addition_subtraction:addition_within_10': '10以内加法',
+  'addition_subtraction:subtraction_within_10': '10以内减法',
+  'addition_subtraction:subtraction_within_20_borrowing': '20以内退位减法',
+  'number:counting_within_100': '100以内数数',
+  'number:composition_within_100': '100以内数的组成',
+  'number:order_within_100': '100以内数的大小',
+  'number:comparison_within_100': '100以内数的比较',
+  'addition_subtraction:two_digit_plus_one_digit': '两位数加一位数',
+  'addition_subtraction:two_digit_minus_one_digit': '两位数减一位数',
+  'addition_subtraction:two_digit_plus_tens': '两位数加整十数',
+  'addition_subtraction:two_digit_minus_tens': '两位数减整十数',
+  'addition_subtraction:addition_within_100': '100以内加法',
+  'addition_subtraction:subtraction_within_100': '100以内减法',
+  'comparison:difference_comparison': '差比问题',
+  'unknown:unknown_addend': '求未知加数',
+  'unknown:unknown_subtrahend': '求未知减数',
+  'money:rmb_recognition': '人民币认识',
+  'money:simple_shopping': '简单购物',
+  'geometry:plane_shapes': '平面图形',
+  'classification:classify_objects': '分类物体',
+  'pattern:simple_patterns': '简单规律',
+  'word_problem:two_step_word_problem': '两步应用题',
+  'information:identify_extra_information': '识别多余信息',
+  'information:insufficient_information': '判断信息缺失',
+  'reasoning:reverse_unknown': '逆向推理',
+  'money:shopping_and_change': '购物找零',
+  'multi_step:multi_condition_reading': '多条件阅读',
+  'multiplication:equal_groups_intro': '乘法入门',
+  'multiplication:repeated_addition': '连加变乘法',
+  'comparison:multiplicative_comparison_intro': '倍数比较入门',
+  'logic:simple_ordering': '简单排序',
+  'pattern:advanced_patterns': '进阶规律',
+  'reasoning:missing_number': '找缺失数字',
+  'information:information_sufficiency': '信息充分性',
+};
+
+function QuestionDistributionDiagnostic({ state }: { state: any }) {
+  const recentRecords = (state.attemptRecords || []).slice(-30);
+  const completedIds = state.completedQuestions || [];
+
+  // Build distribution from annotated questions
+  const gradeQuestions = (questionsByGrade as any)[state.parentSettings.gradeBand] || [];
+
+  const distribution = {
+    byDifficulty: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as Record<number, number>,
+    bySemester: { lower: 0, upper: 0, both: 0, unknown: 0 } as Record<string, number>,
+    byCategory: { review: 0, currentCore: 0, application: 0, stretch: 0, unknown: 0 } as Record<string, number>,
+    singleDigitCount: 0,
+    totalAnnotated: 0,
+    totalInPool: gradeQuestions.length,
+  };
+
+  // Count annotated questions in the grade pool
+  gradeQuestions.forEach((q: any) => {
+    distribution.totalAnnotated++;
+    const diff = (q as any).difficulty || 0;
+    if (diff >= 1 && diff <= 5) distribution.byDifficulty[diff]++;
+
+    const sem = (q as any).curriculumSemester || 'unknown';
+    if (sem in distribution.bySemester) distribution.bySemester[sem]++;
+
+    if ((q as any).isReview) distribution.byCategory.review++;
+    else if ((q as any).isStretch) distribution.byCategory.stretch++;
+    else distribution.byCategory.currentCore++;
+
+    const skills = (q as any).skillIds || [];
+    if (skills.some((s: string) => s.includes('single_digit'))) distribution.singleDigitCount++;
+  });
+
+  // Check recent 30 questions against ideal distribution
+  const singleDigitPct = distribution.totalInPool > 0
+    ? Math.round((distribution.singleDigitCount / distribution.totalInPool) * 100)
+    : 0;
+  const reviewPct = distribution.totalAnnotated > 0
+    ? Math.round((distribution.byCategory.review / distribution.totalAnnotated) * 100)
+    : 0;
+
+  return (
+    <div className="space-y-3">
+      <div className="text-xs text-gray-500">
+        基于 {distribution.totalInPool} 道 {state.parentSettings.gradeBand} 题目池分析
+      </div>
+
+      {/* Difficulty distribution */}
+      <div className="p-3 bg-white rounded-lg">
+        <div className="text-xs font-bold text-gray-600 mb-2">难度分布</div>
+        <div className="flex gap-1 h-6 items-end">
+          {[1, 2, 3, 4, 5].map(d => {
+            const count = distribution.byDifficulty[d];
+            const pct = distribution.totalAnnotated > 0 ? (count / distribution.totalAnnotated) * 100 : 0;
+            const height = Math.max(4, pct * 0.6);
+            return (
+              <div key={d} className="flex-1 flex flex-col items-center gap-1">
+                <span className="text-[10px] text-gray-500">{count}</span>
+                <div
+                  className="w-full rounded-t transition-all"
+                  style={{
+                    height: `${height}px`,
+                    backgroundColor: d <= 2 ? '#fbbf24' : d <= 3 ? '#60a5fa' : d <= 4 ? '#a78bfa' : '#f87171',
+                  }}
+                />
+                <span className="text-[10px] text-gray-400">D{d}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Semester distribution */}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="p-3 bg-white rounded-lg">
+          <div className="text-xs font-bold text-gray-600 mb-1">学期分布</div>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between"><span className="text-gray-500">下学期</span><span className="font-bold text-blue-600">{distribution.bySemester.lower}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">上学期</span><span className="font-bold text-green-600">{distribution.bySemester.upper}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">通用</span><span className="font-bold text-gray-600">{distribution.bySemester.both}</span></div>
+          </div>
+        </div>
+
+        <div className="p-3 bg-white rounded-lg">
+          <div className="text-xs font-bold text-gray-600 mb-1">题目类型</div>
+          <div className="space-y-1 text-xs">
+            <div className="flex justify-between"><span className="text-gray-500">复习题</span><span className="font-bold text-amber-600">{distribution.byCategory.review}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">核心题</span><span className="font-bold text-blue-600">{distribution.byCategory.currentCore}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">拓展题</span><span className="font-bold text-purple-600">{distribution.byCategory.stretch}</span></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Diagnostic alerts */}
+      <div className="p-3 bg-amber-50 rounded-lg text-xs space-y-1">
+        <div className="font-bold text-amber-800">诊断结论</div>
+        {singleDigitPct > 10 && (
+          <div className="text-amber-700">⚠️ 一位数题目占比 {singleDigitPct}%（建议 ≤10%），可能过于简单</div>
+        )}
+        {reviewPct > 15 && (
+          <div className="text-amber-700">⚠️ 复习题占比 {reviewPct}%（建议 ≤5%），新题不够</div>
+        )}
+        {singleDigitPct <= 10 && reviewPct <= 15 && (
+          <div className="text-green-700">✅ 题目分布合理，一位数题目 {singleDigitPct}%，复习题 {reviewPct}%</div>
+        )}
+        {state.usageStage !== undefined && state.usageStage >= 2 && singleDigitPct > 5 && (
+          <div className="text-amber-700">⚠️ 用户已进入阶段 {state.usageStage}，一位数题目仍占 {singleDigitPct}%，建议自适应提升难度</div>
+        )}
+      </div>
+
+      {/* Recent 30 questions with annotations */}
+      {recentRecords.length > 0 && (
+        <div className="p-3 bg-white rounded-lg">
+          <div className="text-xs font-bold text-gray-600 mb-2">最近 30 题答案记录</div>
+          <div className="space-y-1">
+            {recentRecords.map((r: any, i: number) => {
+              const q = gradeQuestions.find((gq: any) => gq.id === r.questionId);
+              const skills = (q as any)?.skillIds || [];
+              return (
+                <div key={i} className="flex items-center gap-1 text-[10px]">
+                  <span>{r.isCorrect ? '✅' : '❌'}</span>
+                  <span className="font-mono text-gray-500">{r.questionId.slice(0, 8)}</span>
+                  {q && <span className="text-purple-500">D{(q as any).difficulty || '?'}</span>}
+                  {skills.length > 0 && (
+                    <span className="text-gray-400 truncate max-w-[120px]">
+                      {skills[0].split(':').pop()?.replace(/_/g, ' ') || ''}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

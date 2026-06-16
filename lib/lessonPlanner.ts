@@ -1,4 +1,5 @@
 import { Question, MistakeRecord, GradeBand, CognitiveSkill, LessonStepType, StepPhase, LessonStep, TodayLesson, LearningProfile, TomorrowLessonPreview, VirtualReward } from './types';
+import type { Semester, LearnerProfile as CurriculumLearnerProfile, UsageStage } from './curriculum/types';
 import { getQuestionById, allQuestions, questionsByGrade, getQuestionsByFilter } from '@/data/questions';
 import { loadState, getAccuracyStats } from './storage';
 import { allStories } from '@/data/stories';
@@ -6,6 +7,17 @@ import { getCaseStoryForDate, getRecentStoryIds, saveRecentStoryId, isQuestionCo
 import { classifyKeyword } from '@/data/keywordRules';
 import { inferLessonType, extractNumbers, classifyNumberRole } from './questionValidation';
 import { isQuestionSafeForLesson } from './questionSafety';
+import {
+  detectUsageStage,
+  buildLearnerProfile,
+  initCurriculumProfile,
+} from './learnerProfile';
+import {
+  generateDailySlotPlan,
+  selectQuestionsForSlot,
+  pickQuestionFromCandidates,
+  maxSingleDigitQuestions,
+} from './adaptiveDifficulty';
 
 // ========== 关卡配置 ==========
 
@@ -413,10 +425,44 @@ function shuffleArray<T>(arr: T[]): void {
 }
 
 /**
- * 计算有效难度上限（基于 skillLevel 自适应）
+ * 计算有效难度上限（v2.9.0: 基于learnerProfile自适应，兼容旧版profile）
  */
-function getEffectiveMaxDifficulty(profile: LearningProfile): number {
+function getEffectiveMaxDifficulty(profile: LearningProfile, learnerProfile?: CurriculumLearnerProfile): number {
+  // v2.9.0: use learnerProfile.currentDifficultyLevel if available
+  if (learnerProfile) {
+    return Math.min(5, learnerProfile.currentDifficultyLevel + 1);
+  }
+  // Legacy fallback
   return Math.min(5, 1 + Math.floor(profile.skillLevel));
+}
+
+/**
+ * v2.9.0: 从GameState提取使用阶段和学期
+ */
+function getUsageContext(state: {
+  totalCompleted: number;
+  completedQuestions: string[];
+  parentSettings: { gradeBand: GradeBand; semester?: string; semesterOverride?: string };
+  learnerProfile?: any;
+}): {
+  usageStage: UsageStage;
+  semester: Semester;
+  grade: number;
+  learnerProfile: CurriculumLearnerProfile | undefined;
+} {
+  const totalCompleted = state.totalCompleted || state.completedQuestions.length;
+  const daysEstimate = Math.max(1, Math.ceil(totalCompleted / 5));
+  const stageInfo = detectUsageStage(daysEstimate, totalCompleted);
+  const gradeMatch = state.parentSettings.gradeBand.match(/G(\d+)/);
+  const grade = gradeMatch ? parseInt(gradeMatch[1]) : 1;
+  const semester = (state.parentSettings.semesterOverride || state.parentSettings.semester || 'lower') as Semester;
+
+  return {
+    usageStage: stageInfo.stage,
+    semester,
+    grade,
+    learnerProfile: state.learnerProfile as CurriculumLearnerProfile | undefined,
+  };
 }
 
 /**
@@ -673,11 +719,16 @@ function buildDailyLesson(
   mistakes: MistakeRecord[]
 ): TodayLesson {
   const today = getDateStr();
-  const maxDifficulty = getEffectiveMaxDifficulty(profile);
+
+  // Load full state for v2.9.0 features
+  const fullState = loadState();
+  const ctx = getUsageContext(fullState);
+  const { usageStage, semester, grade, learnerProfile } = ctx;
+  const maxDifficulty = getEffectiveMaxDifficulty(profile, learnerProfile);
 
   const stepTypes = getStepTypesForGrade(profile.gradeBand);
 
-  // 选择案件故事
+  // Select case story
   const recentStoryIds = getRecentStoryIds(3);
   const caseStory = getCaseStoryForDate(allStories, profile.gradeBand, today, recentStoryIds);
   let caseStoryId: string | undefined;
@@ -686,17 +737,82 @@ function buildDailyLesson(
     saveRecentStoryId(caseStory.id);
   }
 
-  // 加载完整状态以获取复习数据
-  const fullState = loadState();
+  // Load full state for review data
   const dueReviews = getDueReviewQuestions(profile, fullState, []);
-  // 每天 2 道复习题（如果有足够的待复习题）
+  // Max 2 review questions if available
   const reviewSlots = Math.min(2, dueReviews.length);
-  const newSlots = stepTypes.length - reviewSlots;
+
+  // v2.9.0: Generate daily slot plan
+  const slotPlan = learnerProfile
+    ? generateDailySlotPlan({ usageStage, learnerProfile, grade, semester })
+    : null;
+
+  // v2.9.0: Single-digit limit
+  const singleDigitLimit = maxSingleDigitQuestions(usageStage, stepTypes.length);
 
   const usedQuestionIds: string[] = [];
   const steps: LessonStep[] = [];
+  let singleDigitUsed = 0;
 
-  // 先放复习题到前几个关卡（基础关卡优先复习）
+  // Track which questions are single-digit review
+  const isSingleDigitReview = (q: Question): boolean => {
+    return q.isReview === true && q.difficulty <= 1;
+  };
+
+  // v2.9.0: Curriculum-aware question selection
+  const selectCurriculumAwareQuestion = (params: {
+    stepType: LessonStepType;
+    usedIds: string[];
+    targetDiff: number;
+    story?: CaseStory | null;
+    forceSlot?: string;
+  }): Question | null => {
+    // First try curriculum-aware selection if we have a learnerProfile
+    if (learnerProfile && slotPlan) {
+      const pool = questionsByGrade[profile.gradeBand] || allQuestions;
+      const candidates = selectQuestionsForSlot({
+        pool,
+        targetDifficulty: params.targetDiff,
+        learnerProfile,
+        usageStage,
+        grade,
+        semester,
+        excludeIds: params.usedIds,
+        slotCategory: (params.forceSlot as any) || 'currentCore',
+      });
+
+      // Filter by step compatibility and theme
+      const compatible = candidates.filter(q => {
+        const stReq = STEP_TYPE_REQUIREMENTS[params.stepType];
+        if (!stReq) return true;
+        if (!stReq(q)) return false;
+        if (params.story && !params.story.fallbackToGeneric) {
+          if (!isQuestionCompatibleWithTheme(q, params.story)) return false;
+        }
+        if (!isQuestionSafeForLesson(q).safe) return false;
+        // v2.9.0: enforce single-digit limit
+        if (isSingleDigitReview(q) && singleDigitUsed >= singleDigitLimit) return false;
+        return true;
+      });
+
+      const picked = pickQuestionFromCandidates(compatible);
+      if (picked) {
+        if (isSingleDigitReview(picked)) singleDigitUsed++;
+        return picked;
+      }
+    }
+
+    // Fallback to legacy selection
+    return selectQuestionForStep({
+      stepType: params.stepType,
+      profile,
+      usedQuestionIds: params.usedIds,
+      targetDifficulty: params.targetDiff,
+      story: params.story,
+    });
+  };
+
+  // Place review questions in early slots
   for (let i = 0; i < reviewSlots && i < stepTypes.length; i++) {
     const reviewQ = dueReviews[i];
     if (!reviewQ) break;
@@ -718,67 +834,48 @@ function buildDailyLesson(
     });
   }
 
-  // 剩余关卡用新题
+  // Fill remaining slots with curriculum-aware selection
   for (let i = steps.length; i < stepTypes.length; i++) {
     const st = stepTypes[i];
-    const question = selectQuestionForStep({
+
+    // v2.9.0: get target difficulty from slot plan
+    const targetDiff = slotPlan?.[i]?.targetDifficulty || maxDifficulty;
+    const slotCategory = slotPlan?.[i]?.category || 'currentCore';
+
+    const question = selectCurriculumAwareQuestion({
       stepType: st,
-      profile,
-      usedQuestionIds,
-      targetDifficulty: maxDifficulty,
+      usedIds: usedQuestionIds,
+      targetDiff,
       story: caseStory,
+      forceSlot: slotCategory,
     });
 
     if (!question) {
-      if (st === 'remove_noise') {
-        console.warn(`[buildDailyLesson] No remove_noise question, substituting with find_action_words`);
-        const subQ = selectQuestionForStep({
-          stepType: 'find_action_words',
-          profile,
-          usedQuestionIds,
-          targetDifficulty: maxDifficulty,
+      // Fallback: try lower difficulty
+      for (let diff = targetDiff - 1; diff >= 1; diff--) {
+        const fallback = selectCurriculumAwareQuestion({
+          stepType: st,
+          usedIds: usedQuestionIds,
+          targetDiff: diff,
           story: caseStory,
+          forceSlot: slotCategory,
         });
-        if (subQ) {
-          usedQuestionIds.push(subQ.id);
-          const phases = [...getDefaultPhasesForStepType('find_action_words')];
+        if (fallback) {
+          usedQuestionIds.push(fallback.id);
+          const phases = [...getDefaultPhasesForStepType(st, fallback)];
           steps.push({
-            id: `${today}_find_action_words_${i}_${subQ.id}`,
-            type: 'find_action_words',
-            title: STEP_TITLES.find_action_words,
-            description: STEP_DESCRIPTIONS.find_action_words,
-            questionId: subQ.id,
+            id: `${today}_${st}_${i}_${fallback.id}`,
+            type: st,
+            title: getDynamicStepTitle(st, fallback),
+            description: getDynamicStepDescription(st, fallback),
+            questionId: fallback.id,
             phases,
             currentPhaseIndex: 0,
             status: i === 0 ? 'current' : 'locked',
             requiresAnswer: true,
           });
+          break;
         }
-        continue;
-      }
-      // Try full_solve as fallback
-      const lastQ = selectQuestionForStep({
-        stepType: 'full_solve',
-        profile,
-        usedQuestionIds,
-        targetDifficulty: maxDifficulty,
-        story: caseStory,
-      });
-      if (lastQ) {
-        usedQuestionIds.push(lastQ.id);
-        const actualType: LessonStepType = 'full_solve';
-        const phases = [...getDefaultPhasesForStepType(actualType, lastQ)];
-        steps.push({
-          id: `${today}_${actualType}_${i}_${lastQ.id}`,
-          type: actualType,
-          title: getDynamicStepTitle(actualType, lastQ),
-          description: getDynamicStepDescription(actualType, lastQ),
-          questionId: lastQ.id,
-          phases,
-          currentPhaseIndex: 0,
-          status: i === 0 ? 'current' : 'locked',
-          requiresAnswer: true,
-        });
       }
       continue;
     }
@@ -797,6 +894,11 @@ function buildDailyLesson(
       status: i === 0 ? 'current' : 'locked',
       requiresAnswer: true,
     });
+  }
+
+  // If no steps at all, generate safe fallback
+  if (steps.length === 0) {
+    return generateSafeFallbackLesson(profile.gradeBand);
   }
 
   return {

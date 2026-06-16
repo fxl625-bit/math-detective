@@ -1,3 +1,62 @@
+## v2.9.0 - 自适应学期课程系统 (2026-06-16)
+
+### 核心功能：自适应学期课程 + 难度引擎
+
+**问题根因**：孩子使用 ~2 个月后，系统仍频繁分配一位数加减法，不适配学期、使用时长、历史正确率和学习进度。
+
+**解决方案**：引入完整课程模型 + 学习者画像 + 自适应难度引擎
+
+### Phase 1A: 课程类型系统
+* 新增 `lib/curriculum/types.ts` — 核心类型定义（SkillId, CurriculumProfile, LearnerProfile, SkillMastery, UsageStage 等）
+* 新增 `lib/curriculum/curriculumMap.ts` — G1-G6 × upper/lower 学期知识点映射
+* 新增 `lib/curriculum/semesterDetector.ts` — 学期自动检测（Jan-Jun→lower, Jul-Dec→upper，支持手动覆盖）
+* 新增 `lib/curriculum/index.ts` — 模块导出
+* 更新 `lib/types.ts` — 新增 v2.9.0 字段到 Question（skillIds, curriculumGrade, curriculumSemester, isReview, isStretch）、ParentSettings（textbookEdition, semester, difficultyBias）、GameState（curriculumProfile, learnerProfile, usageStage）
+
+### Phase 1B: 题目标注
+* 新增 `data/questions/annotations/g1-annotations.ts` — 55 道 G1 题目完整标注
+  - 每个 skillId, difficulty, curriculumSemester, isReview, isStretch
+* 新增 `data/questions/annotations/index.ts` — 标注合并导出
+* 更新 `data/questions/index.ts` — `applyAnnotations()` 函数合并标注到原始数据
+
+### Phase 2: 自适应难度引擎
+* 新增 `lib/learnerProfile.ts` — 学习者画像管理
+  - 使用阶段检测（Stage 0-3，基于天数/完成量）
+  - 技能掌握度计算（masteryScore, status: unseen→learning→practicing→mastered）
+  - 升级规则：≥85% 正确率 over 20 题 → level up
+  - 自动初始化 CurriculumProfile
+* 新增 `lib/adaptiveDifficulty.ts` — 自适应难度引擎
+  - 每日 6 关难度计划：L2→L2-3→L3→L3→L3-4→L4(occasional L5)
+  - 分布控制：5% review, 65% currentCore, 20% application, 10% stretch
+  - 一位数题目限制：Stage 0 ≤ 50%, Stage 1 ≤ 30%, Stage 2 ≤ 15%, Stage 3 ≤ 10%
+  - 技能优先级评分（未学习 > 学习中 > 练习中 > 已掌握）
+* 重写 `lib/lessonPlanner.ts` — 核心出题逻辑重构
+  - 集成 learnerProfile 驱动选题
+  - 课程感知的 selectCurriculumAwareQuestion()
+  - 向后兼容旧版 profile（无 learnerProfile 时 fallback 到 skillLevel）
+
+### Phase 3: UI 更新
+* 家长设置面板新增：学期选择（下学期/上学期）、教材版本选择（PEP/北师大/西师大/通用）
+* 年级信息卡片新增：学期标签、使用阶段标签
+* 新增"课程掌握进度"面板 — 显示各技能掌握状态（已掌握/练习中/学习中/未学习）
+* 新增"题目分布诊断"面板 — 难度分布柱状图、学期分布、类型分布、诊断结论、最近30题记录
+
+### Phase 4: 测试套件
+* 新增 `__tests__/v290/test-curriculum.ts` — 93 个测试（类型完整性、课程地图、学期检测、知识基线）
+* 新增 `__tests__/v290/test-adaptive-difficulty.ts` — 28 个测试（使用阶段、技能掌握、难度引擎、模拟画像）
+* 新增 `__tests__/v290/test-question-distribution.ts` — 20 个测试（标注合并、分布比例、一位数限制）
+* 新增 package.json scripts: `test:curriculum`, `test:adaptive-difficulty`, `test:question-distribution`, `test:v290`
+
+### Phase 5: 数据迁移
+* 更新 `lib/storage.ts` — loadState 自动初始化 curriculumProfile 和 usageStage（向后兼容旧用户）
+* 更新 `hooks/useGameState.ts` — setParentSettings 类型扩展支持 v2.9.0 字段
+
+### 验证
+* TypeScript 编译零错误 (tsc --noEmit)
+* 141 个测试全过 (93 + 28 + 20)
+
+---
+
 ## v2.8.4 - P0 修复：积分发放与数据导出 (2026-06-16)
 
 ### 核心修复
