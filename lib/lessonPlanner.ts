@@ -835,7 +835,10 @@ export function buildDailyLesson(
     return q.isReview === true && q.difficulty <= 1;
   };
 
-  // v2.9.1: Curriculum-aware question selection
+  // v2.10.0 Sub-project C: Generation diagnostic report
+  const selectionDiagnostic: any[] = [];
+
+  // v2.10.0 Sub-project C: Curriculum-aware question selection with diagnostics
   const selectCurriculumAwareQuestion = (params: {
     stepType: LessonStepType;
     usedIds: string[];
@@ -845,32 +848,71 @@ export function buildDailyLesson(
     assessmentTier?: AssessmentTier;
     skillFilter?: string[];
   }): Question | null => {
+    const slotLabel = `slot_${steps.length + 1}`;
+    const diagnostic: any = {
+      slot: slotLabel,
+      stepType: params.stepType,
+      targetDiff: params.targetDiff,
+      assessmentTier: params.assessmentTier,
+      skillFilter: params.skillFilter,
+      attempts: [],
+      selectedQuestion: null,
+      finalReason: null,
+    };
+
     // First try curriculum-aware selection if we have a learnerProfile
     if (learnerProfile && slotPlan) {
       const pool = questionsByGrade[profile.gradeBand] || allQuestions;
+      diagnostic.sourcePoolSize = pool.length;
 
       // Try with the requested step type first
-      let picked = tryCurriculumSelection(pool, params, 'full');
+      let picked: Question | null = null;
+      let reason: string | null = null;
+
+      picked = tryCurriculumSelectionWithDiag(pool, params, 'full', diagnostic);
+      reason = 'full';
 
       // v2.9.0 FIX: If step type requirements filtered out ALL candidates,
       // retry with relaxed step type (full_solve accepts any question).
-      // This is the key fix: curriculum skills matter more than step type.
       if (!picked && params.stepType !== 'full_solve') {
-        picked = tryCurriculumSelection(pool, { ...params, stepType: 'full_solve' as LessonStepType }, 'step_degraded');
+        picked = tryCurriculumSelectionWithDiag(pool, { ...params, stepType: 'full_solve' as LessonStepType }, 'step_degraded', diagnostic);
+        reason = 'step_degraded';
       }
 
       // v2.9.0 FIX: If still empty, try without theme filtering
       if (!picked) {
-        picked = tryCurriculumSelection(pool, { ...params, stepType: 'full_solve' as LessonStepType, story: null }, 'theme_degraded');
+        picked = tryCurriculumSelectionWithDiag(pool, { ...params, stepType: 'full_solve' as LessonStepType, story: null }, 'theme_degraded', diagnostic);
+        reason = 'theme_degraded';
       }
+
+      diagnostic.finalReason = picked ? reason : 'all_fallbacks_exhausted';
 
       if (picked) {
         if (isSingleDigitReview(picked)) singleDigitUsed++;
+        diagnostic.selectedQuestion = {
+          id: picked.id,
+          text: picked.text.substring(0, 50),
+          difficulty: picked.difficulty,
+          assessmentTier: (picked as any).assessmentTier,
+          sourcePool: profile.gradeBand,
+          selectionReason: reason,
+        };
+        selectionDiagnostic.push(diagnostic);
         return picked;
       }
+
+      // v2.10.0: No fallback to legacy — report the gap
+      console.error(`[P0-3][Curriculum] Slot ${slotLabel}: no candidates after all fallbacks. stepType=${params.stepType} targetDiff=${params.targetDiff} tier=${params.assessmentTier}`);
+      diagnostic.finalReason = 'no_candidates_any_fallback';
+      selectionDiagnostic.push(diagnostic);
+      return null;
     }
 
-    // Fallback to legacy selection
+    // No learnerProfile or slotPlan available
+    diagnostic.finalReason = 'no_learner_profile';
+    selectionDiagnostic.push(diagnostic);
+
+    // Fallback to legacy selection (only when no curriculum system available)
     return selectQuestionForStep({
       stepType: params.stepType,
       profile,
@@ -878,6 +920,66 @@ export function buildDailyLesson(
       targetDifficulty: params.targetDiff,
       story: params.story,
     });
+  };
+
+  // v2.10.0 Sub-project C: tryCurriculumSelection with diagnostics
+  const tryCurriculumSelectionWithDiag = (
+    pool: Question[],
+    params: {
+      stepType: LessonStepType;
+      usedIds: string[];
+      targetDiff: number;
+      story?: CaseStory | null;
+      forceSlot?: string;
+      assessmentTier?: AssessmentTier;
+      skillFilter?: string[];
+    },
+    mode: string,
+    diagnostic: any,
+  ): Question | null => {
+    const attempt: any = { mode, stepType: params.stepType, story: !!params.story };
+    const candidates = selectQuestionsForSlot({
+      pool,
+      targetDifficulty: params.targetDiff,
+      learnerProfile: learnerProfile!,
+      usageStage,
+      grade,
+      semester,
+      excludeIds: params.usedIds,
+      slotCategory: (params.forceSlot as any) || 'currentCore',
+      assessmentTier: params.assessmentTier,
+      skillFilter: params.skillFilter,
+    });
+    attempt.candidateCount = candidates.length;
+    attempt.candidatesPreview = candidates.slice(0, 3).map(c => ({
+      id: c.id, text: c.text.substring(0, 30), diff: c.difficulty, tier: (c as any).assessmentTier
+    }));
+
+    const compatible = candidates.filter(q => {
+      const stReq = STEP_TYPE_REQUIREMENTS[params.stepType];
+      if (!stReq) return true;
+      if (!stReq(q)) return false;
+      if (params.story && !params.story.fallbackToGeneric) {
+        if (!isQuestionCompatibleWithTheme(q, params.story)) return false;
+      }
+      if (!isQuestionSafeForLesson(q).safe) return false;
+      if (isSingleDigitReview(q) && singleDigitUsed >= singleDigitLimit) return false;
+      return true;
+    });
+    attempt.compatibleCount = compatible.length;
+    attempt.rejectedByStep = candidates.length - compatible.length;
+
+    if (compatible.length === 0) {
+      attempt.result = 'empty';
+      diagnostic.attempts.push(attempt);
+      return null;
+    }
+
+    // Pick from compatible candidates
+    const picked = pickQuestionFromCandidates(compatible);
+    attempt.result = picked ? picked.id : 'pick_failed';
+    diagnostic.attempts.push(attempt);
+    return picked;
   };
 
   // Helper: attempt curriculum-aware selection with given params
@@ -1086,6 +1188,51 @@ export function buildDailyLesson(
         })
       );
     } catch { /* diagnostic error, ignore */ }
+  }
+
+  // v2.10.0 Sub-project C: Expose generation diagnostic on window
+  if (typeof window !== 'undefined') {
+    try {
+      (window as any).__MD_DEBUG__ = (window as any).__MD_DEBUG__ || {};
+      (window as any).__MD_DEBUG__.lastLessonGenerationReport = {
+        appVersion: 'v2.10.0',
+        plannerVersion: 4,
+        reusedOldLesson: false,
+        grade,
+        semester,
+        semesterProgress,
+        usageStage,
+        learnerDifficulty: learnerProfile?.currentDifficultyLevel ?? profile.skillLevel,
+        sourceQuestionCount: allQuestions.length,
+        annotatedQuestionCount: allQuestions.filter(q => q.skillIds && q.skillIds.length > 0).length,
+        totalSlots: stepTypes.length,
+        slotPlan: slotPlan?.map((s, i) => ({
+          slot: i + 1,
+          category: s.category,
+          targetDifficulty: s.targetDifficulty,
+          assessmentTier: s.assessmentTier,
+          skillFilter: s.skillFilter,
+        })),
+        fallbackUsed: false,
+        fallbackReason: null,
+        selectionDiagnostic,
+        selectedQuestions: steps.map((step, i) => {
+          const q = getQuestionById(step.questionId);
+          const diag = selectionDiagnostic[i];
+          return {
+            id: step.questionId,
+            text: q?.text?.substring(0, 60) || '???',
+            difficulty: q?.difficulty,
+            assessmentTier: (q as any)?.assessmentTier,
+            curriculumSkills: q?.skillIds?.join(', '),
+            difficultyProfile: (q as any)?.difficultyProfile,
+            sourcePool: diag?.sourcePoolSize ? `annotated_pool_${profile.gradeBand}` : 'unknown',
+            selectionReason: diag?.finalReason || diag?.selectedQuestion?.selectionReason || 'unknown',
+            stepType: step.type,
+          };
+        }),
+      };
+    } catch { /* ignore */ }
   }
 
   return lesson;

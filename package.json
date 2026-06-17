@@ -25,7 +25,7 @@
     "test:curriculum": "tsx -r tsconfig-paths/register __tests__/v290/test-curriculum.ts",
     "test:adaptive-difficulty": "tsx -r tsconfig-paths/register __tests__/v290/test-adaptive-difficulty.ts",
     "test:question-distribution": "tsx -r tsconfig-paths/register __tests__/v290/test-question-distribution.ts",
-    "test:real-lesson-generation": "tsx -r tsconfig-paths/register __tests__/v290/test-real-lesson-generation.ts",
+    "test:real-curriculum-generation": "tsx -r tsconfig-paths/register tests/integration/real-curriculum-generation.test.ts",
     "test:v290": "npm run test:curriculum && npm run test:adaptive-difficulty && npm run test:question-distribution && npm run test:real-lesson-generation",
     "test:e2e": "node scripts/run-playwright.js",
     "test:e2e:play": "node scripts/run-playwright.js tests/e2e/play-no-home-redirect.spec.ts",
