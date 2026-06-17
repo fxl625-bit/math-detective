@@ -837,6 +837,8 @@ export function buildDailyLesson(
   const usedQuestionIds: string[] = [];
   const steps: LessonStep[] = [];
   let singleDigitUsed = 0;
+  // v2.10.2: Track effective step type across selections (P0 step mismatch fix)
+  let lastEffectiveStepType: LessonStepType | null = null;
 
   // Track which questions are single-digit review
   const isSingleDigitReview = (q: Question): boolean => {
@@ -875,28 +877,35 @@ export function buildDailyLesson(
 
       // Try with the requested step type first
       let picked: Question | null = null;
+      let effectiveStepType: LessonStepType = params.stepType;
       let reason: string | null = null;
 
       picked = tryCurriculumSelectionWithDiag(pool, params, 'full', diagnostic);
       reason = 'full';
 
-      // v2.9.0 FIX: If step type requirements filtered out ALL candidates,
-      // retry with relaxed step type (full_solve accepts any question).
+      // v2.10.2: If step type filtered out all candidates, retry with full_solve
       if (!picked && params.stepType !== 'full_solve') {
         picked = tryCurriculumSelectionWithDiag(pool, { ...params, stepType: 'full_solve' as LessonStepType }, 'step_degraded', diagnostic);
-        reason = 'step_degraded';
+        if (picked) {
+          effectiveStepType = 'full_solve';
+          reason = 'step_degraded';
+        }
       }
 
       // v2.9.0 FIX: If still empty, try without theme filtering
       if (!picked) {
         picked = tryCurriculumSelectionWithDiag(pool, { ...params, stepType: 'full_solve' as LessonStepType, story: null }, 'theme_degraded', diagnostic);
-        reason = 'theme_degraded';
+        if (picked) {
+          effectiveStepType = 'full_solve';
+          reason = 'theme_degraded';
+        }
       }
 
       diagnostic.finalReason = picked ? reason : 'all_fallbacks_exhausted';
 
       if (picked) {
         if (isSingleDigitReview(picked)) singleDigitUsed++;
+        lastEffectiveStepType = effectiveStepType;
         diagnostic.selectedQuestion = {
           id: picked.id,
           text: picked.text.substring(0, 50),
@@ -904,7 +913,9 @@ export function buildDailyLesson(
           assessmentTier: (picked as any).assessmentTier,
           sourcePool: profile.gradeBand,
           selectionReason: reason,
+          effectiveStepType,
         };
+        diagnostic.effectiveStepType = effectiveStepType;
         selectionDiagnostic.push(diagnostic);
         return picked;
       }
@@ -1067,6 +1078,7 @@ export function buildDailyLesson(
     const slotAssessmentTier = slotPlan?.[i]?.assessmentTier as AssessmentTier | undefined;
     const slotSkillFilter = slotPlan?.[i]?.skillFilter as string[] | undefined;
 
+    lastEffectiveStepType = null;
     const question = selectCurriculumAwareQuestion({
       stepType: st,
       usedIds: usedQuestionIds,
@@ -1076,10 +1088,13 @@ export function buildDailyLesson(
       assessmentTier: slotAssessmentTier,
       skillFilter: slotSkillFilter,
     });
+    // v2.10.2: Use effective step type from selection (may differ if step_degraded)
+    const effectiveSt = lastEffectiveStepType || st;
 
     if (!question) {
       // Fallback: try lower difficulty
       for (let diff = targetDiff - 1; diff >= 1; diff--) {
+        lastEffectiveStepType = null;
         const fallback = selectCurriculumAwareQuestion({
           stepType: st,
           usedIds: usedQuestionIds,
@@ -1089,14 +1104,15 @@ export function buildDailyLesson(
           assessmentTier: slotAssessmentTier,
           skillFilter: slotSkillFilter,
         });
+        const fbEffectiveSt = lastEffectiveStepType || st;
         if (fallback) {
           usedQuestionIds.push(fallback.id);
-          const phases = [...getDefaultPhasesForStepType(st, fallback)];
+          const phases = [...getDefaultPhasesForStepType(fbEffectiveSt, fallback)];
           steps.push({
-            id: `${today}_${st}_${i}_${fallback.id}`,
-            type: st,
-            title: getDynamicStepTitle(st, fallback),
-            description: getDynamicStepDescription(st, fallback),
+            id: `${today}_${fbEffectiveSt}_${i}_${fallback.id}`,
+            type: fbEffectiveSt,
+            title: getDynamicStepTitle(fbEffectiveSt, fallback),
+            description: getDynamicStepDescription(fbEffectiveSt, fallback),
             questionId: fallback.id,
             phases,
             currentPhaseIndex: 0,
@@ -1110,13 +1126,13 @@ export function buildDailyLesson(
     }
 
     usedQuestionIds.push(question.id);
-    const phases = [...getDefaultPhasesForStepType(st, question)];
+    const phases = [...getDefaultPhasesForStepType(effectiveSt, question)];
 
     steps.push({
-      id: `${today}_${st}_${i}_${question.id}`,
-      type: st,
-      title: getDynamicStepTitle(st, question),
-      description: getDynamicStepDescription(st, question),
+      id: `${today}_${effectiveSt}_${i}_${question.id}`,
+      type: effectiveSt,
+      title: getDynamicStepTitle(effectiveSt, question),
+      description: getDynamicStepDescription(effectiveSt, question),
       questionId: question.id,
       phases,
       currentPhaseIndex: 0,
