@@ -196,6 +196,7 @@ export function normalizeStep(step: Partial<LessonStep>, question?: Question): L
     status: step.status || 'locked',
     phases,
     currentPhaseIndex,
+    awardedAt: (step as any).awardedAt || undefined,
     requiresAnswer:
       typeof step.requiresAnswer === 'boolean'
         ? step.requiresAnswer
