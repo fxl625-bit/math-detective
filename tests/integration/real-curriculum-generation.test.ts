@@ -104,7 +104,7 @@ function makeSimulatedState(totalCompleted: number): GameState {
     settings: {},
     questionReviewCounts: {},
     questionReviewDates: {},
-  } as GameState;
+  } as unknown as GameState;
 }
 
 function countDifficulty(questions: Question[], level: number): number {
@@ -208,7 +208,7 @@ for (let i = 0; i < TOTAL_SETS; i++) {
     );
     if (isStretch) stretchCount++;
 
-    const isTwoStep = (q as any).isTwoStep || q.problemType === 'multi_step' || q.problemType === 'two_step_word_problem';
+    const isTwoStep = (q as any).isTwoStep || q.problemType === 'multi_step' || (q as any).problemType === 'two_step_word_problem';
     if (isTwoStep) twoStepCount++;
 
     totalDifficulties[q.difficulty] = (totalDifficulties[q.difficulty] || 0) + 1;

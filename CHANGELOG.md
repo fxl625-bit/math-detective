@@ -1,3 +1,115 @@
+## v2.10.0 - P0 修复：提交状态机、三问法空白页、课程难度闭环 (2026-06-17)
+
+### 三大 P0 根因
+
+**P0-1（答案提交 5 次）**：v2.9.1 将 `STEP_DEFAULT_PHASES` 改为三问法新阶段名（`identify_known_facts`, `check_answer`），但 8 个 Phased 渲染组件（FullSolvePhased 等）只处理旧名（`find_numbers`, `build_equation`）。新名无匹配 → `return null`（行 2049）→ 孩子看到空白以为没提交成功 → 再点 3-5 次 → 每次只推进一个隐藏相位。
+
+**P0-2（三问法空白页）**：同根因。`read` 后进入 `identify_known_facts`，组件无此分支 → 直接 return null → 空白。也无 ThreeQuestionFlow 组件渲染三问法的 6 个阶段。
+
+**P0-3（仍然是个位数加法）**：`selectQuestionsForSlot` 的 `assessmentTier` 过滤条件有 `q.assessmentTier &&`，导致未标注题可通过任何 tier 过滤。课程候选项不足时，`selectCurriculumAwareQuestion` **静默回退**到旧 `selectQuestionForStep()`（不考虑课程目标），直接返回简单题。
+
+### 子项目 A：一次提交事务
+
+- 绑定 `answeredPhaseKeys` 幂等键：同一 step+phase 的 submit_answer 只处理一次
+- 正确答案事务原子化：校验 → 记录 attempt → 发积分一次 → 标记 phase 完成 → 设置 next phase → 存入 localStorage → 同步 React state
+- 提交测试：7/7 通过
+
+### 子项目 B：三问法渲染契约
+
+- 创建 `ThreeQuestionFlow.tsx`：6 个 phase（known_facts/target/plan/answer/check/explain）各有独立渲染
+- **default 分支永不返回 null** → 渲染含题目文本和继续按钮的安全 fallback
+- 添加 `isThreeQuestionFlowCompatible(question)`：仅应用题进入三问法
+- 渲染测试：8/8 通过
+
+### 子项目 C：课程选择闭环
+
+- `selectQuestionsForSlot` 修复：`assessmentTier` 过滤不再接受未标注题；未标注题不能作为 currentCore
+- `selectCurriculumAwareQuestion` 重写：追踪所有降级阶段，**杜绝静默 legacy fallback**
+- 添加 `window.__MD_DEBUG__.lastLessonGenerationReport` 全链路诊断
+- 课程生成测试（1000 套）：
+  - ✅ 0% 个位数题（目标 ≤5%）
+  - ✅ 51.6% 100 以内知识（目标 ≥33%）
+  - ✅ 66.7% test/challenge（目标 ≥50%）
+  - ✅ 16.7% G2 预习（目标 ≥16%）
+  - ✅ 0% fallback（目标 0%）
+
+### 最终验证
+- TypeScript：零错误
+- `npm run build`：所有路由编译通过
+- 所有 v2.9.1 新题库、课程地图、学期检测保持正常
+
+---
+
+## v2.9.1 - 深度学期适配 + 三问法学习流程 (2026-06-16)
+
+### 核心修复：v2.9.0 自适应课程引擎产生的题目依然太简单
+
+**根本问题**：v2.9.0 激活了自适应引擎，但题库仍然以一位数加减法为主（8+3, 6+4 等），无法反映真实的 G1 下学期末水平。六月份的用户被判定为复习阶段时，系统仍分配基础题。
+
+**解决方案**：80+ 道新题 + 6 维难度模型 + 四层考核分配 + 固定6槽位课程结构
+
+### Phase 1: 类型系统扩展
+* 新增 `SemesterProgress`（early/middle/late/review/summer_bridge）— 按月粒度检测学期进度
+* 升级 `UsageStage` 从 0-3 到 0-4（Stage 4：85%+首答正确率+低提示率+核心技能60%已掌握）
+* 新增 `DifficultyProfile` 六维难度模型（knowledgeLevel, readingLoad, relationComplexity, informationNoise, reasoningSteps, transferLevel）
+* 新增 `AssessmentTier` 四层考核分配（textbook/practice/test/challenge）
+* 新增 `ReasoningFrame` 结构化推理框架（knownFacts, targetQuestion, plan, check）
+* 新增 `curriculumSkills/readingSkills/lessonWorkflowSteps` 三分离类型
+* 新增 `TrainingMode`（basic_consolidation/school_sync/test_adaptation/thinking_challenge/adaptive）和 `schoolHarder` 标志
+* 新增 G2 预览技能 ID（multiplication:repeated_addition, measurement:length_units_intro 等）
+
+### Phase 2: 学期进度 + 使用阶段修复
+* `semesterDetector.ts` — 按月粒度检测学期进度（六月→复习阶段、七八月→暑假衔接）
+* `learnerProfile.ts` — `detectUsageStage` 升级到 Stage 4，阈值对标60天+/85题+
+* Stage 3+ 用户难度起点≥3，Stage 4 用户难度起点≥4
+* `storage.ts` — 每次加载时刷新 `semesterProgress`，计算已掌握技能比例
+* `lessonPlanner.ts` — 传入 `consecutiveCheckInDays`、`masteredSkillRatio` 到 stage 检测
+
+### Phase 3: 修正错误技能标签
+* 修复 g1_14/g1_16/g1_20/g1_21/g1_22/g1_24：单数位运算误标注为 `two_digit_plus_one_digit`
+* 修复 g1_04（10-4）：单位数减法误标注，实际是20以内不退位
+* 修复 g1_18/g1_19：难度应从1升级到2
+* 创建 `validate:numeric-skill-labels` 验证脚本
+
+### Phase 4: 80+ 道新题题库（G1 下学期末 + G2 预览）
+* 新建 `data/questions/g1-lower-late.ts` — 5700+行，88道完整题
+* 覆盖领域：20以内退位减法、100以内数的认识、100以内加减法、人民币、图形分类、找规律、两步应用、重复加法/乘法、长度单位、简单逻辑
+* 每道题包含：`assessmentTier`、`difficultyProfile`（6维）、`reasoningFrame`（已知→目标→规划→检查）
+* 4/5/6年级难度的新题，不再全是 Unit 1-2 级别
+* G2 预习题标记 `isStretch: true`
+
+### Phase 5: 自适应引擎升级 — 固定6槽位课程结构
+* `adaptiveDifficulty.ts` — 新增 `FixedSlotDefinition` 固定6槽布局
+* 复习阶段 G1 下学期：Slot 1=20以内退位减(practice L2), Slot 2=100以内数认识(practice L3), Slot 3=100以内加减(test L3), Slot 4=生活应用(test L3), Slot 5=两步/逆向(test L3-4), Slot 6=二年级预习/挑战(challenge L4)
+* `assessmentTier` 过滤 — 每槽按正确 tier 筛选
+* `skillFilter` 过滤 — 按技能前缀精确匹配
+* Stage 4 难度分布：review 2%, currentCore 48%, application 25%, stretch 25%
+
+### Phase 6: 三问法（三问法）学习流程
+* 新增 StepPhase：`identify_known_facts`（①题目告诉了我们什么？）、`identify_target`（②题目让我们干什么？）、`plan_solution`（③我准备怎么做？）、`check_answer`（④我的答案回答了问题吗？）
+* 替换旧机械式阶段（find_numbers/find_keywords/choose_operation/build_equation）
+* 更新 `lessonPlanner.ts` 所有阶段映射、标题、描述
+* 更新 `StepPhase` 类型定义
+
+### Phase 7: 家长设置更新
+* 类型系统支持 `trainingMode` 和 `schoolHarder` 字段
+* `storage.ts` 自动迁移默认值
+
+### Phase 8: 验证脚本 + 集成测试
+* `validate:numeric-skill-labels` — 运算数字 vs 技能标签一致性校验
+* `validate:semantic-skills` — 语义兼容性校验（不兼容技能组合、assessmentTier vs difficulty、difficultyProfile 一致性）
+* `validate:reasoning-frame` — 推理框架完整性校验（knownFacts/targetQuestion/plan/check）
+* `validate:v291` — 三合一组合命令
+
+### 技术债务
+* 新增 G2 下学期的课程知识点（重复加法/乘法、长度单位、两位数加减）
+* `curriculumMap.ts` 新增 Stage 4 难度分布和每日计划
+* `lessonPlanner.ts` 升级版本标记到 v2.9.1（generatorVersion=3）
+* 修复 validate-numeric-skill-labels 的 `includes` 子串误报问题
+* 两步行问题 `isTwoStep` 标记一致性检查
+
+---
+
 ## v2.9.0 - 自适应学期课程系统 (2026-06-16)
 
 ### 核心功能：自适应学期课程 + 难度引擎
