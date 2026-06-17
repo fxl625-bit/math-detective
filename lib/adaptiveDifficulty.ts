@@ -135,7 +135,7 @@ export function selectQuestionsForSlot(params: {
   grade: number;
   semester: Semester;
   excludeIds: string[];
-  slotCategory: 'review' | 'currentCore' | 'application' | 'stretch';
+  slotCategory: 'review' | 'currentCore' | 'application' | 'stretch' | 'foundationalRemediation';
   /** v2.9.1: Assessment tier filter */
   assessmentTier?: AssessmentTier;
   /** v2.9.1: Skill prefix filter (e.g., 'addition_subtraction:subtraction_within_20') */
@@ -162,6 +162,12 @@ export function selectQuestionsForSlot(params: {
 
   switch (slotCategory) {
     case 'review':
+      // v2.10.2: "review" means review current semester, NOT foundational G1 upper
+      // June review for G1 lower should use lower semester skills (20以内退位, 100以内, etc.)
+      validSkillIds = new Set(getCoreSkillsForGrade(grade, semester));
+      break;
+    case 'foundationalRemediation':
+      // Only used when explicitly in remediation mode for G1 upper semester
       validSkillIds = new Set(getAllG1UpperSkillIds());
       break;
     case 'currentCore':
@@ -181,20 +187,16 @@ export function selectQuestionsForSlot(params: {
     // Must not be already used
     if (excludeSet.has(q.id)) return false;
 
-    // v2.10.2: Exclude single-digit arithmetic for experienced users
-    if (usageStage >= 2) {
-      const qSkills = (q.skillIds || []) as string[];
-      const isSingleDigit = qSkills.some(s =>
+    // v2.10.2: Hard exclude single-digit for G1 lower regardless of usageStage
+    if (grade === 1 && semester === 'lower' && usageStage >= 1) {
+      const _qSkills = (q.skillIds || []) as string[];
+      const isSingleDigit = _qSkills.some((s: string) =>
         s === 'addition_subtraction:single_digit_addition' ||
         s === 'addition_subtraction:single_digit_subtraction' ||
         s === 'addition_subtraction:addition_within_10' ||
         s === 'addition_subtraction:subtraction_within_10'
       );
-      if (isSingleDigit) {
-        // Allow only if the user has recent errors on this exact skill
-        // (future: check skillMastery for errors)
-        return false;
-      }
+      if (isSingleDigit) return false;
     }
 
     // v2.10.0 Sub-project C: assessmentTier filter — also reject unannotated
