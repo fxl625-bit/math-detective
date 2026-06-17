@@ -181,6 +181,22 @@ export function selectQuestionsForSlot(params: {
     // Must not be already used
     if (excludeSet.has(q.id)) return false;
 
+    // v2.10.2: Exclude single-digit arithmetic for experienced users
+    if (usageStage >= 2) {
+      const qSkills = (q.skillIds || []) as string[];
+      const isSingleDigit = qSkills.some(s =>
+        s === 'addition_subtraction:single_digit_addition' ||
+        s === 'addition_subtraction:single_digit_subtraction' ||
+        s === 'addition_subtraction:addition_within_10' ||
+        s === 'addition_subtraction:subtraction_within_10'
+      );
+      if (isSingleDigit) {
+        // Allow only if the user has recent errors on this exact skill
+        // (future: check skillMastery for errors)
+        return false;
+      }
+    }
+
     // v2.10.0 Sub-project C: assessmentTier filter — also reject unannotated
     if (assessmentTier && q.assessmentTier !== assessmentTier) return false;
 

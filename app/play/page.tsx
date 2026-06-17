@@ -361,10 +361,11 @@ function PlayPageContent() {
       }
 
     } finally {
+      // v2.10.2: Faster unlock for single-click flow
       setTimeout(() => {
         transitioningRef.current = false;
         setIsAdvancing(false);
-      }, 300);
+      }, 50);
     }
   }, [state, completeQuestion]);
 
@@ -1202,7 +1203,9 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
   const mountedRef = useRef(true);
   useEffect(() => { return () => { mountedRef.current = false; }; }, []);
 
-  function handleSubmit() {
+  function handleSubmit(e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent) {
+    e?.preventDefault();
+    e?.stopPropagation();
     const input = userAnswer.trim();
     if (!input) return;
 
@@ -1210,13 +1213,12 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
     const answerResult = checkAnswer(input, question);
 
     if (answerResult.correct) {
+      // v2.10.2: One-click atomic submit — prevent double events
       setAnswered(true);
       setWrongFeedback(null);
-      // v2.6.4: 使用统一事务提交 — 一次点击完成提交+推进
       if (onSubmitAnswer) {
         onSubmitAnswer(input, question.id);
       } else {
-        // Fallback for components without onSubmitAnswer
         onCorrect();
       }
     } else {
@@ -1225,7 +1227,6 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
       const newAttempts = wrongAttempts + 1;
       setWrongAttempts(newAttempts);
       onWrongAnswer(input);
-      // v2.7: 使用统一 checker 的反馈
       setWrongFeedback(answerResult.feedback || '再想想哦～');
     }
   }
