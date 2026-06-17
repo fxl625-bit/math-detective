@@ -182,8 +182,8 @@ function PlayPageContent() {
 
   // ========== v2.6.4 统一事务系统：runLessonAction ==========
 
-  // Sub-project A: submit idempotency via answeredPhase tracking
-  const answeredPhaseKeys = useRef(new Set<string>());
+  // v2.10.1: Track submit counts per question for P0 assertion
+  const submitPerQuestion = useRef(new Map<string, number>());
 
   const runLessonAction = useCallback((
     action: LessonAction,
@@ -198,18 +198,20 @@ function PlayPageContent() {
     const currentLesson = lessonRef.current;
     if (!currentLesson) return;
 
-    // Sub-project A: Idempotency key — prevents duplicate action on same phase
     const curStep = getCurrentStep(currentLesson);
-    const idempotencyKey = action === 'submit_answer' && curStep
-      ? `${curStep.id}:${curStep.currentPhaseIndex}:submit_answer`
-      : `${Date.now()}`;
-    if (answeredPhaseKeys.current.has(idempotencyKey)) {
-      console.warn('[runLessonAction] duplicate blocked', { idempotencyKey, action, source });
-      return;
+
+    // v2.10.1: Count submit actions per question (replaces idempotency guard)
+    if (action === 'submit_answer' && payload.questionId) {
+      const count = (submitPerQuestion.current.get(payload.questionId) || 0) + 1;
+      submitPerQuestion.current.set(payload.questionId, count);
+      if (count > 2) {
+        console.error(`[P0] Correct answer required ${count} submit clicks for ${payload.questionId}`);
+      }
     }
 
     transitioningRef.current = true;
     setIsAdvancing(true);
+    let submitTraceId: string | undefined;
 
     try {
       const currentLesson = lessonRef.current;
@@ -217,32 +219,36 @@ function PlayPageContent() {
 
       // v2.7: submit_answer / information_check / identify_extra_info — 使用统一 checker
       const isAnswerAction = action === 'submit_answer' || action === 'information_check' || action === 'identify_extra_info';
+      // v2.10.1: Defer stats recording to after transaction
+      let pendingCorrectStats: null | { questionId: string } = null;
+
       if (isAnswerAction && payload.questionId && payload.inputAnswer) {
         const q = getQuestionForLesson(currentLesson);
         if (q) {
-          // v2.8.4: 幂等检查 — 如果当前 step 已经 awarded，不重复加分
           const curStep = getCurrentStep(currentLesson);
           const alreadyAwarded = curStep && curStep.awardedAt != null;
 
           // v2.7: 使用统一答案检查器
           const answerResult = checkAnswer(payload.inputAnswer, q);
 
-          if (!alreadyAwarded) {
-            completeQuestion(payload.questionId, answerResult.correct, answerResult.correct ? undefined : {
-              questionId: q.id,
-              questionText: q.text,
-              myAnswer: typeof payload.inputAnswer === 'string' ? payload.inputAnswer : JSON.stringify(payload.inputAnswer),
-              correctAnswer: q.answer,
-              errorType: 'answer_wrong',
-              retriedCorrect: false,
-            });
-          } else if (answerResult.correct) {
-            console.info('[v2.8.4] Step already awarded, skipping duplicate star grant', { questionId: q.id });
-          }
-
           // 答错只记录 stats，不推进 lesson
           if (!answerResult.correct) {
+            if (!alreadyAwarded) {
+              completeQuestion(payload.questionId, false, {
+                questionId: q.id,
+                questionText: q.text,
+                myAnswer: typeof payload.inputAnswer === 'string' ? payload.inputAnswer : JSON.stringify(payload.inputAnswer),
+                correctAnswer: q.answer,
+                errorType: 'answer_wrong',
+                retriedCorrect: false,
+              });
+            }
             return;
+          }
+
+          // Record correct stats AFTER transaction commits
+          if (!alreadyAwarded) {
+            pendingCorrectStats = { questionId: payload.questionId };
           }
         }
       }
@@ -278,14 +284,14 @@ function PlayPageContent() {
       // 持久化 lesson
       saveTodayLesson(result.nextLesson);
 
+      // v2.10.1: Record correct stats AFTER transaction commits successfully
+      if (pendingCorrectStats && result.advanced) {
+        completeQuestion(pendingCorrectStats.questionId, true);
+      }
+
       // 同步 ref 和 state
       lessonRef.current = result.nextLesson;
       setLesson(result.nextLesson);
-
-      // Sub-project A: Record idempotency key after successful answer action
-      if (isAnswerAction && (result.changed || result.advanced)) {
-        answeredPhaseKeys.current.add(idempotencyKey);
-      }
 
       // v2.6.3: lesson 完成时处理每日奖励
       if (result.nextLesson.completed) {
