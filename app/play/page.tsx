@@ -216,9 +216,14 @@ function PlayPageContent() {
     payload: LessonActionPayload,
     source: string
   ) => {
-    if (transitioningRef.current) {
-      console.warn('[runLessonAction] blocked by transition lock', { action, source });
-      return;
+    // v2.11.0: Only block same-question double-submit, not all transitions
+    if (action === "submit_answer" && payload.questionId) {
+      const count = (submitPerQuestion.current.get(payload.questionId) || 0) + 1;
+      submitPerQuestion.current.set(payload.questionId, count);
+      if (count > 1) {
+        console.warn("[runLessonAction] duplicate submit blocked", { action, source, questionId: payload.questionId });
+        return;
+      }
     }
 
     const currentLesson = lessonRef.current;
@@ -226,19 +231,9 @@ function PlayPageContent() {
 
     const curStep = getCurrentStep(currentLesson);
 
-    // v2.10.1: Count submit actions per question (replaces idempotency guard)
-    if (action === 'submit_answer' && payload.questionId) {
-      const count = (submitPerQuestion.current.get(payload.questionId) || 0) + 1;
-      submitPerQuestion.current.set(payload.questionId, count);
-      if (count > 2) {
-        console.error(`[P0] Correct answer required ${count} submit clicks for ${payload.questionId}`);
-      }
-    }
-
     transitioningRef.current = true;
     setIsAdvancing(true);
     let submitTraceId: string | undefined;
-
     try {
       const currentLesson = lessonRef.current;
       if (!currentLesson) return;
@@ -321,6 +316,15 @@ function PlayPageContent() {
 
       // v2.6.3: lesson 完成时处理每日奖励
       if (result.nextLesson.completed) {
+        const allAnswersSubmitted = result.nextLesson.steps.every(s => s.awardedAt != null);
+        if (!allAnswersSubmitted) {
+          console.error('[P0_ANSWER_GATE] Lesson completed without all answers submitted');
+          const uncompleted = { ...result.nextLesson, completed: false, currentStepIndex: result.nextLesson.steps.length - 1 };
+          saveTodayLesson(uncompleted);
+          lessonRef.current = uncompleted;
+          setLesson(uncompleted);
+          return;
+        }
         const now = new Date().toISOString();
         let completedLesson: TodayLesson = {
           ...result.nextLesson,
@@ -365,7 +369,7 @@ function PlayPageContent() {
       setTimeout(() => {
         transitioningRef.current = false;
         setIsAdvancing(false);
-      }, 50);
+      }, 300);
     }
   }, [state, completeQuestion]);
 
@@ -382,7 +386,18 @@ function PlayPageContent() {
   }, [runLessonAction]);
 
   // 答题完成后完成关卡（从 explain 按钮调用）
+  // v2.11.0: Last-answer gate
   const handleStepComplete = useCallback((correct: boolean) => {
+    const currentLesson = lessonRef.current;
+    if (!currentLesson) return;
+    const step = getCurrentStep(currentLesson);
+    if (step && !step.awardedAt) {
+      console.error('[P0_ANSWER_GATE] Step completion blocked: no answer submitted', {
+        stepId: step.id, questionId: step.questionId,
+        stepIndex: currentLesson.currentStepIndex,
+      });
+      return;
+    }
     runLessonAction('complete_step', {}, 'StepComplete');
   }, [runLessonAction]);
 
@@ -1216,11 +1231,8 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
       // v2.10.2: One-click atomic submit — prevent double events
       setAnswered(true);
       setWrongFeedback(null);
-      if (onSubmitAnswer) {
-        onSubmitAnswer(input, question.id);
-      } else {
-        onCorrect();
-      }
+      // v2.11.0: Atomic single-transaction submit
+      onSubmitAnswer?.(input, question.id);
     } else {
       setShakeInput(true);
       setTimeout(() => { if (mountedRef.current) setShakeInput(false); }, 500);
