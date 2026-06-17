@@ -1276,6 +1276,13 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
             </div>
           )}
         </div>
+      
+        {/* v2.11.0: Continue button */}
+        <div className="mt-4">
+          <AppButton variant="primary" size="lg" fullWidth onClick={onCorrect}>
+            完成，进入下一关
+          </AppButton>
+        </div>
       </AppCard>
     );
   }
