@@ -3,6 +3,7 @@
   "commitHash": "unknown",
   "storageKeys": [
     "math-detective-recent-stories",
+    "math-detective-checkin-dismissed-2026-06-Wed Jun 17 2026 16:33:04 GMT+0800 (中国标准时间)",
     "math-detective-checkin-dismissed-2026-06-Tue Jun 16 2026 15:44:08 GMT+0800 (中国标准时间)",
     "math-detective-app-version",
     "math-detective-state",
@@ -15,7 +16,7 @@
   "todayLessonVersion": "v2.10.2",
   "learnerProfile": {
     "currentDifficultyLevel": 2,
-    "totalCompleted": 10,
+    "totalCompleted": 19,
     "recentAccuracy": 100
   },
   "curriculumProfile": {
@@ -41,8 +42,8 @@
       "assessmentTier": "practice"
     },
     {
-      "id": "g1ll_28",
-      "text": "小明有23元零花钱，奶奶又给了他30元，小明现在有多少元零花钱？",
+      "id": "g1ll_26",
+      "text": "小华原来有24张画片，同学又送给他5张，小华现在有多少张画片？",
       "difficulty": 3,
       "assessmentTier": "practice"
     },
@@ -53,14 +54,14 @@
       "assessmentTier": "test"
     },
     {
-      "id": "g1ll_30",
-      "text": "小芳有一些糖果，吃掉了8颗后还剩17颗。小芳原来有多少颗糖果？",
+      "id": "g1ll_32",
+      "text": "小明今年8岁，爷爷今年65岁。爷爷比小明大多少岁？",
       "difficulty": 3,
       "assessmentTier": "test"
     },
     {
-      "id": "g1t_19",
-      "text": "一条小路长10米，从小路起点开始，每隔2米种一朵花（起点也种）。一共要种几朵花？提示：画一条线，标出每朵花的位置。",
+      "id": "g1ll_68",
+      "text": "找规律填数：1、1、2、3、5、__。横线上应该填几？",
       "difficulty": 4,
       "assessmentTier": "challenge"
     }
@@ -151,19 +152,21 @@
             ],
             "compatibleCount": 10,
             "rejectedByStep": 0,
-            "result": "g1ll_28"
+            "result": "g1ll_26"
           }
         ],
         "selectedQuestion": {
-          "id": "g1ll_28",
-          "text": "小明有23元零花钱，奶奶又给了他30元，小明现在有多少元零花钱？",
+          "id": "g1ll_26",
+          "text": "小华原来有24张画片，同学又送给他5张，小华现在有多少张画片？",
           "difficulty": 3,
           "assessmentTier": "practice",
           "sourcePool": "G1",
-          "selectionReason": "full"
+          "selectionReason": "full",
+          "effectiveStepType": "simulation"
         },
         "finalReason": "full",
-        "sourcePoolSize": 129
+        "sourcePoolSize": 129,
+        "effectiveStepType": "simulation"
       },
       {
         "slot": "slot_4",
@@ -207,10 +210,12 @@
           "difficulty": 3,
           "assessmentTier": "test",
           "sourcePool": "G1",
-          "selectionReason": "full"
+          "selectionReason": "full",
+          "effectiveStepType": "remove_noise"
         },
         "finalReason": "full",
-        "sourcePoolSize": 129
+        "sourcePoolSize": 129,
+        "effectiveStepType": "remove_noise"
       },
       {
         "slot": "slot_5",
@@ -274,19 +279,21 @@
             ],
             "compatibleCount": 10,
             "rejectedByStep": 0,
-            "result": "g1ll_30"
+            "result": "g1ll_32"
           }
         ],
         "selectedQuestion": {
-          "id": "g1ll_30",
-          "text": "小芳有一些糖果，吃掉了8颗后还剩17颗。小芳原来有多少颗糖果？",
+          "id": "g1ll_32",
+          "text": "小明今年8岁，爷爷今年65岁。爷爷比小明大多少岁？",
           "difficulty": 3,
           "assessmentTier": "test",
           "sourcePool": "G1",
-          "selectionReason": "step_degraded"
+          "selectionReason": "step_degraded",
+          "effectiveStepType": "full_solve"
         },
         "finalReason": "step_degraded",
-        "sourcePoolSize": 129
+        "sourcePoolSize": 129,
+        "effectiveStepType": "full_solve"
       },
       {
         "slot": "slot_6",
@@ -321,19 +328,21 @@
             ],
             "compatibleCount": 8,
             "rejectedByStep": 0,
-            "result": "g1t_19"
+            "result": "g1ll_68"
           }
         ],
         "selectedQuestion": {
-          "id": "g1t_19",
-          "text": "一条小路长10米，从小路起点开始，每隔2米种一朵花（起点也种）。一共要种几朵花？提示：画一条线，标出",
+          "id": "g1ll_68",
+          "text": "找规律填数：1、1、2、3、5、__。横线上应该填几？",
           "difficulty": 4,
           "assessmentTier": "challenge",
           "sourcePool": "G1",
-          "selectionReason": "full"
+          "selectionReason": "full",
+          "effectiveStepType": "full_solve"
         },
         "finalReason": "full",
-        "sourcePoolSize": 129
+        "sourcePoolSize": 129,
+        "effectiveStepType": "full_solve"
       }
     ],
     "selectedQuestions": [
@@ -358,11 +367,11 @@
         "stepType": "find_action_words"
       },
       {
-        "id": "g1ll_28",
-        "text": "小明有23元零花钱，奶奶又给了他30元，小明现在有多少元零花钱？",
+        "id": "g1ll_26",
+        "text": "小华原来有24张画片，同学又送给他5张，小华现在有多少张画片？",
         "difficulty": 3,
         "assessmentTier": "practice",
-        "curriculumSkills": "addition_subtraction:two_digit_plus_tens",
+        "curriculumSkills": "addition_subtraction:two_digit_plus_one_digit",
         "difficultyProfile": {
           "knowledgeLevel": 3,
           "readingLoad": 1,
@@ -394,37 +403,45 @@
         "stepType": "remove_noise"
       },
       {
-        "id": "g1ll_30",
-        "text": "小芳有一些糖果，吃掉了8颗后还剩17颗。小芳原来有多少颗糖果？",
+        "id": "g1ll_32",
+        "text": "小明今年8岁，爷爷今年65岁。爷爷比小明大多少岁？",
         "difficulty": 3,
         "assessmentTier": "test",
-        "curriculumSkills": "reasoning:reverse_unknown, addition_subtraction:two_digit_plus_one_digit",
+        "curriculumSkills": "comparison:difference_comparison, addition_subtraction:two_digit_minus_one_digit",
         "difficultyProfile": {
           "knowledgeLevel": 3,
           "readingLoad": 2,
           "relationComplexity": 2,
           "informationNoise": 1,
-          "reasoningSteps": 2,
+          "reasoningSteps": 1,
           "transferLevel": 2
         },
         "sourcePool": "unknown",
         "selectionReason": "unknown",
-        "stepType": "find_compare_numbers"
+        "stepType": "full_solve"
       },
       {
-        "id": "g1t_19",
-        "text": "一条小路长10米，从小路起点开始，每隔2米种一朵花（起点也种）。一共要种几朵花？提示：画一条线，标出每朵花的位置。",
+        "id": "g1ll_68",
+        "text": "找规律填数：1、1、2、3、5、__。横线上应该填几？",
         "difficulty": 4,
         "assessmentTier": "challenge",
-        "curriculumSkills": "measurement:interval_planting",
+        "curriculumSkills": "pattern:advanced_patterns",
+        "difficultyProfile": {
+          "knowledgeLevel": 4,
+          "readingLoad": 2,
+          "relationComplexity": 2,
+          "informationNoise": 1,
+          "reasoningSteps": 3,
+          "transferLevel": 3
+        },
         "sourcePool": "unknown",
         "selectionReason": "unknown",
         "stepType": "full_solve"
       }
     ]
   },
-  "stars": 21,
+  "stars": 40,
   "streak": 2,
-  "totalCompleted": 10,
-  "receivedAt": "2026-06-17T08:16:02.750Z"
+  "totalCompleted": 19,
+  "receivedAt": "2026-06-17T09:02:08.858Z"
 }

@@ -1269,11 +1269,12 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
   }
 
   return (
-    <div className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       {/* 线索摘要（默认展开） */}
       {showClues && <ClueSummary question={question} />}
       {!showClues && (
         <button
+          type="button"
           onClick={() => setShowClues(true)}
           className="w-full text-sm text-blue-600 font-bold py-2 hover:text-blue-800 underline"
         >
@@ -1338,12 +1339,12 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
           </AppButton>
         )}
         <div className="flex-1">
-          <AppButton variant="success" size="md" fullWidth disabled={!userAnswer.trim()} onClick={handleSubmit}>
+          <AppButton variant="success" size="md" fullWidth disabled={!userAnswer.trim()} type="submit">
             提交答案
           </AppButton>
         </div>
       </div>
-    </div>
+    </form>
   );
 }
 
