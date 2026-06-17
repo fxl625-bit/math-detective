@@ -19,6 +19,41 @@ import {
   maxSingleDigitQuestions,
 } from './adaptiveDifficulty';
 
+import type { ReasoningFrame } from '@/lib/curriculum/types';
+
+// ========== v2.10.0 Sub-project B: Three-question flow ==========
+
+/**
+ * Check if a question is compatible with the three-question method.
+ * Word problems, applied problems, money, comparison, reasoning use this flow.
+ * Pure calculation, pattern, shape, etc. use the standard flow.
+ */
+export function isThreeQuestionFlowCompatible(question: Question): boolean {
+  // Must have reasoningFrame data
+  if (!(question as any).reasoningFrame) return false;
+
+  const rf = (question as any).reasoningFrame as ReasoningFrame | undefined;
+  if (!rf?.knownFacts?.length) return false;
+  if (!rf?.targetQuestion) return false;
+  if (!rf?.plan) return false;
+
+  // Pure arithmetic with no scene → not compatible
+  if (question.problemType === 'basic_arithmetic' && question.domain === 'addition_subtraction') {
+    return question.text.length > 15 && question.sceneType !== undefined;
+  }
+
+  // Applied problems
+  const compatibleTypes = ['word_problem', 'two_step_word_problem', 'multi_step', 'information_check'];
+  if (compatibleTypes.includes(question.problemType || '')) return true;
+
+  // Compatible domains
+  const compatibleDomains = ['money', 'comparison', 'logic', 'reasoning'];
+  if (compatibleDomains.includes(question.domain)) return true;
+
+  // Default: compatible if it has reasoningFrame
+  return true;
+}
+
 // ========== 关卡配置 ==========
 
 // Sub-project A: Component-compatible step titles
@@ -100,7 +135,12 @@ export function getDefaultPhasesForStepType(type: LessonStepType, question?: Que
   }
 
 
-  // Sub-project A (v2.10.0): Component-compatible phase names
+  // Sub-project B (v2.10.0): Three-question flow for compatible questions
+  if (type === 'full_solve' && question && isThreeQuestionFlowCompatible(question)) {
+    return ['read', 'known_facts', 'target', 'plan', 'answer', 'check', 'explain'];
+  }
+
+  // Sub-project A (v2.10.0): Component-compatible phase names (fallback)
   switch (type) {
     case 'find_numbers':
       return ['read', 'find_numbers', 'answer', 'explain'];

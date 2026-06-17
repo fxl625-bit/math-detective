@@ -19,6 +19,7 @@
     "validate:reasoning-frame": "tsx -r tsconfig-paths/register scripts/validate-reasoning-frame.ts",
     "validate:v291": "npm run validate:numeric-skill-labels && npm run validate:semantic-skills && npm run validate:reasoning-frame",
     "test:submit-transaction": "tsx -r tsconfig-paths/register tests/unit/submit-transaction.test.ts",
+    "test:three-question-render": "tsx -r tsconfig-paths/register tests/component/three-question-flow.test.ts",
     "test:scoring": "tsx -r tsconfig-paths/register tests/unit/scoring.test.ts",
     "test:data-export": "tsx -r tsconfig-paths/register tests/unit/data-export.test.ts",
     "test:curriculum": "tsx -r tsconfig-paths/register __tests__/v290/test-curriculum.ts",

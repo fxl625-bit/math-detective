@@ -13,6 +13,8 @@ import { getTodayLesson, normalizeLesson, safeNormalizeLesson, generateSafeFallb
 import { getQuestionById } from '@/data/questions';
 import { getStepNarrative } from '@/lib/storySystem';
 import { getVisual } from '@/data/visualItems';
+import { getDefaultPhasesForStepType, isThreeQuestionFlowCompatible } from '@/lib/lessonPlanner';
+import ThreeQuestionFlow from '@/components/ThreeQuestionFlow';
 import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/types';
 import type { Question, KeywordItem } from '@/lib/types';
 import { needsAddSubtractPrompt, getKeywordTypeDescription, classifyKeyword } from '@/data/keywordRules';
@@ -1882,6 +1884,49 @@ function FullSolvePhased({
 }: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
+
+  // v2.10.0 Sub-project B: Route three-question flow phases to ThreeQuestionFlow
+  const threeQuestionPhases = ['known_facts', 'target', 'plan', 'check', 'answer', 'explain'];
+  if (threeQuestionPhases.includes(phase)) {
+    const rf = (question as any).reasoningFrame;
+    const tqfPhase = phase as 'known_facts' | 'target' | 'plan' | 'check';
+
+    if (!rf) {
+      // Safety: no reasoning frame → skip this phase
+      return (
+        <div className="space-y-4">
+          <AppCard variant="amber">
+            <p className="text-gray-600">{question.text}</p>
+          </AppCard>
+          <BottomActionBar>
+            <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+              继续 →
+            </AppButton>
+          </BottomActionBar>
+        </div>
+      );
+    }
+
+    return (
+      <ThreeQuestionFlow
+        question={question}
+        phase={tqfPhase}
+        reasoningFrame={rf}
+        onCorrect={(correct: boolean) => {
+          if (correct) {
+            if (onSubmitAnswer) {
+              onSubmitAnswer(String(question.answer), question.id);
+            } else {
+              onPhaseAdvance();
+            }
+          } else {
+            onWrongAnswer(String(question.answer));
+          }
+        }}
+        onPhaseAdvance={onPhaseAdvance}
+      />
+    );
+  }
 
   // v2.6.6: P0 运行时防御 — 逻辑题不应进入 FullSolvePhased
   if (question.problemType === 'logic_ranking' || question.problemType === 'logic_truth' || question.problemType === 'logic_ordering') {

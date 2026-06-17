@@ -398,10 +398,10 @@ export type StepPhase =
   | 'ranking_answer'
   | 'completed'
   // v2.9.1: Three-question method (三问法) phases
-  | 'identify_known_facts'     // ① 题目告诉了我们什么？
-  | 'identify_target'          // ② 题目让我们干什么？
-  | 'plan_solution'            // ③ 我准备怎么做？
-  | 'check_answer';            // ④ 我的答案回答了问题吗？
+  | 'known_facts'     // ① 题目告诉了我们什么？
+  | 'target'          // ② 题目让我们干什么？
+  | 'plan'            // ③ 我准备怎么做？
+  | 'check'           // ④ 我的答案回答了问题吗？
 
 export type LessonStepType =
   | 'find_numbers'
