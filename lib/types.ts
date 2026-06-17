@@ -1,10 +1,11 @@
-// v2.9.0: Curriculum type re-exports (actual types defined in lib/curriculum/types.ts)
+// v2.9.1: Curriculum type re-exports (actual types defined in lib/curriculum/types.ts)
 export type {
   SkillId,
   CurriculumProfile,
   LearnerProfile,
   TextbookEdition,
   Semester,
+  SemesterProgress,
   MasteryStatus,
   SkillMastery,
   UsageStage,
@@ -12,6 +13,16 @@ export type {
   DailyDifficultyPlan,
   CurriculumAnnotation,
   KnowledgePoint,
+  AssessmentTier,
+  DifficultyProfile,
+  ReasoningFrame,
+  CurriculumSkill,
+  ReadingSkill,
+  TrainingMode,
+  TrainingPreferences,
+  CalibrationCategory,
+  CalibrationQuestion,
+  SkillSupplyInfo,
 } from './curriculum/types';
 
 // ========== 年级与领域 ==========
@@ -320,11 +331,56 @@ export interface Question {
   isReview?: boolean;
   isStretch?: boolean;
   prerequisiteSkills?: string[];
+  // v2.9.1: Assessment tier (textbook/practice/test/challenge)
+  assessmentTier?: 'textbook' | 'practice' | 'test' | 'challenge';
+  // v2.9.1: Six-dimensional difficulty profile
+  difficultyProfile?: {
+    knowledgeLevel: 1 | 2 | 3 | 4 | 5;
+    readingLoad: 1 | 2 | 3 | 4 | 5;
+    relationComplexity: 1 | 2 | 3 | 4 | 5;
+    informationNoise: 1 | 2 | 3 | 4 | 5;
+    reasoningSteps: 1 | 2 | 3 | 4 | 5;
+    transferLevel: 1 | 2 | 3 | 4 | 5;
+  };
+  // v2.9.1: Structured reasoning framework
+  reasoningFrame?: {
+    knownFacts: Array<{
+      text: string;
+      quantity?: number | string;
+      unit?: string;
+      object?: string;
+      role: string;
+    }>;
+    targetQuestion: {
+      text: string;
+      targetQuantity: string;
+      targetUnit?: string;
+      questionType: string;
+    };
+    plan: {
+      firstStep: string;
+      secondStep?: string;
+      thirdStep?: string;
+      operationReason: string;
+    };
+    check: {
+      answeredTarget: boolean;
+      unitCorrect: boolean;
+      resultReasonable: boolean;
+    };
+  };
+  // v2.9.1: Whether question requires explicit planning step
+  requiresPlan?: boolean;
+  // v2.9.1: Whether this is a two-step problem
+  isTwoStep?: boolean;
+  // v2.9.1: True math curriculum skills (subset of skillIds, excluding reading/lesson skills)
+  curriculumSkillIds?: string[];
 }
 
 // ========== 关卡阶段 ==========
 
 export type StepPhase =
+  // Legacy phases (kept for backward compat)
   | 'read'
   | 'find_numbers'
   | 'find_keywords'
@@ -340,7 +396,12 @@ export type StepPhase =
   | 'understand_clues'
   | 'logic_elimination'
   | 'ranking_answer'
-  | 'completed';
+  | 'completed'
+  // v2.9.1: Three-question method (三问法) phases
+  | 'identify_known_facts'     // ① 题目告诉了我们什么？
+  | 'identify_target'          // ② 题目让我们干什么？
+  | 'plan_solution'            // ③ 我准备怎么做？
+  | 'check_answer';            // ④ 我的答案回答了问题吗？
 
 export type LessonStepType =
   | 'find_numbers'
@@ -353,14 +414,17 @@ export type LessonStepType =
   | 'spot_missing_info';
 
 export const STEP_DEFAULT_PHASES: Record<LessonStepType, StepPhase[]> = {
-  find_numbers: ['read', 'find_numbers', 'completed'],
-  find_action_words: ['read', 'find_keywords', 'choose_operation', 'completed'],
-  simulation: ['read', 'simulation', 'choose_operation', 'answer', 'completed'],
-  remove_noise: ['read', 'remove_noise', 'build_equation', 'answer', 'completed'],
+  // Sub-project A (v2.10.0): Use component-compatible phase names only.
+  // Three-question method phases (identify_known_facts/identify_target/plan_solution/check_answer)
+  // will be added in Sub-project B with proper render components.
+  find_numbers: ['read', 'find_numbers', 'answer', 'explain', 'completed'],
+  find_action_words: ['read', 'find_keywords', 'choose_operation', 'answer', 'explain', 'completed'],
+  simulation: ['read', 'choose_operation', 'answer', 'explain', 'completed'],
+  remove_noise: ['read', 'remove_noise', 'answer', 'explain', 'completed'],
   full_solve: ['read', 'find_numbers', 'find_keywords', 'choose_operation', 'build_equation', 'answer', 'explain', 'completed'],
-  find_compare_numbers: ['read', 'find_numbers', 'find_compare_numbers', 'choose_operation', 'answer', 'completed'],
-  spot_extra_info: ['read', 'find_numbers', 'spot_extra_info', 'answer', 'completed'],
-  spot_missing_info: ['read', 'spot_missing_info', 'answer', 'completed'],
+  find_compare_numbers: ['read', 'find_numbers', 'find_compare_numbers', 'choose_operation', 'answer', 'explain', 'completed'],
+  spot_extra_info: ['read', 'find_numbers', 'spot_extra_info', 'answer', 'explain', 'completed'],
+  spot_missing_info: ['read', 'spot_missing_info', 'answer', 'explain', 'completed'],
 };
 
 export interface LessonStep {
@@ -407,6 +471,29 @@ export interface TodayLesson {
   }>;
   /** v2.8.2: loop detected flag */
   _loopDetected?: boolean;
+  /** v2.9.1: Diagnostic metadata */
+  _diagnostics?: {
+    generatedByVersion?: string;
+    generatorVersion?: number;
+    curriculumSnapshot?: {
+      grade: number;
+      semester: string;
+      semesterProgress?: string;
+      usageStage: number;
+      currentDifficultyLevel: number;
+      singleDigitLimit: number;
+    };
+    learnerProfileSnapshot?: {
+      totalCompleted: number;
+      recentAccuracy: number;
+      currentDifficultyLevel: number;
+    };
+    fallbackUsed?: boolean;
+    fallbackReason?: string;
+    stepDegradedCount?: number;
+    fullSolveFallbackCount?: number;
+    incompatibleQuestionCount?: number;
+  };
 
 }
 
@@ -534,6 +621,9 @@ export interface ParentSettings {
   semester?: 'upper' | 'lower';
   semesterOverride?: 'upper' | 'lower';
   difficultyBias?: number;
+  // v2.9.1: Training mode and school difficulty settings
+  trainingMode?: 'basic_consolidation' | 'school_sync' | 'test_adaptation' | 'thinking_challenge' | 'adaptive';
+  schoolHarder?: boolean;
 }
 
 // ========== 学习画像 ==========
@@ -616,6 +706,7 @@ export interface GameState {
     semester: 'upper' | 'lower';
     semesterOverride?: 'upper' | 'lower';
     detectedAt: string;
+    semesterProgress?: 'early' | 'middle' | 'late' | 'review' | 'summer_bridge';
   };
   learnerProfile?: {
     skillMastery: Record<string, {
@@ -638,8 +729,12 @@ export interface GameState {
     averageAttempts: number;
     fullHintRate: number;
     difficultyBias: number;
+    consecutiveCheckInDays?: number;
   };
   usageStage?: number;
+  // v2.9.1: Training mode cache
+  trainingMode?: 'basic_consolidation' | 'school_sync' | 'test_adaptation' | 'thinking_challenge' | 'adaptive';
+  schoolHarder?: boolean;
 }
 
 export const DEFAULT_GAME_STATE: GameState = {

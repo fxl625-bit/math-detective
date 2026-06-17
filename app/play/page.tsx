@@ -180,6 +180,9 @@ function PlayPageContent() {
 
   // ========== v2.6.4 统一事务系统：runLessonAction ==========
 
+  // Sub-project A: submit idempotency via answeredPhase tracking
+  const answeredPhaseKeys = useRef(new Set<string>());
+
   const runLessonAction = useCallback((
     action: LessonAction,
     payload: LessonActionPayload,
@@ -189,6 +192,20 @@ function PlayPageContent() {
       console.warn('[runLessonAction] blocked by transition lock', { action, source });
       return;
     }
+
+    const currentLesson = lessonRef.current;
+    if (!currentLesson) return;
+
+    // Sub-project A: Idempotency key — prevents duplicate action on same phase
+    const curStep = getCurrentStep(currentLesson);
+    const idempotencyKey = action === 'submit_answer' && curStep
+      ? `${curStep.id}:${curStep.currentPhaseIndex}:submit_answer`
+      : `${Date.now()}`;
+    if (answeredPhaseKeys.current.has(idempotencyKey)) {
+      console.warn('[runLessonAction] duplicate blocked', { idempotencyKey, action, source });
+      return;
+    }
+
     transitioningRef.current = true;
     setIsAdvancing(true);
 
@@ -262,6 +279,11 @@ function PlayPageContent() {
       // 同步 ref 和 state
       lessonRef.current = result.nextLesson;
       setLesson(result.nextLesson);
+
+      // Sub-project A: Record idempotency key after successful answer action
+      if (isAnswerAction && (result.changed || result.advanced)) {
+        answeredPhaseKeys.current.add(idempotencyKey);
+      }
 
       // v2.6.3: lesson 完成时处理每日奖励
       if (result.nextLesson.completed) {

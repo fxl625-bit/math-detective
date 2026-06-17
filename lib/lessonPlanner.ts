@@ -1,4 +1,4 @@
-import { Question, MistakeRecord, GradeBand, CognitiveSkill, LessonStepType, StepPhase, LessonStep, TodayLesson, LearningProfile, TomorrowLessonPreview, VirtualReward, GameState } from './types';
+import { Question, MistakeRecord, GradeBand, CognitiveSkill, LessonStepType, StepPhase, LessonStep, TodayLesson, LearningProfile, TomorrowLessonPreview, VirtualReward, GameState, type AssessmentTier } from './types';
 import type { Semester, LearnerProfile as CurriculumLearnerProfile, UsageStage } from './curriculum/types';
 import { getQuestionById, allQuestions, questionsByGrade, getQuestionsByFilter } from '@/data/questions';
 import { loadState, getAccuracyStats } from './storage';
@@ -21,6 +21,7 @@ import {
 
 // ========== 关卡配置 ==========
 
+// Sub-project A: Component-compatible step titles
 const STEP_TITLES: Record<LessonStepType, string> = {
   find_numbers: '找到数字线索',
   find_action_words: '找到动作线索',
@@ -32,6 +33,7 @@ const STEP_TITLES: Record<LessonStepType, string> = {
   spot_missing_info: '判断信息够不够',
 };
 
+// Sub-project A: Component-compatible step descriptions
 const STEP_DESCRIPTIONS: Record<LessonStepType, string> = {
   find_numbers: '先找出题目里出现的所有数字',
   find_action_words: '找出关键词，判断增加还是减少',
@@ -89,34 +91,35 @@ export function getDefaultPhasesForStepType(type: LessonStepType, question?: Que
   // v2.8.2: pattern/sequence problem types - no equation, no action words
   if (question?.problemType === 'pattern' || question?.problemType === 'sequence_arithmetic') {
     if (type === 'find_numbers') {
-      return ['read', 'find_numbers', 'answer'];
+      return ['read', 'find_numbers', 'answer', 'explain'];
     }
     if (type === 'full_solve') {
       return ['read', 'find_numbers', 'understand_clues', 'answer', 'explain'];
     }
-    return ['read', 'answer'];
+    return ['read', 'answer', 'explain'];
   }
 
 
+  // Sub-project A (v2.10.0): Component-compatible phase names
   switch (type) {
     case 'find_numbers':
-      return ['read', 'find_numbers', 'answer'];
+      return ['read', 'find_numbers', 'answer', 'explain'];
     case 'find_action_words':
-      return ['read', 'find_keywords', 'choose_operation', 'answer'];
+      return ['read', 'find_keywords', 'choose_operation', 'answer', 'explain'];
     case 'simulation':
-      return ['read', 'choose_operation', 'answer'];
+      return ['read', 'choose_operation', 'answer', 'explain'];
     case 'remove_noise':
-      return ['read', 'remove_noise', 'build_equation', 'answer'];
+      return ['read', 'remove_noise', 'answer', 'explain'];
     case 'full_solve':
       return ['read', 'find_numbers', 'find_keywords', 'choose_operation', 'build_equation', 'answer', 'explain'];
     case 'find_compare_numbers':
-      return ['read', 'find_numbers', 'find_compare_numbers', 'choose_operation', 'answer'];
+      return ['read', 'find_numbers', 'find_compare_numbers', 'choose_operation', 'answer', 'explain'];
     case 'spot_extra_info':
-      return ['read', 'find_numbers', 'spot_extra_info', 'answer'];
+      return ['read', 'find_numbers', 'spot_extra_info', 'answer', 'explain'];
     case 'spot_missing_info':
-      return ['read', 'spot_missing_info', 'answer'];
+      return ['read', 'spot_missing_info', 'answer', 'explain'];
     default:
-      return ['read', 'answer'];
+      return ['read', 'answer', 'explain'];
   }
 }
 
@@ -452,7 +455,11 @@ function getUsageContext(state: {
 } {
   const totalCompleted = state.totalCompleted || state.completedQuestions.length;
   const daysEstimate = Math.max(1, Math.ceil(totalCompleted / 5));
-  const stageInfo = detectUsageStage(daysEstimate, totalCompleted);
+  const stageInfo = detectUsageStage(daysEstimate, totalCompleted, {
+    recentAccuracy: state.learnerProfile?.recentAccuracy,
+    consecutiveCheckInDays: 0,
+    fullHintRate: state.learnerProfile?.fullHintRate || 0,
+  });
   const gradeMatch = state.parentSettings.gradeBand.match(/G(\d+)/);
   const grade = gradeMatch ? parseInt(gradeMatch[1]) : 1;
   const semester = (state.parentSettings.semesterOverride || state.parentSettings.semester || 'lower') as Semester;
@@ -487,8 +494,8 @@ export function getTodayLesson(): TodayLesson {
         const needsRebuild =
           // 没有 version 标记（旧版本生成）
           !version ||
-          // version 低于 2（v2.9.0 之前）
-          (version && version !== 'v2.9.0') ||
+          // version 低于 3（v2.9.1 之前）
+          (version && (version as any) < 3) ||
           // 学期不匹配（用户切换了学期设置）
           (lessonSemester && currentSemester && lessonSemester !== currentSemester);
 
@@ -752,6 +759,9 @@ export function buildDailyLesson(
   const { usageStage, semester, grade, learnerProfile } = ctx;
   const maxDifficulty = getEffectiveMaxDifficulty(profile, learnerProfile);
 
+  // v2.9.1: Get semester progress
+  const semesterProgress = fullState.curriculumProfile?.semesterProgress as any || 'early';
+
   const stepTypes = getStepTypesForGrade(profile.gradeBand);
 
   // Select case story
@@ -768,9 +778,9 @@ export function buildDailyLesson(
   // Max 2 review questions if available
   const reviewSlots = Math.min(2, dueReviews.length);
 
-  // v2.9.0: Generate daily slot plan
+  // v2.9.1: Generate daily slot plan with semester progress
   const slotPlan = learnerProfile
-    ? generateDailySlotPlan({ usageStage, learnerProfile, grade, semester })
+    ? generateDailySlotPlan({ usageStage, learnerProfile, grade, semester, semesterProgress })
     : null;
 
   // v2.9.0: Single-digit limit
@@ -785,13 +795,15 @@ export function buildDailyLesson(
     return q.isReview === true && q.difficulty <= 1;
   };
 
-  // v2.9.0: Curriculum-aware question selection
+  // v2.9.1: Curriculum-aware question selection
   const selectCurriculumAwareQuestion = (params: {
     stepType: LessonStepType;
     usedIds: string[];
     targetDiff: number;
     story?: CaseStory | null;
     forceSlot?: string;
+    assessmentTier?: AssessmentTier;
+    skillFilter?: string[];
   }): Question | null => {
     // First try curriculum-aware selection if we have a learnerProfile
     if (learnerProfile && slotPlan) {
@@ -837,6 +849,8 @@ export function buildDailyLesson(
       targetDiff: number;
       story?: CaseStory | null;
       forceSlot?: string;
+      assessmentTier?: AssessmentTier;
+      skillFilter?: string[];
     },
     _reason: string,
   ): Question | null => {
@@ -850,6 +864,9 @@ export function buildDailyLesson(
       semester,
       excludeIds: params.usedIds,
       slotCategory: (params.forceSlot as any) || 'currentCore',
+      // v2.9.1: Assessment tier and skill filter from slot plan
+      assessmentTier: params.assessmentTier,
+      skillFilter: params.skillFilter,
     });
 
     const compatible = candidates.filter(q => {
@@ -894,9 +911,11 @@ export function buildDailyLesson(
   for (let i = steps.length; i < stepTypes.length; i++) {
     const st = stepTypes[i];
 
-    // v2.9.0: get target difficulty from slot plan
+    // v2.9.1: get target difficulty, assessment tier, and skill filter from slot plan
     const targetDiff = slotPlan?.[i]?.targetDifficulty || maxDifficulty;
     const slotCategory = slotPlan?.[i]?.category || 'currentCore';
+    const slotAssessmentTier = slotPlan?.[i]?.assessmentTier as AssessmentTier | undefined;
+    const slotSkillFilter = slotPlan?.[i]?.skillFilter as string[] | undefined;
 
     const question = selectCurriculumAwareQuestion({
       stepType: st,
@@ -904,6 +923,8 @@ export function buildDailyLesson(
       targetDiff,
       story: caseStory,
       forceSlot: slotCategory,
+      assessmentTier: slotAssessmentTier,
+      skillFilter: slotSkillFilter,
     });
 
     if (!question) {
@@ -915,6 +936,8 @@ export function buildDailyLesson(
           targetDiff: diff,
           story: caseStory,
           forceSlot: slotCategory,
+          assessmentTier: slotAssessmentTier,
+          skillFilter: slotSkillFilter,
         });
         if (fallback) {
           usedQuestionIds.push(fallback.id);
@@ -958,7 +981,7 @@ export function buildDailyLesson(
     return generateSafeFallbackLesson(profile.gradeBand);
   }
 
-  // v2.9.0: Version stamp + curriculum snapshot for stale detection
+  // v2.9.1: Version stamp + curriculum snapshot for stale detection
   const lesson: TodayLesson = {
     date: today,
     steps,
@@ -968,11 +991,12 @@ export function buildDailyLesson(
   };
 
   // Attach version metadata
-  (lesson as any).generatedByVersion = 'v2.9.0';
-  (lesson as any).generatorVersion = 2;
+  (lesson as any).generatedByVersion = 'v2.9.1';
+  (lesson as any).generatorVersion = 3;
   (lesson as any).curriculumSnapshot = {
     grade,
     semester,
+    semesterProgress,
     usageStage,
     currentDifficultyLevel: learnerProfile?.currentDifficultyLevel ?? profile.skillLevel,
     singleDigitLimit,
@@ -988,11 +1012,12 @@ export function buildDailyLesson(
     try {
       console.log('========== LESSON GENERATION DIAGNOSTICS ==========');
       console.table({
-        appVersion: 'v2.9.0',
+        appVersion: 'v2.9.1',
         grade: `G${grade}`,
         semester,
+        semesterProgress,
         textbookEdition: fullState.parentSettings.textbookEdition || 'default',
-        usageStage: `${usageStage} (${usageStage === 0 ? 'new' : usageStage === 1 ? 'beginner' : usageStage === 2 ? 'active' : 'experienced'})`,
+        usageStage: `${usageStage} (${usageStage === 0 ? 'new' : usageStage === 1 ? 'beginner' : usageStage === 2 ? 'active' : usageStage === 3 ? 'experienced' : 'advanced'})`,
         currentDifficultyLevel: learnerProfile?.currentDifficultyLevel ?? profile.skillLevel,
         totalCompleted: fullState.totalCompleted,
         recentAccuracy: learnerProfile?.recentAccuracy ?? 'N/A',
@@ -1005,12 +1030,14 @@ export function buildDailyLesson(
       console.table(
         steps.map((step, idx) => {
           const q = getQuestionById(step.questionId);
+          const slotInfo = slotPlan?.[idx];
           return {
             slot: idx + 1,
             stepType: step.type,
             questionId: step.questionId,
             text: q?.text?.substring(0, 50) || '???',
             difficulty: q?.difficulty ?? '?',
+            assessmentTier: q?.assessmentTier || slotInfo?.assessmentTier || '-',
             skillIds: q?.skillIds?.join(', ') || 'none',
             isReview: q?.isReview ? 'YES' : 'no',
             isStretch: q?.isStretch ? 'YES' : 'no',
@@ -1124,9 +1151,9 @@ function buildSafeLessonFromPool(pool: Question[], today: string, gradeBand: Gra
     completed: false,
   };
 
-  // v2.9.0: Version stamp even for fallback
-  (lesson as any).generatedByVersion = 'v2.9.0';
-  (lesson as any).generatorVersion = 2;
+  // v2.9.1: Version stamp even for fallback
+  (lesson as any).generatedByVersion = 'v2.9.1';
+  (lesson as any).generatorVersion = 3;
   (lesson as any).fallbackUsed = true;
   (lesson as any).fallbackReason = 'safe_fallback_no_candidates';
 
@@ -1201,6 +1228,7 @@ export function getCurrentPhase(lesson: TodayLesson): StepPhase | null {
 
 export function isAnswerPhase(lesson: TodayLesson): boolean {
   const phase = getCurrentPhase(lesson);
+  // Sub-project A: Only answer and build_equation require input
   return phase === 'answer' || phase === 'build_equation';
 }
 
