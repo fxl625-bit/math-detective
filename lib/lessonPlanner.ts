@@ -66,6 +66,7 @@ const STEP_TITLES: Record<LessonStepType, string> = {
   find_compare_numbers: '找出比较关系',
   spot_extra_info: '识别多余信息',
   spot_missing_info: '判断信息够不够',
+  answer_only: '今日挑战',
 };
 
 // Sub-project A: Component-compatible step descriptions
@@ -78,6 +79,7 @@ const STEP_DESCRIPTIONS: Record<LessonStepType, string> = {
   find_compare_numbers: '找出题目中的比较关系',
   spot_extra_info: '找出题目中和计算无关的多余数字',
   spot_missing_info: '判断题目中是否缺少必要信息',
+  answer_only: '仔细读题，直接算出答案',
 };
 
 /** v2.6.5: 根据题型生成动态关卡标题 */
@@ -166,7 +168,7 @@ export function getDefaultPhasesForStepType(type: LessonStepType, question?: Que
 // ========== 步骤标准化 ==========
 
 export function normalizeStep(step: Partial<LessonStep>, question?: Question): LessonStep {
-  const type: LessonStepType = step.type || 'full_solve';
+  const type: LessonStepType = step.type || 'answer_only';  // v2.11.0
 
   const phases: StepPhase[] =
     Array.isArray(step.phases) && step.phases.length > 0
@@ -197,7 +199,7 @@ export function normalizeStep(step: Partial<LessonStep>, question?: Question): L
     requiresAnswer:
       typeof step.requiresAnswer === 'boolean'
         ? step.requiresAnswer
-        : ['simulation', 'remove_noise', 'full_solve', 'find_compare_numbers'].includes(type),
+        : ['simulation', 'remove_noise', 'full_solve', 'find_compare_numbers', 'answer_only'].includes(type),
   };
 }
 
@@ -450,9 +452,9 @@ export function getStepTypesForGrade(grade: GradeBand): LessonStepType[] {
     const g1Advanced: LessonStepType[] = ['find_compare_numbers'];
     shuffleArray(g1Advanced);
     base.push('simulation', 'remove_noise');
-    base.push(...g1Advanced.slice(0, 1), 'full_solve');
+    base.push(...g1Advanced.slice(0, 1), 'answer_only');  // v2.11.0
   } else {
-    const advanced: LessonStepType[] = ['find_compare_numbers', 'remove_noise', 'spot_extra_info', 'full_solve'];
+    const advanced: LessonStepType[] = ['find_compare_numbers', 'remove_noise', 'spot_extra_info', 'answer_only'];  // v2.11.0
     shuffleArray(advanced);
     base.push(...advanced.slice(0, 3));
   }
@@ -539,7 +541,7 @@ export function getTodayLesson(): TodayLesson {
           // 没有 version 标记（旧版本生成）
           !version ||
           // generatorVersion 低于 4（v2.10.2 之前）
-          generatorVersion < 4 ||
+          generatorVersion < 5 ||
           // 学期不匹配（用户切换了学期设置）
           (lessonSemester && currentSemester && lessonSemester !== currentSemester) ||
           // Safe fallback lesson — always replace with proper curriculum
@@ -639,6 +641,7 @@ const STEP_TYPE_REQUIREMENTS: Record<LessonStepType, (q: Question) => boolean> =
   find_compare_numbers: (q) => q.operation === 'multiplication' || q.operation === 'division' || q.operation === 'comparison',
   spot_extra_info: (q) => Array.isArray(q.extraNumbers) && q.extraNumbers.length > 0,
   spot_missing_info: (q) => q.isInsufficient === true,
+  answer_only: () => true,  // v2.11.0: Always compatible
 };
 
 export function selectQuestionForStep(params: {
@@ -885,18 +888,18 @@ export function buildDailyLesson(
 
       // v2.10.2: If step type filtered out all candidates, retry with full_solve
       if (!picked && params.stepType !== 'full_solve') {
-        picked = tryCurriculumSelectionWithDiag(pool, { ...params, stepType: 'full_solve' as LessonStepType }, 'step_degraded', diagnostic);
+        picked = tryCurriculumSelectionWithDiag(pool, { ...params, stepType: 'answer_only' as LessonStepType }, 'step_degraded', diagnostic);
         if (picked) {
-          effectiveStepType = 'full_solve';
+          effectiveStepType = 'answer_only' // v2.11.0;
           reason = 'step_degraded';
         }
       }
 
       // v2.9.0 FIX: If still empty, try without theme filtering
       if (!picked) {
-        picked = tryCurriculumSelectionWithDiag(pool, { ...params, stepType: 'full_solve' as LessonStepType, story: null }, 'theme_degraded', diagnostic);
+        picked = tryCurriculumSelectionWithDiag(pool, { ...params, stepType: 'answer_only' as LessonStepType, story: null }, 'theme_degraded', diagnostic);
         if (picked) {
-          effectiveStepType = 'full_solve';
+          effectiveStepType = 'answer_only' // v2.11.0;
           reason = 'theme_degraded';
         }
       }
@@ -1219,8 +1222,8 @@ export function buildDailyLesson(
     try {
       (window as any).__MD_DEBUG__ = (window as any).__MD_DEBUG__ || {};
       (window as any).__MD_DEBUG__.lastLessonGenerationReport = {
-        appVersion: 'v2.10.0',
-        plannerVersion: 4,
+        appVersion: 'v2.11.0',
+        plannerVersion: 5,
         reusedOldLesson: false,
         grade,
         semester,
@@ -1334,7 +1337,7 @@ function buildSafeLessonFromPool(pool: Question[], today: string, gradeBand: Gra
     if (usedIds.has(q.id)) continue;
     usedIds.add(q.id);
 
-    const st = stepTypes[i] || 'full_solve';
+    const st = stepTypes[i] || 'answer_only';  // v2.11.0
     // 如果是 find_action_words 但题不合适，降为 full_solve
     const actualType: LessonStepType =
       validateStepQuestionCompatibility({ type: st, questionId: q.id } as LessonStep, q)
@@ -1523,7 +1526,7 @@ export function getStepLabel(step: LessonStep, lesson?: TodayLesson): string {
     }
   }
   // fallback
-  const stepOrder: LessonStepType[] = ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve', 'find_compare_numbers', 'spot_extra_info', 'spot_missing_info'];
+  const stepOrder: LessonStepType[] = ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'answer_only', 'find_compare_numbers', 'spot_extra_info', 'spot_missing_info'];
   const stepNum = stepOrder.indexOf(step.type) + 1;
   return `第 ${stepNum} 关：${step.title}`;
 }
