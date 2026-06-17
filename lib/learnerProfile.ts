@@ -189,7 +189,7 @@ export function detectUsageStage(
     description = '综合与测试适应（30天+或60题+或连续打卡10天+）';
     reviewRatio = 0.05;
     stretchPreviewRatio = 0.20;
-  } else if (totalCompleted >= 30) {
+  } else if (totalCompleted >= 18) {
     stage = 2;
     description = '当前学期核心学习（30题+）';
     reviewRatio = 0.08;

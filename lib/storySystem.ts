@@ -113,6 +113,7 @@ const DEFAULT_NARRATIVES: Record<LessonStepType, StepNarrative> = {
     description: '识别题目中和问题无关的数字',
     instruction: '有些数字是多余的，它们和题目问题没关系！擦亮眼睛找出来！',
   },
+  answer_only: { title: "直接挑战", description: "运用数学知识，算出答案", instruction: "仔细读题，算出答案" },
   spot_missing_info: {
     title: '判断信息够不够',
     description: '判断题目是否缺少必要信息',

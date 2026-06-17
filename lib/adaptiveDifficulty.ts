@@ -302,7 +302,7 @@ export function generateDailySlotPlan(params: {
   const isLateG1Lower =
     params.grade === 1 &&
     params.semester === 'lower' &&
-    params.usageStage >= 2 &&
+    params.usageStage >= 1 &&
     (params.semesterProgress === 'late' || params.semesterProgress === 'review');
 
   if (isLateG1Lower) {

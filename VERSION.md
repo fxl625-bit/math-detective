@@ -1,13 +1,29 @@
-# 文字侦探 / Math Detective 版本信息
+# Math Detective
 
-| 项目 | 内容 |
-|------|------|
-| 项目名称 | 文字侦探（Math Detective） |
-| 当前版本 | v2.8.3 |
-| 版本历史 | v1.0: 04-29 / v2.0: 04-30 / v2.1: 05-08 / v2.2: 05-08 / v2.3: 05-11 / v2.4: 05-29 / v2.5: 05-29 / v2.6: 06-02 / v2.6.3: 06-03 / v2.6.8: 06-03 / v2.6.9: 06-03 / v2.6.10: 06-04 / v2.6.11: 06-04 / v2.6.12: 06-04 / v2.7.1: 06-04 / v2.7.3: 06-04 / v2.7.4: 06-04 / v2.7.5: 06-04 / v2.7.6: 06-04 / v2.8.0: 06-05 / v2.8.2: 06-05 / v2.8.3: 06-05 |
-| 项目定位 | 小学低年级数学应用题阅读理解小游戏（奥数渐进体系） |
-| 技术栈 | Next.js 16 (webpack) + React 19 + TypeScript + Tailwind CSS v4 + Framer Motion + localStorage |
-| 部署方式 | Vercel |
-| GitHub | https://github.com/fxl625-bit/math-detective |
-| Vercel | https://math-detective.vercel.app |
-| 当前状态 | v2.8.3 稳定化：CI E2E 发布闸门 |
+## Current Version: 2.11.0
+## Release Type: Stability & Curriculum Runtime Rebuild
+## Release Date: 2026-06-17
+## Branch: refactor/v2110-runtime-curriculum
+
+### Key Changes
+- **P0 Fix:** Single-click atomic answer submission (multi-click bug eliminated)
+- **P0 Fix:** Last-answer gate (course cannot complete without submitting final answer)
+- **P0 Fix:** Curriculum planner for G1 lower review (no more single-digit for experienced users)
+- **P0 Fix:** Version unification (all subsystems report v2.11.0)
+- **Refactor:** Removed full_solve as child-facing step type
+- **Refactor:** New LessonRuntimeState for single-source-of-truth state management
+- **Feat:** Expanded G1 question pool for review and G2 preview
+- **Feat:** Split statistics (totalQuestionsCompleted, totalLessonsCompleted, activeDays)
+- **Migration:** v2.11 data migration preserves all user data
+
+### Previous Versions
+- v2.10.3: Hotfix for submit contract + review semantics
+- v2.10.2: P0 fixes for step mismatch + review slots
+- v2.10.1: P0 residual 2-click submit fix
+- v2.10.0: Major curriculum refactor + three-question flow
+
+### Architecture
+- Next.js 15 (App Router)
+- TypeScript strict mode
+- Playwright E2E testing
+- localStorage-based state persistence

@@ -42,7 +42,7 @@ export function loadState(): GameState {
 
     // v2.9.1: Detect usage stage with extended params
     const stageInfo = detectUsageStage(
-      Math.max(1, Math.ceil((state.totalCompleted || 0) / 5)),
+      Math.max(1, Math.ceil((state.totalCompleted || 0) / 6)),
       state.totalCompleted || 0,
       {
         recentAccuracy: state.learnerProfile?.recentAccuracy,

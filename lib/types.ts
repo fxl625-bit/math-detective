@@ -1,4 +1,4 @@
-// v2.9.1: Curriculum type re-exports (actual types defined in lib/curriculum/types.ts)
+﻿// v2.9.1: Curriculum type re-exports (actual types defined in lib/curriculum/types.ts)
 export type {
   SkillId,
   CurriculumProfile,
@@ -411,7 +411,8 @@ export type LessonStepType =
   | 'full_solve'
   | 'find_compare_numbers'
   | 'spot_extra_info'
-  | 'spot_missing_info';
+  | 'spot_missing_info'
+  | 'answer_only';  // v2.11.0: Simple answer step, replaces full_solve degradation
 
 export const STEP_DEFAULT_PHASES: Record<LessonStepType, StepPhase[]> = {
   // Sub-project A (v2.10.0): Use component-compatible phase names only.
@@ -425,6 +426,7 @@ export const STEP_DEFAULT_PHASES: Record<LessonStepType, StepPhase[]> = {
   find_compare_numbers: ['read', 'find_numbers', 'find_compare_numbers', 'choose_operation', 'answer', 'explain', 'completed'],
   spot_extra_info: ['read', 'find_numbers', 'spot_extra_info', 'answer', 'explain', 'completed'],
   spot_missing_info: ['read', 'spot_missing_info', 'answer', 'explain', 'completed'],
+  answer_only: ['read', 'answer', 'explain', 'completed'],
 };
 
 export interface LessonStep {

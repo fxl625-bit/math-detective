@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 应用版本信息 (v2.6.1 新增)
  * 
  * 用于版本检测、自动迁移、家长调试和缓存刷新。
@@ -6,7 +6,7 @@
  */
 
 export const APP_VERSION =
-  process.env.NEXT_PUBLIC_APP_VERSION || '2.10.3';
+  process.env.NEXT_PUBLIC_APP_VERSION || '2.11.0';
 
 export const APP_BUILD_TIME =
   process.env.NEXT_PUBLIC_BUILD_TIME || '';
