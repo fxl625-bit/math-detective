@@ -1,0 +1,498 @@
+{
+  "appVersion": "2.10.3",
+  "commitHash": "5d1acd7",
+  "storageKeys": [
+    "math-detective-recent-stories",
+    "math-detective-checkin-dismissed-2026-06-Tue Jun 16 2026 15:44:08 GMT+0800 (中国标准时间)",
+    "math-detective-app-version",
+    "math-detective-today-lesson",
+    "math-detective-checkin-dismissed-2026-06-Wed Jun 17 2026 17:24:15 GMT+0800 (中国标准时间)",
+    "math-detective-checkin-dismissed-2026-06-Wed Jun 17 2026 14:53:42 GMT+0800 (中国标准时间)",
+    "math-detective-checkin-dismissed-2026-06-Wed Jun 17 2026 11:14:12 GMT+0800 (中国标准时间)",
+    "math-detective-checkin-dismissed-2026-06-Wed Jun 17 2026 16:33:04 GMT+0800 (中国标准时间)",
+    "math-detective-state",
+    "math-detective-checkin-dismissed-2026-06-Wed Jun 17 2026 17:23:59 GMT+0800 (中国标准时间)",
+    "math-detective-checkin-dismissed-2026-06-Wed Jun 17 2026 15:15:45 GMT+0800 (中国标准时间)",
+    "math-detective-checkin-dismissed-2026-06-Tue Jun 16 2026 15:45:03 GMT+0800 (中国标准时间)"
+  ],
+  "todayLessonVersion": "v2.10.2",
+  "learnerProfile": {
+    "currentDifficultyLevel": 2,
+    "totalCompleted": 19,
+    "recentAccuracy": 100
+  },
+  "curriculumProfile": {
+    "country": "CN",
+    "textbookEdition": "PEP",
+    "grade": 1,
+    "semester": "lower",
+    "detectedAt": "2026-06-16T07:58:54.783Z",
+    "semesterProgress": "review"
+  },
+  "usageStage": 1,
+  "currentQuestions": [
+    {
+      "id": "g1_22",
+      "text": "妈妈今天穿了一件红色外套。桌上有8个苹果，小红又拿来3个苹果，桌上一共有多少个苹果？",
+      "difficulty": 2,
+      "assessmentTier": "practice"
+    },
+    {
+      "id": "g1_14",
+      "text": "停车场有9辆玩具车，又开来了4辆，现在停车场有几辆玩具车？",
+      "difficulty": 2,
+      "assessmentTier": "practice"
+    },
+    {
+      "id": "g1ll_27",
+      "text": "学校图书馆有36本书，借出去8本后，图书馆还剩多少本书？",
+      "difficulty": 3,
+      "assessmentTier": "practice"
+    },
+    {
+      "id": "g1ll_07",
+      "text": "今天是星期天，妈妈带小明去公园玩。公园里有17只鸽子，飞走了9只，公园里还剩几只鸽子？",
+      "difficulty": 3,
+      "assessmentTier": "test"
+    },
+    {
+      "id": "g1ll_32",
+      "text": "小明今年8岁，爷爷今年65岁。爷爷比小明大多少岁？",
+      "difficulty": 3,
+      "assessmentTier": "test"
+    },
+    {
+      "id": "g1ll_68",
+      "text": "找规律填数：1、1、2、3、5、__。横线上应该填几？",
+      "difficulty": 4,
+      "assessmentTier": "challenge"
+    }
+  ],
+  "generationReport": {
+    "appVersion": "v2.10.0",
+    "plannerVersion": 4,
+    "reusedOldLesson": false,
+    "grade": 1,
+    "semester": "lower",
+    "semesterProgress": "review",
+    "usageStage": 1,
+    "learnerDifficulty": 2,
+    "sourceQuestionCount": 430,
+    "annotatedQuestionCount": 143,
+    "totalSlots": 6,
+    "slotPlan": [
+      {
+        "slot": 1,
+        "category": "review",
+        "targetDifficulty": 2,
+        "assessmentTier": "practice"
+      },
+      {
+        "slot": 2,
+        "category": "currentCore",
+        "targetDifficulty": 2,
+        "assessmentTier": "practice"
+      },
+      {
+        "slot": 3,
+        "category": "currentCore",
+        "targetDifficulty": 3,
+        "assessmentTier": "practice"
+      },
+      {
+        "slot": 4,
+        "category": "currentCore",
+        "targetDifficulty": 3,
+        "assessmentTier": "test"
+      },
+      {
+        "slot": 5,
+        "category": "application",
+        "targetDifficulty": 3,
+        "assessmentTier": "test"
+      },
+      {
+        "slot": 6,
+        "category": "stretch",
+        "targetDifficulty": 4,
+        "assessmentTier": "challenge"
+      }
+    ],
+    "fallbackUsed": false,
+    "fallbackReason": null,
+    "selectionDiagnostic": [
+      {
+        "slot": "slot_2",
+        "stepType": "find_action_words",
+        "targetDiff": 2,
+        "assessmentTier": "practice",
+        "attempts": [
+          {
+            "mode": "full",
+            "stepType": "find_action_words",
+            "story": true,
+            "candidateCount": 10,
+            "candidatesPreview": [
+              {
+                "id": "g1_14",
+                "text": "停车场有9辆玩具车，又开来了4辆，现在停车场有几辆玩具车？",
+                "diff": 2,
+                "tier": "practice"
+              },
+              {
+                "id": "g1_16",
+                "text": "操场上有8个皮球，体育老师又拿来了3个，现在操场上有几个皮球",
+                "diff": 2,
+                "tier": "practice"
+              },
+              {
+                "id": "g1_18",
+                "text": "果盘里有11颗草莓，吃掉了5颗，还剩几颗草莓？",
+                "diff": 2,
+                "tier": "practice"
+              }
+            ],
+            "compatibleCount": 10,
+            "rejectedByStep": 0,
+            "result": "g1_14"
+          }
+        ],
+        "selectedQuestion": {
+          "id": "g1_14",
+          "text": "停车场有9辆玩具车，又开来了4辆，现在停车场有几辆玩具车？",
+          "difficulty": 2,
+          "assessmentTier": "practice",
+          "sourcePool": "G1",
+          "selectionReason": "full",
+          "effectiveStepType": "find_action_words"
+        },
+        "finalReason": "full",
+        "sourcePoolSize": 129,
+        "effectiveStepType": "find_action_words"
+      },
+      {
+        "slot": "slot_3",
+        "stepType": "simulation",
+        "targetDiff": 3,
+        "assessmentTier": "practice",
+        "attempts": [
+          {
+            "mode": "full",
+            "stepType": "simulation",
+            "story": true,
+            "candidateCount": 10,
+            "candidatesPreview": [
+              {
+                "id": "g1ll_26",
+                "text": "小华原来有24张画片，同学又送给他5张，小华现在有多少张画片",
+                "diff": 3,
+                "tier": "practice"
+              },
+              {
+                "id": "g1ll_27",
+                "text": "学校图书馆有36本书，借出去8本后，图书馆还剩多少本书？",
+                "diff": 3,
+                "tier": "practice"
+              },
+              {
+                "id": "g1ll_28",
+                "text": "小明有23元零花钱，奶奶又给了他30元，小明现在有多少元零花",
+                "diff": 3,
+                "tier": "practice"
+              }
+            ],
+            "compatibleCount": 10,
+            "rejectedByStep": 0,
+            "result": "g1ll_27"
+          }
+        ],
+        "selectedQuestion": {
+          "id": "g1ll_27",
+          "text": "学校图书馆有36本书，借出去8本后，图书馆还剩多少本书？",
+          "difficulty": 3,
+          "assessmentTier": "practice",
+          "sourcePool": "G1",
+          "selectionReason": "full",
+          "effectiveStepType": "simulation"
+        },
+        "finalReason": "full",
+        "sourcePoolSize": 129,
+        "effectiveStepType": "simulation"
+      },
+      {
+        "slot": "slot_4",
+        "stepType": "remove_noise",
+        "targetDiff": 3,
+        "assessmentTier": "test",
+        "attempts": [
+          {
+            "mode": "full",
+            "stepType": "remove_noise",
+            "story": true,
+            "candidateCount": 10,
+            "candidatesPreview": [
+              {
+                "id": "g1ll_07",
+                "text": "今天是星期天，妈妈带小明去公园玩。公园里有17只鸽子，飞走了",
+                "diff": 3,
+                "tier": "test"
+              },
+              {
+                "id": "g1ll_09",
+                "text": "小明有13元零花钱，买铅笔用了4元，买橡皮用了2元。小明还剩",
+                "diff": 3,
+                "tier": "test"
+              },
+              {
+                "id": "g1ll_18",
+                "text": "在○里填上\">\"或\"<\"：45○38 + 10。",
+                "diff": 3,
+                "tier": "test"
+              }
+            ],
+            "compatibleCount": 2,
+            "rejectedByStep": 8,
+            "result": "g1ll_07"
+          }
+        ],
+        "selectedQuestion": {
+          "id": "g1ll_07",
+          "text": "今天是星期天，妈妈带小明去公园玩。公园里有17只鸽子，飞走了9只，公园里还剩几只鸽子？",
+          "difficulty": 3,
+          "assessmentTier": "test",
+          "sourcePool": "G1",
+          "selectionReason": "full",
+          "effectiveStepType": "remove_noise"
+        },
+        "finalReason": "full",
+        "sourcePoolSize": 129,
+        "effectiveStepType": "remove_noise"
+      },
+      {
+        "slot": "slot_5",
+        "stepType": "find_compare_numbers",
+        "targetDiff": 3,
+        "assessmentTier": "test",
+        "attempts": [
+          {
+            "mode": "full",
+            "stepType": "find_compare_numbers",
+            "story": true,
+            "candidateCount": 10,
+            "candidatesPreview": [
+              {
+                "id": "g1ll_29",
+                "text": "星期天小明和爸爸妈妈一起去公园。今天天气很好，公园里有18朵",
+                "diff": 3,
+                "tier": "test"
+              },
+              {
+                "id": "g1ll_30",
+                "text": "小芳有一些糖果，吃掉了8颗后还剩17颗。小芳原来有多少颗糖果",
+                "diff": 3,
+                "tier": "test"
+              },
+              {
+                "id": "g1ll_32",
+                "text": "小明今年8岁，爷爷今年65岁。爷爷比小明大多少岁？",
+                "diff": 3,
+                "tier": "test"
+              }
+            ],
+            "compatibleCount": 0,
+            "rejectedByStep": 10,
+            "result": "empty"
+          },
+          {
+            "mode": "step_degraded",
+            "stepType": "full_solve",
+            "story": true,
+            "candidateCount": 10,
+            "candidatesPreview": [
+              {
+                "id": "g1ll_29",
+                "text": "星期天小明和爸爸妈妈一起去公园。今天天气很好，公园里有18朵",
+                "diff": 3,
+                "tier": "test"
+              },
+              {
+                "id": "g1ll_30",
+                "text": "小芳有一些糖果，吃掉了8颗后还剩17颗。小芳原来有多少颗糖果",
+                "diff": 3,
+                "tier": "test"
+              },
+              {
+                "id": "g1ll_32",
+                "text": "小明今年8岁，爷爷今年65岁。爷爷比小明大多少岁？",
+                "diff": 3,
+                "tier": "test"
+              }
+            ],
+            "compatibleCount": 10,
+            "rejectedByStep": 0,
+            "result": "g1ll_32"
+          }
+        ],
+        "selectedQuestion": {
+          "id": "g1ll_32",
+          "text": "小明今年8岁，爷爷今年65岁。爷爷比小明大多少岁？",
+          "difficulty": 3,
+          "assessmentTier": "test",
+          "sourcePool": "G1",
+          "selectionReason": "step_degraded",
+          "effectiveStepType": "full_solve"
+        },
+        "finalReason": "step_degraded",
+        "sourcePoolSize": 129,
+        "effectiveStepType": "full_solve"
+      },
+      {
+        "slot": "slot_6",
+        "stepType": "full_solve",
+        "targetDiff": 4,
+        "assessmentTier": "challenge",
+        "attempts": [
+          {
+            "mode": "full",
+            "stepType": "full_solve",
+            "story": true,
+            "candidateCount": 8,
+            "candidatesPreview": [
+              {
+                "id": "g1ll_68",
+                "text": "找规律填数：1、1、2、3、5、__。横线上应该填几？",
+                "diff": 4,
+                "tier": "challenge"
+              },
+              {
+                "id": "g1t_19",
+                "text": "一条小路长10米，从小路起点开始，每隔2米种一朵花（起点也种",
+                "diff": 4,
+                "tier": "challenge"
+              },
+              {
+                "id": "g1t_20",
+                "text": "学校走廊长8米，从走廊一端开始，每隔2米挂一个气球。第一个气",
+                "diff": 4,
+                "tier": "challenge"
+              }
+            ],
+            "compatibleCount": 8,
+            "rejectedByStep": 0,
+            "result": "g1ll_68"
+          }
+        ],
+        "selectedQuestion": {
+          "id": "g1ll_68",
+          "text": "找规律填数：1、1、2、3、5、__。横线上应该填几？",
+          "difficulty": 4,
+          "assessmentTier": "challenge",
+          "sourcePool": "G1",
+          "selectionReason": "full",
+          "effectiveStepType": "full_solve"
+        },
+        "finalReason": "full",
+        "sourcePoolSize": 129,
+        "effectiveStepType": "full_solve"
+      }
+    ],
+    "selectedQuestions": [
+      {
+        "id": "g1_22",
+        "text": "妈妈今天穿了一件红色外套。桌上有8个苹果，小红又拿来3个苹果，桌上一共有多少个苹果？",
+        "difficulty": 2,
+        "assessmentTier": "practice",
+        "curriculumSkills": "addition_subtraction:addition_within_20, information:identify_extra_information",
+        "sourcePool": "annotated_pool_G1",
+        "selectionReason": "full",
+        "stepType": "find_numbers"
+      },
+      {
+        "id": "g1_14",
+        "text": "停车场有9辆玩具车，又开来了4辆，现在停车场有几辆玩具车？",
+        "difficulty": 2,
+        "assessmentTier": "practice",
+        "curriculumSkills": "addition_subtraction:addition_within_20",
+        "sourcePool": "annotated_pool_G1",
+        "selectionReason": "full",
+        "stepType": "find_action_words"
+      },
+      {
+        "id": "g1ll_27",
+        "text": "学校图书馆有36本书，借出去8本后，图书馆还剩多少本书？",
+        "difficulty": 3,
+        "assessmentTier": "practice",
+        "curriculumSkills": "addition_subtraction:two_digit_minus_one_digit",
+        "difficultyProfile": {
+          "knowledgeLevel": 3,
+          "readingLoad": 1,
+          "relationComplexity": 1,
+          "informationNoise": 1,
+          "reasoningSteps": 1,
+          "transferLevel": 1
+        },
+        "sourcePool": "annotated_pool_G1",
+        "selectionReason": "full",
+        "stepType": "simulation"
+      },
+      {
+        "id": "g1ll_07",
+        "text": "今天是星期天，妈妈带小明去公园玩。公园里有17只鸽子，飞走了9只，公园里还剩几只鸽子？",
+        "difficulty": 3,
+        "assessmentTier": "test",
+        "curriculumSkills": "addition_subtraction:subtraction_within_20_borrowing, information:identify_extra_information",
+        "difficultyProfile": {
+          "knowledgeLevel": 2,
+          "readingLoad": 2,
+          "relationComplexity": 1,
+          "informationNoise": 2,
+          "reasoningSteps": 2,
+          "transferLevel": 2
+        },
+        "sourcePool": "annotated_pool_G1",
+        "selectionReason": "step_degraded",
+        "stepType": "remove_noise"
+      },
+      {
+        "id": "g1ll_32",
+        "text": "小明今年8岁，爷爷今年65岁。爷爷比小明大多少岁？",
+        "difficulty": 3,
+        "assessmentTier": "test",
+        "curriculumSkills": "comparison:difference_comparison, addition_subtraction:two_digit_minus_one_digit",
+        "difficultyProfile": {
+          "knowledgeLevel": 3,
+          "readingLoad": 2,
+          "relationComplexity": 2,
+          "informationNoise": 1,
+          "reasoningSteps": 1,
+          "transferLevel": 2
+        },
+        "sourcePool": "annotated_pool_G1",
+        "selectionReason": "full",
+        "stepType": "full_solve"
+      },
+      {
+        "id": "g1ll_68",
+        "text": "找规律填数：1、1、2、3、5、__。横线上应该填几？",
+        "difficulty": 4,
+        "assessmentTier": "challenge",
+        "curriculumSkills": "pattern:advanced_patterns",
+        "difficultyProfile": {
+          "knowledgeLevel": 4,
+          "readingLoad": 2,
+          "relationComplexity": 2,
+          "informationNoise": 1,
+          "reasoningSteps": 3,
+          "transferLevel": 3
+        },
+        "sourcePool": "unknown",
+        "selectionReason": "unknown",
+        "stepType": "full_solve"
+      }
+    ]
+  },
+  "stars": 45,
+  "streak": 2,
+  "totalCompleted": 19,
+  "receivedAt": "2026-06-17T09:24:16.281Z"
+}
