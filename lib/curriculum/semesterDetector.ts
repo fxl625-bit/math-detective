@@ -1,18 +1,17 @@
 /**
- * v2.9.0: Semester auto-detection
+ * v2.9.1: Semester & Progress auto-detection
  *
  * Chinese school calendar:
  * - Spring semester (下学期): February ~ July → "lower"
  * - Fall semester (上学期): September ~ January → "upper"
  *
- * Monthly mapping:
- * Feb-Jun: lower
- * Jul: transition (default lower)
- * Aug: summer break (default upper — approaching fall)
- * Sep-Jan: upper
+ * SemesterProgress (month-based within semester):
+ * - lower: Feb(early) → Mar(early) → Apr(middle) → May(late) → Jun(review)
+ * - upper: Sep(early) → Oct(early) → Nov(middle) → Dec(late) → Jan(review)
+ * - summer_bridge: Jul-Aug
  */
 
-import type { Semester } from './types';
+import type { Semester, SemesterProgress } from './types';
 
 /**
  * Auto-detect semester from current month.
@@ -30,7 +29,49 @@ export function detectSemesterFromDate(date?: Date): Semester {
 }
 
 /**
- * Build a CurriculumProfile with auto-detected semester.
+ * v2.9.1: Detect progress within the current semester based on month.
+ *
+ * Lower semester (Feb-Jul):
+ *   Feb → early (学期初)
+ *   Mar → early
+ *   Apr → middle (学期中)
+ *   May → late (学期末)
+ *   Jun → review (期末复习)
+ *
+ * Upper semester (Sep-Jan):
+ *   Sep → early
+ *   Oct → early
+ *   Nov → middle
+ *   Dec → late
+ *   Jan → review
+ *
+ * Jul-Aug → summer_bridge (暑假衔接)
+ */
+export function detectSemesterProgress(date?: Date): SemesterProgress {
+  const d = date || new Date();
+  const month = d.getMonth() + 1; // 1-12
+
+  // Summer bridge
+  if (month === 7 || month === 8) return 'summer_bridge';
+
+  // Lower semester progress (Feb-Jun)
+  if (month === 2 || month === 3) return 'early';
+  if (month === 4) return 'middle';
+  if (month === 5) return 'late';
+  if (month === 6) return 'review';
+
+  // Upper semester progress (Sep-Jan)
+  if (month === 9 || month === 10) return 'early';
+  if (month === 11) return 'middle';
+  if (month === 12) return 'late';
+  if (month === 1) return 'review';
+
+  // Fallback
+  return 'early';
+}
+
+/**
+ * Build a CurriculumProfile with auto-detected semester and progress.
  */
 export function buildCurriculumProfile(params: {
   country?: string;
@@ -44,8 +85,10 @@ export function buildCurriculumProfile(params: {
   semester: Semester;
   semesterOverride?: Semester;
   detectedAt: string;
+  semesterProgress?: SemesterProgress;
 } {
   const detectedSemester = detectSemesterFromDate();
+  const semesterProgress = detectSemesterProgress();
 
   return {
     country: params.country || 'CN',
@@ -54,5 +97,6 @@ export function buildCurriculumProfile(params: {
     semester: params.semesterOverride || detectedSemester,
     semesterOverride: params.semesterOverride,
     detectedAt: new Date().toISOString(),
+    semesterProgress,
   };
 }

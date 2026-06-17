@@ -80,6 +80,32 @@ function PlayPageContent() {
     const raw = getTodayLesson();
     const validated = safeNormalizeLesson(raw);
     
+    // v2.10.2: Auto-diagnostics — POST state to dev API (dev only)
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      try {
+        const state = loadState();
+        const diag = (window as any).__MD_DEBUG__?.lastLessonGenerationReport;
+        fetch('/api/dev-diagnostics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            appVersion: (window as any).__MD_BUILD_INFO__?.appVersion,
+            commitHash: (window as any).__MD_BUILD_INFO__?.commitHash,
+            storageKeys: Object.keys(localStorage).filter(k => k.startsWith('math-detective')),
+            usageStage: state.usageStage,
+            totalCompleted: state.totalCompleted,
+            stars: state.stars,
+            streak: state.streak,
+            curriculumProfile: state.curriculumProfile,
+            learnerProfile: state.learnerProfile ? { currentDifficultyLevel: state.learnerProfile.currentDifficultyLevel, totalCompleted: state.learnerProfile.totalCompleted, recentAccuracy: state.learnerProfile.recentAccuracy } : null,
+            currentQuestions: diag?.selectedQuestions?.map((q: any) => ({ id: q.id, text: q.text, difficulty: q.difficulty, assessmentTier: q.assessmentTier })),
+            generationReport: diag,
+            todayLessonVersion: validated ? ((validated as any).generatedByVersion || 'unknown') : 'none',
+          }),
+        }).catch(() => { /* diagnostic upload failed, non-critical */ });
+      } catch {}
+    }
+    
     // v2.8.2: Loop detection
     if (validated && validated._loopDetected) {
       const safe = generateSafeFallbackLesson(

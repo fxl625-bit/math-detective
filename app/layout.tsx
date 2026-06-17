@@ -29,6 +29,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // v2.10.2: Inject build info for runtime proof
+  const buildInfoJson = JSON.stringify({
+    appVersion: process.env.NEXT_PUBLIC_APP_VERSION || '2.10.2',
+    commitHash: process.env.NEXT_PUBLIC_COMMIT_SHA || 'unknown',
+    buildTime: new Date().toISOString(),
+  });
   return (
     <html
       lang="zh-CN"
@@ -37,6 +43,11 @@ export default function RootLayout({
     >
       <head>
         <meta charSet="utf-8" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.__MD_BUILD_INFO__ = ${buildInfoJson};`,
+          }}
+        />
       </head>
       <body
         suppressHydrationWarning

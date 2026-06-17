@@ -1,6 +1,8 @@
 import { GameState, DEFAULT_GAME_STATE, MistakeRecord } from './types';
 import { initCurriculumProfile, buildLearnerProfile, detectUsageStage } from './learnerProfile';
+import { detectSemesterProgress } from './curriculum/semesterDetector';
 import type { Semester } from './curriculum/types';
+import type { SkillMastery } from './curriculum/types';
 
 const STORAGE_KEY = 'math-detective-state';
 
@@ -23,30 +25,49 @@ export function loadState(): GameState {
       });
     }
 
-    // v2.9.0: Auto-migrate — detect usage stage if missing
-    if (state.usageStage === undefined) {
-      const stageInfo = detectUsageStage(
-        Math.max(1, Math.ceil((state.totalCompleted || 0) / 5)),
-        state.totalCompleted || 0,
-      );
-      state.usageStage = stageInfo.stage;
-    }
+    // v2.9.1: Always refresh semesterProgress (month may have changed)
+    state.curriculumProfile.semesterProgress = detectSemesterProgress();
 
-    // v2.9.0 FIX: Auto-migrate — build learnerProfile if missing
-    // This was the ROOT CAUSE of v2.9.0 adaptive engine never activating
+    // v2.9.1: Ensure trainingMode + schoolHarder defaults
+    if (!state.trainingMode) state.trainingMode = 'adaptive';
+    if (state.schoolHarder === undefined) state.schoolHarder = false;
+
+    // v2.9.1: Compute mastered skill ratio from learnerProfile
+    const skillMastery = state.learnerProfile?.skillMastery || {};
+    const allSkillIds = Object.keys(skillMastery);
+    const masteredCount = allSkillIds.filter(
+      id => (skillMastery[id] as SkillMastery)?.status === 'mastered'
+    ).length;
+    const masteredSkillRatio = allSkillIds.length > 0 ? masteredCount / allSkillIds.length : 0;
+
+    // v2.9.1: Detect usage stage with extended params
+    const stageInfo = detectUsageStage(
+      Math.max(1, Math.ceil((state.totalCompleted || 0) / 5)),
+      state.totalCompleted || 0,
+      {
+        recentAccuracy: state.learnerProfile?.recentAccuracy,
+        consecutiveCheckInDays: state.streak || 0,
+        fullHintRate: state.learnerProfile?.fullHintRate || 0,
+        masteredSkillRatio,
+      },
+    );
+    state.usageStage = stageInfo.stage;
+
+    // v2.9.0 FIX + v2.9.1: Build/rebuild learnerProfile
     if (!state.learnerProfile) {
       state.learnerProfile = buildLearnerProfile({
         curriculumProfile: state.curriculumProfile as any,
         attemptRecords: state.attemptRecords || [],
         totalCompleted: state.totalCompleted || 0,
+        consecutiveCheckInDays: state.streak || 0,
       });
     } else {
-      // Rebuild learnerProfile to refresh accuracy/difficulty from current attemptRecords
       state.learnerProfile = buildLearnerProfile({
         existingProfile: state.learnerProfile as any,
         curriculumProfile: state.curriculumProfile as any,
         attemptRecords: state.attemptRecords || [],
         totalCompleted: state.totalCompleted || 0,
+        consecutiveCheckInDays: state.streak || 0,
       });
     }
 

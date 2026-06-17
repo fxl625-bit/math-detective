@@ -525,19 +525,27 @@ export function getTodayLesson(): TodayLesson {
       if (saved) {
         const parsed: TodayLesson = JSON.parse(saved);
 
-        // v2.9.0 FIX: 版本检查 — 旧版本生成的 lesson 必须重建
+        // v2.10.2: Enhanced version check — auto-invalidate old/safe lessons
         const version = (parsed as any).generatedByVersion;
+        const generatorVersion = (parsed as any).generatorVersion || 0;
         const lessonSemester = (parsed as any).curriculumSnapshot?.semester;
         const state = loadState();
         const currentSemester = state.curriculumProfile?.semester;
 
+        // Check if any step ID contains "safe_" (safe fallback lesson)
+        const hasSafeSteps = parsed.steps?.some((s: any) => s.id?.includes('_safe_'));
+
         const needsRebuild =
           // 没有 version 标记（旧版本生成）
           !version ||
-          // version 低于 3（v2.9.1 之前）
-          (version && (version as any) < 3) ||
+          // generatorVersion 低于 4（v2.10.2 之前）
+          generatorVersion < 4 ||
           // 学期不匹配（用户切换了学期设置）
-          (lessonSemester && currentSemester && lessonSemester !== currentSemester);
+          (lessonSemester && currentSemester && lessonSemester !== currentSemester) ||
+          // Safe fallback lesson — always replace with proper curriculum
+          hasSafeSteps ||
+          // Loop-detected lesson — force rebuild
+          (parsed as any)._loopDetected === true;
 
         if (!needsRebuild) {
           // 先用 safeNormalizeLesson 校验，异常数据自动修复
@@ -1133,8 +1141,8 @@ export function buildDailyLesson(
   };
 
   // Attach version metadata
-  (lesson as any).generatedByVersion = 'v2.9.1';
-  (lesson as any).generatorVersion = 3;
+  (lesson as any).generatedByVersion = 'v2.10.2';
+  (lesson as any).generatorVersion = 4;
   (lesson as any).curriculumSnapshot = {
     grade,
     semester,
@@ -1339,8 +1347,8 @@ function buildSafeLessonFromPool(pool: Question[], today: string, gradeBand: Gra
   };
 
   // v2.9.1: Version stamp even for fallback
-  (lesson as any).generatedByVersion = 'v2.9.1';
-  (lesson as any).generatorVersion = 3;
+  (lesson as any).generatedByVersion = 'v2.10.2';
+  (lesson as any).generatorVersion = 4;
   (lesson as any).fallbackUsed = true;
   (lesson as any).fallbackReason = 'safe_fallback_no_candidates';
 

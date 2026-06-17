@@ -134,36 +134,79 @@ export function processAttempt(
 // ========== Usage Stage Detection ==========
 
 /**
- * Detect usage stage based on days since start and total completed questions.
- * A 2-month user with 100 completed should be Stage 3.
+ * v2.9.1: Detect usage stage based on days, completed count, and mastery.
+ * Stage 0-4 replaces the old 0-3 model.
+ *
+ * Stage 0: Initial diagnosis — first 10-15 questions (<10 completed or <4 days)
+ * Stage 1: Basic adaptation — first 30 questions or <7 days
+ * Stage 2: Current semester core — 30+ completed
+ * Stage 3: Comprehensive & test adaptation — 30+ days OR 60+ completed
+ *   OR 10+ consecutive check-in days OR basic skills mastered
+ * Stage 4: Advanced challenge — 85%+ accuracy on 20 recent, low hint rate,
+ *   most current core skills mastered
  */
 export function detectUsageStage(
   daysSinceStart: number,
   totalCompleted: number,
+  extraParams?: {
+    recentAccuracy?: number;
+    fullHintRate?: number;
+    masteredSkillRatio?: number;
+    consecutiveCheckInDays?: number;
+  },
 ): UsageStageInfo {
   let stage: UsageStage;
   let description: string;
   let reviewRatio: number;
+  let stretchPreviewRatio: number;
 
-  if (totalCompleted >= 100 || daysSinceStart >= 45) {
+  const { recentAccuracy, fullHintRate, masteredSkillRatio, consecutiveCheckInDays } = extraParams || {};
+
+  // Stage 4: Advanced challenge
+  // Requires: 85+ completed, 85%+ first-try accuracy, low hint usage (<15%), most skills mastered (>=60%)
+  const canStage4 = (
+    totalCompleted >= 85 &&
+    (recentAccuracy !== undefined && recentAccuracy >= 85) &&
+    (fullHintRate !== undefined && fullHintRate < 0.15) &&
+    (masteredSkillRatio !== undefined && masteredSkillRatio >= 0.6)
+  );
+
+  // Stage 3: Comprehensive & test adaptation
+  const canStage3 = (
+    daysSinceStart >= 30 ||
+    totalCompleted >= 60 ||
+    (consecutiveCheckInDays !== undefined && consecutiveCheckInDays >= 10) ||
+    (masteredSkillRatio !== undefined && masteredSkillRatio >= 0.5)
+  );
+
+  if (canStage4) {
+    stage = 4;
+    description = '进阶挑战（高正确率、低提示率、核心技能多数掌握）';
+    reviewRatio = 0.02;
+    stretchPreviewRatio = 0.25;
+  } else if (canStage3) {
     stage = 3;
-    description = '经验丰富用户（45天+或100题+）';
+    description = '综合与测试适应（30天+或60题+或连续打卡10天+）';
     reviewRatio = 0.05;
-  } else if (totalCompleted >= 30 || daysSinceStart >= 15) {
+    stretchPreviewRatio = 0.20;
+  } else if (totalCompleted >= 30) {
     stage = 2;
-    description = '活跃用户（15-45天或30-100题）';
-    reviewRatio = 0.05;
+    description = '当前学期核心学习（30题+）';
+    reviewRatio = 0.08;
+    stretchPreviewRatio = 0.10;
   } else if (totalCompleted >= 10 || daysSinceStart >= 4) {
     stage = 1;
-    description = '初学用户（4-14天或10-30题）';
+    description = '基础适应期（10-30题或4-7天）';
     reviewRatio = 0.15;
+    stretchPreviewRatio = 0.05;
   } else {
     stage = 0;
-    description = '新用户（0-3天或<10题）';
+    description = '初始诊断期（前10题或<4天）';
     reviewRatio = 0.30;
+    stretchPreviewRatio = 0.00;
   }
 
-  return { stage, daysSinceStart, totalCompleted, description, reviewRatio };
+  return { stage, daysSinceStart, totalCompleted, description, reviewRatio, stretchPreviewRatio };
 }
 
 // ========== LearnerProfile Builder ==========
@@ -177,8 +220,9 @@ export function buildLearnerProfile(params: {
   attemptRecords: AttemptRecord[];
   totalCompleted: number;
   startedAt?: string;
+  consecutiveCheckInDays?: number;
 }): LearnerProfile {
-  const { existingProfile, curriculumProfile, attemptRecords, totalCompleted, startedAt } = params;
+  const { existingProfile, curriculumProfile, attemptRecords, totalCompleted, startedAt, consecutiveCheckInDays } = params;
 
   // Compute recent accuracy (last 30 attempts)
   const recentRecords = attemptRecords.slice(-30);
@@ -198,20 +242,34 @@ export function buildLearnerProfile(params: {
     ? Math.round((recentRecords.length / Math.max(1, recentRecords.filter(r => r.attemptType === 'final_answer').length)) * 10) / 10
     : 1;
 
-  // Difficulty level based on recent accuracy and volume
-  const currentDifficultyLevel = existingProfile?.currentDifficultyLevel || 2;
-  // Auto-upgrade: if accuracy >= 85% over 20+ recent questions and level < 4
-  const autoUpgrade = recentTotal >= 20 && recentAccuracy >= 85 && currentDifficultyLevel < 4;
+  // v2.9.1: Difficulty calibration based on stage and semester progress
+  let currentDifficultyLevel = existingProfile?.currentDifficultyLevel || 1;
+
+  // Stage 3+ users start at minimum difficulty 3
+  // Stage 4 users start at minimum difficulty 4
+  const stageInfo = detectUsageStage(
+    totalCompleted > 0 ? Math.max(1, Math.ceil(totalCompleted / 5)) : 0,
+    totalCompleted,
+    { recentAccuracy, fullHintRate: 0, masteredSkillRatio: 0 },
+  );
+
+  if (stageInfo.stage >= 4 && currentDifficultyLevel < 4) {
+    currentDifficultyLevel = 4;
+  } else if (stageInfo.stage >= 3 && currentDifficultyLevel < 3) {
+    currentDifficultyLevel = 3;
+  }
+
+  // Auto-upgrade: if accuracy >= 85% over 20+ recent questions
+  const autoUpgrade = recentTotal >= 20 && recentAccuracy >= 85 && currentDifficultyLevel < 5;
   const autoDowngrade = recentTotal >= 15 && recentAccuracy < 50 && currentDifficultyLevel > 1;
+
+  if (autoUpgrade) currentDifficultyLevel += 1;
+  if (autoDowngrade) currentDifficultyLevel -= 1;
 
   return {
     curriculumProfile,
     skillMastery: existingProfile?.skillMastery || {},
-    currentDifficultyLevel: autoUpgrade
-      ? currentDifficultyLevel + 1
-      : autoDowngrade
-        ? currentDifficultyLevel - 1
-        : currentDifficultyLevel,
+    currentDifficultyLevel,
     startedAt: startedAt || new Date().toISOString(),
     totalCompleted,
     recentAccuracy,
@@ -219,6 +277,7 @@ export function buildLearnerProfile(params: {
     averageAttempts,
     fullHintRate: existingProfile?.fullHintRate || 0,
     difficultyBias: existingProfile?.difficultyBias || 0,
+    consecutiveCheckInDays: consecutiveCheckInDays || existingProfile?.consecutiveCheckInDays,
   };
 }
 

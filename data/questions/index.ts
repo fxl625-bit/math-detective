@@ -1,5 +1,6 @@
 import { Question, GradeBand, MathDomain, CognitiveSkill } from '@/lib/types';
 import { g1Questions } from './g1';
+import { g1LowerLateQuestions } from './g1-lower-late';
 import { g1ThinkingQuestions } from './g1-thinking';
 import { g2Questions } from './g2';
 import { g2OlympiadQuestions } from './g2-olympiad';
@@ -34,6 +35,7 @@ function applyAnnotations(questions: Question[], annotations: Record<string, Par
 
 export const allQuestions: Question[] = applyAnnotations([
   ...g1Questions,
+  ...g1LowerLateQuestions,
   ...g1ThinkingQuestions,
   ...g2Questions,
   ...g2OlympiadQuestions,

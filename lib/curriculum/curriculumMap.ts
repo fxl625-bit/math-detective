@@ -292,6 +292,53 @@ const G1_UPPER_KNOWLEDGE_POINTS: KnowledgePoint[] = [
   },
 ];
 
+// ========== G2 Lower Semester (二年级下学期) — Preview for G1 late students ==========
+
+const G2_LOWER_KNOWLEDGE_POINTS: KnowledgePoint[] = [
+  {
+    id: 'multiplication:repeated_addition',
+    name: '重复加法/乘法含义',
+    grade: 2, semester: 'lower', category: 'core',
+    prerequisites: ['addition_subtraction:addition_within_20'],
+    description: '几个相同数连加→乘法，如 3+3+3+3=4×3',
+  },
+  {
+    id: 'multiplication:equal_groups_intro',
+    name: '乘法初步（几个几）',
+    grade: 2, semester: 'lower', category: 'core',
+    prerequisites: ['multiplication:repeated_addition'],
+    description: '每份几个，有几份，一共几个',
+  },
+  {
+    id: 'multiplication:simple_table_2_5_10',
+    name: '2、5、10的乘法口诀',
+    grade: 2, semester: 'lower', category: 'core',
+    prerequisites: ['multiplication:equal_groups_intro'],
+    description: '2、5、10的乘法口诀表',
+  },
+  {
+    id: 'measurement:length_units_intro',
+    name: '长度单位认识（厘米/米）',
+    grade: 2, semester: 'lower', category: 'core',
+    prerequisites: [],
+    description: '认识厘米和米，选择合适单位',
+  },
+  {
+    id: 'addition_subtraction:two_digit_plus_two_digit',
+    name: '两位数加两位数（不进位）',
+    grade: 2, semester: 'lower', category: 'core',
+    prerequisites: ['addition_subtraction:addition_within_100'],
+    description: '如 23+14, 35+42',
+  },
+  {
+    id: 'addition_subtraction:two_digit_minus_two_digit',
+    name: '两位数减两位数（不退位）',
+    grade: 2, semester: 'lower', category: 'core',
+    prerequisites: ['addition_subtraction:subtraction_within_100'],
+    description: '如 56-23, 48-35',
+  },
+];
+
 // ========== Curriculum Map ==========
 
 export interface CurriculumEntry {
@@ -305,7 +352,7 @@ const CURRICULUM_MAP: Record<string, CurriculumEntry> = {
   'G1_lower': { grade: 1, semester: 'lower', knowledgePoints: G1_LOWER_KNOWLEDGE_POINTS },
   // G2+ stubs — will be populated when those grades need support
   'G2_upper': { grade: 2, semester: 'upper', knowledgePoints: [] },
-  'G2_lower': { grade: 2, semester: 'lower', knowledgePoints: [] },
+  'G2_lower': { grade: 2, semester: 'lower', knowledgePoints: G2_LOWER_KNOWLEDGE_POINTS },
   'G3_upper': { grade: 3, semester: 'upper', knowledgePoints: [] },
   'G3_lower': { grade: 3, semester: 'lower', knowledgePoints: [] },
 };
@@ -317,6 +364,7 @@ const DIFFICULTY_DISTRIBUTIONS: Record<number, DifficultyDistribution> = {
   1: { review: 0.15, currentCore: 0.55, application: 0.20, stretch: 0.10 },
   2: { review: 0.05, currentCore: 0.65, application: 0.20, stretch: 0.10 },
   3: { review: 0.05, currentCore: 0.65, application: 0.20, stretch: 0.10 },
+  4: { review: 0.02, currentCore: 0.48, application: 0.25, stretch: 0.25 },
 };
 
 // ========== Daily Lesson Difficulty Plan ==========
@@ -326,6 +374,7 @@ const DAILY_DIFFICULTY_PLANS: Record<number, DailyDifficultyPlan> = {
   1: { slotDifficulties: [2, 2, 3, 3, 3, 3], stretchSlots: 0 },
   2: { slotDifficulties: [2, 2, 3, 3, 3, 4], stretchSlots: 0 },
   3: { slotDifficulties: [2, 3, 3, 3, 4, 5], stretchSlots: 1 },
+  4: { slotDifficulties: [3, 3, 4, 4, 4, 5], stretchSlots: 2 },
 };
 
 // ========== Lookup Functions ==========
@@ -379,6 +428,10 @@ export function getAllG1LowerSkillIds(): SkillId[] {
 
 export function getAllG1UpperSkillIds(): SkillId[] {
   return G1_UPPER_KNOWLEDGE_POINTS.map(kp => kp.id);
+}
+
+export function getAllG2LowerSkillIds(): SkillId[] {
+  return G2_LOWER_KNOWLEDGE_POINTS.map(kp => kp.id);
 }
 
 export function getKnowledgePointById(id: SkillId): KnowledgePoint | undefined {

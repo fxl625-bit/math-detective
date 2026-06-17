@@ -1,0 +1,1169 @@
+{
+  "stars": 156,
+  "completedToday": 0,
+  "streak": 12,
+  "totalCompleted": 85,
+  "correctCount": 72,
+  "wrongCount": 13,
+  "lastPlayDate": "2026-06-16",
+  "lastCheckinDate": "2026-06-16",
+  "parentSettings": {
+    "gradeBand": "G1",
+    "textbookEdition": "PEP",
+    "semesterOverride": "lower",
+    "mathFactMode": false,
+    "carrotMode": false
+  },
+  "completedQuestions": [
+    {
+      "id": "q_0",
+      "questionId": "g1_01",
+      "correct": false,
+      "answeredAt": "2026-06-10"
+    },
+    {
+      "id": "q_1",
+      "questionId": "g1_02",
+      "correct": false,
+      "answeredAt": "2026-06-10"
+    },
+    {
+      "id": "q_2",
+      "questionId": "g1_03",
+      "correct": false,
+      "answeredAt": "2026-06-10"
+    },
+    {
+      "id": "q_3",
+      "questionId": "g1_04",
+      "correct": false,
+      "answeredAt": "2026-06-10"
+    },
+    {
+      "id": "q_4",
+      "questionId": "g1_05",
+      "correct": false,
+      "answeredAt": "2026-06-10"
+    },
+    {
+      "id": "q_5",
+      "questionId": "g1_06",
+      "correct": false,
+      "answeredAt": "2026-06-11"
+    },
+    {
+      "id": "q_6",
+      "questionId": "g1_07",
+      "correct": false,
+      "answeredAt": "2026-06-11"
+    },
+    {
+      "id": "q_7",
+      "questionId": "g1_08",
+      "correct": false,
+      "answeredAt": "2026-06-11"
+    },
+    {
+      "id": "q_8",
+      "questionId": "g1_09",
+      "correct": false,
+      "answeredAt": "2026-06-11"
+    },
+    {
+      "id": "q_9",
+      "questionId": "g1_10",
+      "correct": false,
+      "answeredAt": "2026-06-11"
+    },
+    {
+      "id": "q_10",
+      "questionId": "g1_11",
+      "correct": false,
+      "answeredAt": "2026-06-12"
+    },
+    {
+      "id": "q_11",
+      "questionId": "g1_12",
+      "correct": true,
+      "answeredAt": "2026-06-12"
+    },
+    {
+      "id": "q_12",
+      "questionId": "g1_13",
+      "correct": true,
+      "answeredAt": "2026-06-12"
+    },
+    {
+      "id": "q_13",
+      "questionId": "g1_14",
+      "correct": true,
+      "answeredAt": "2026-06-12"
+    },
+    {
+      "id": "q_14",
+      "questionId": "g1_15",
+      "correct": true,
+      "answeredAt": "2026-06-12"
+    },
+    {
+      "id": "q_15",
+      "questionId": "g1_16",
+      "correct": true,
+      "answeredAt": "2026-06-13"
+    },
+    {
+      "id": "q_16",
+      "questionId": "g1_17",
+      "correct": true,
+      "answeredAt": "2026-06-13"
+    },
+    {
+      "id": "q_17",
+      "questionId": "g1_18",
+      "correct": true,
+      "answeredAt": "2026-06-13"
+    },
+    {
+      "id": "q_18",
+      "questionId": "g1_19",
+      "correct": true,
+      "answeredAt": "2026-06-13"
+    },
+    {
+      "id": "q_19",
+      "questionId": "g1_20",
+      "correct": true,
+      "answeredAt": "2026-06-13"
+    },
+    {
+      "id": "q_20",
+      "questionId": "g1_21",
+      "correct": true,
+      "answeredAt": "2026-06-14"
+    },
+    {
+      "id": "q_21",
+      "questionId": "g1_22",
+      "correct": true,
+      "answeredAt": "2026-06-14"
+    },
+    {
+      "id": "q_22",
+      "questionId": "g1_23",
+      "correct": true,
+      "answeredAt": "2026-06-14"
+    },
+    {
+      "id": "q_23",
+      "questionId": "g1_24",
+      "correct": true,
+      "answeredAt": "2026-06-14"
+    },
+    {
+      "id": "q_24",
+      "questionId": "g1_25",
+      "correct": true,
+      "answeredAt": "2026-06-14"
+    },
+    {
+      "id": "q_25",
+      "questionId": "g1_26",
+      "correct": true,
+      "answeredAt": "2026-06-15"
+    },
+    {
+      "id": "q_26",
+      "questionId": "g1_27",
+      "correct": true,
+      "answeredAt": "2026-06-15"
+    },
+    {
+      "id": "q_27",
+      "questionId": "g1_28",
+      "correct": true,
+      "answeredAt": "2026-06-15"
+    },
+    {
+      "id": "q_28",
+      "questionId": "g1_29",
+      "correct": true,
+      "answeredAt": "2026-06-15"
+    },
+    {
+      "id": "q_29",
+      "questionId": "g1_30",
+      "correct": true,
+      "answeredAt": "2026-06-15"
+    },
+    {
+      "id": "q_30",
+      "questionId": "g1_31",
+      "correct": true,
+      "answeredAt": "2026-06-16"
+    },
+    {
+      "id": "q_31",
+      "questionId": "g1_32",
+      "correct": true,
+      "answeredAt": "2026-06-16"
+    },
+    {
+      "id": "q_32",
+      "questionId": "g1_33",
+      "correct": true,
+      "answeredAt": "2026-06-16"
+    },
+    {
+      "id": "q_33",
+      "questionId": "g1_34",
+      "correct": true,
+      "answeredAt": "2026-06-16"
+    },
+    {
+      "id": "q_34",
+      "questionId": "g1_35",
+      "correct": true,
+      "answeredAt": "2026-06-16"
+    },
+    {
+      "id": "q_35",
+      "questionId": "g1_36",
+      "correct": true,
+      "answeredAt": "2026-06-17"
+    },
+    {
+      "id": "q_36",
+      "questionId": "g1_37",
+      "correct": true,
+      "answeredAt": "2026-06-17"
+    },
+    {
+      "id": "q_37",
+      "questionId": "g1_38",
+      "correct": true,
+      "answeredAt": "2026-06-17"
+    },
+    {
+      "id": "q_38",
+      "questionId": "g1_39",
+      "correct": true,
+      "answeredAt": "2026-06-17"
+    },
+    {
+      "id": "q_39",
+      "questionId": "g1_40",
+      "correct": true,
+      "answeredAt": "2026-06-17"
+    },
+    {
+      "id": "q_40",
+      "questionId": "g1_41",
+      "correct": true,
+      "answeredAt": "2026-06-18"
+    },
+    {
+      "id": "q_41",
+      "questionId": "g1_42",
+      "correct": true,
+      "answeredAt": "2026-06-18"
+    },
+    {
+      "id": "q_42",
+      "questionId": "g1_43",
+      "correct": true,
+      "answeredAt": "2026-06-18"
+    },
+    {
+      "id": "q_43",
+      "questionId": "g1_44",
+      "correct": true,
+      "answeredAt": "2026-06-18"
+    },
+    {
+      "id": "q_44",
+      "questionId": "g1_45",
+      "correct": true,
+      "answeredAt": "2026-06-18"
+    },
+    {
+      "id": "q_45",
+      "questionId": "g1_46",
+      "correct": true,
+      "answeredAt": "2026-06-19"
+    },
+    {
+      "id": "q_46",
+      "questionId": "g1_47",
+      "correct": true,
+      "answeredAt": "2026-06-19"
+    },
+    {
+      "id": "q_47",
+      "questionId": "g1_48",
+      "correct": true,
+      "answeredAt": "2026-06-19"
+    },
+    {
+      "id": "q_48",
+      "questionId": "g1_49",
+      "correct": true,
+      "answeredAt": "2026-06-19"
+    },
+    {
+      "id": "q_49",
+      "questionId": "g1_50",
+      "correct": true,
+      "answeredAt": "2026-06-19"
+    },
+    {
+      "id": "q_50",
+      "questionId": "g1_51",
+      "correct": true,
+      "answeredAt": "2026-06-20"
+    },
+    {
+      "id": "q_51",
+      "questionId": "g1_52",
+      "correct": true,
+      "answeredAt": "2026-06-20"
+    },
+    {
+      "id": "q_52",
+      "questionId": "g1_53",
+      "correct": true,
+      "answeredAt": "2026-06-20"
+    },
+    {
+      "id": "q_53",
+      "questionId": "g1_54",
+      "correct": true,
+      "answeredAt": "2026-06-20"
+    },
+    {
+      "id": "q_54",
+      "questionId": "g1_55",
+      "correct": true,
+      "answeredAt": "2026-06-20"
+    },
+    {
+      "id": "q_55",
+      "questionId": "g1_56",
+      "correct": true,
+      "answeredAt": "2026-06-21"
+    },
+    {
+      "id": "q_56",
+      "questionId": "g1_57",
+      "correct": true,
+      "answeredAt": "2026-06-21"
+    },
+    {
+      "id": "q_57",
+      "questionId": "g1_58",
+      "correct": true,
+      "answeredAt": "2026-06-21"
+    },
+    {
+      "id": "q_58",
+      "questionId": "g1_59",
+      "correct": true,
+      "answeredAt": "2026-06-21"
+    },
+    {
+      "id": "q_59",
+      "questionId": "g1_60",
+      "correct": true,
+      "answeredAt": "2026-06-21"
+    },
+    {
+      "id": "q_60",
+      "questionId": "g1_61",
+      "correct": true,
+      "answeredAt": "2026-06-22"
+    },
+    {
+      "id": "q_61",
+      "questionId": "g1_62",
+      "correct": true,
+      "answeredAt": "2026-06-22"
+    },
+    {
+      "id": "q_62",
+      "questionId": "g1_63",
+      "correct": true,
+      "answeredAt": "2026-06-22"
+    },
+    {
+      "id": "q_63",
+      "questionId": "g1_64",
+      "correct": true,
+      "answeredAt": "2026-06-22"
+    },
+    {
+      "id": "q_64",
+      "questionId": "g1_65",
+      "correct": true,
+      "answeredAt": "2026-06-22"
+    },
+    {
+      "id": "q_65",
+      "questionId": "g1_66",
+      "correct": true,
+      "answeredAt": "2026-06-23"
+    },
+    {
+      "id": "q_66",
+      "questionId": "g1_67",
+      "correct": true,
+      "answeredAt": "2026-06-23"
+    },
+    {
+      "id": "q_67",
+      "questionId": "g1_68",
+      "correct": true,
+      "answeredAt": "2026-06-23"
+    },
+    {
+      "id": "q_68",
+      "questionId": "g1_69",
+      "correct": true,
+      "answeredAt": "2026-06-23"
+    },
+    {
+      "id": "q_69",
+      "questionId": "g1_70",
+      "correct": true,
+      "answeredAt": "2026-06-23"
+    },
+    {
+      "id": "q_70",
+      "questionId": "g1_71",
+      "correct": true,
+      "answeredAt": "2026-06-24"
+    },
+    {
+      "id": "q_71",
+      "questionId": "g1_72",
+      "correct": true,
+      "answeredAt": "2026-06-24"
+    },
+    {
+      "id": "q_72",
+      "questionId": "g1_73",
+      "correct": true,
+      "answeredAt": "2026-06-24"
+    },
+    {
+      "id": "q_73",
+      "questionId": "g1_74",
+      "correct": true,
+      "answeredAt": "2026-06-24"
+    },
+    {
+      "id": "q_74",
+      "questionId": "g1_75",
+      "correct": true,
+      "answeredAt": "2026-06-24"
+    },
+    {
+      "id": "q_75",
+      "questionId": "g1_76",
+      "correct": true,
+      "answeredAt": "2026-06-25"
+    },
+    {
+      "id": "q_76",
+      "questionId": "g1_77",
+      "correct": true,
+      "answeredAt": "2026-06-25"
+    },
+    {
+      "id": "q_77",
+      "questionId": "g1_78",
+      "correct": true,
+      "answeredAt": "2026-06-25"
+    },
+    {
+      "id": "q_78",
+      "questionId": "g1_79",
+      "correct": true,
+      "answeredAt": "2026-06-25"
+    },
+    {
+      "id": "q_79",
+      "questionId": "g1_80",
+      "correct": true,
+      "answeredAt": "2026-06-25"
+    },
+    {
+      "id": "q_80",
+      "questionId": "g1_81",
+      "correct": true,
+      "answeredAt": "2026-06-26"
+    },
+    {
+      "id": "q_81",
+      "questionId": "g1_82",
+      "correct": true,
+      "answeredAt": "2026-06-26"
+    },
+    {
+      "id": "q_82",
+      "questionId": "g1_83",
+      "correct": true,
+      "answeredAt": "2026-06-26"
+    },
+    {
+      "id": "q_83",
+      "questionId": "g1_84",
+      "correct": true,
+      "answeredAt": "2026-06-26"
+    },
+    {
+      "id": "q_84",
+      "questionId": "g1_85",
+      "correct": true,
+      "answeredAt": "2026-06-26"
+    }
+  ],
+  "mistakes": [
+    {
+      "id": "m1",
+      "questionId": "g1_04",
+      "questionText": "5+3=?",
+      "myAnswer": "7",
+      "correctAnswer": "8",
+      "errorType": "answer_wrong",
+      "retriedCorrect": true,
+      "date": "2026-06-15"
+    }
+  ],
+  "attemptRecords": [
+    {
+      "id": "a_0",
+      "questionId": "g1_01",
+      "correct": false,
+      "timestamp": "2026-06-10"
+    },
+    {
+      "id": "a_1",
+      "questionId": "g1_02",
+      "correct": false,
+      "timestamp": "2026-06-10"
+    },
+    {
+      "id": "a_2",
+      "questionId": "g1_03",
+      "correct": false,
+      "timestamp": "2026-06-10"
+    },
+    {
+      "id": "a_3",
+      "questionId": "g1_04",
+      "correct": false,
+      "timestamp": "2026-06-10"
+    },
+    {
+      "id": "a_4",
+      "questionId": "g1_05",
+      "correct": false,
+      "timestamp": "2026-06-10"
+    },
+    {
+      "id": "a_5",
+      "questionId": "g1_06",
+      "correct": false,
+      "timestamp": "2026-06-10"
+    },
+    {
+      "id": "a_6",
+      "questionId": "g1_07",
+      "correct": false,
+      "timestamp": "2026-06-10"
+    },
+    {
+      "id": "a_7",
+      "questionId": "g1_08",
+      "correct": false,
+      "timestamp": "2026-06-10"
+    },
+    {
+      "id": "a_8",
+      "questionId": "g1_09",
+      "correct": false,
+      "timestamp": "2026-06-11"
+    },
+    {
+      "id": "a_9",
+      "questionId": "g1_10",
+      "correct": false,
+      "timestamp": "2026-06-11"
+    },
+    {
+      "id": "a_10",
+      "questionId": "g1_11",
+      "correct": false,
+      "timestamp": "2026-06-11"
+    },
+    {
+      "id": "a_11",
+      "questionId": "g1_12",
+      "correct": false,
+      "timestamp": "2026-06-11"
+    },
+    {
+      "id": "a_12",
+      "questionId": "g1_13",
+      "correct": false,
+      "timestamp": "2026-06-11"
+    },
+    {
+      "id": "a_13",
+      "questionId": "g1_14",
+      "correct": true,
+      "timestamp": "2026-06-11"
+    },
+    {
+      "id": "a_14",
+      "questionId": "g1_15",
+      "correct": true,
+      "timestamp": "2026-06-11"
+    },
+    {
+      "id": "a_15",
+      "questionId": "g1_16",
+      "correct": true,
+      "timestamp": "2026-06-11"
+    },
+    {
+      "id": "a_16",
+      "questionId": "g1_17",
+      "correct": true,
+      "timestamp": "2026-06-12"
+    },
+    {
+      "id": "a_17",
+      "questionId": "g1_18",
+      "correct": true,
+      "timestamp": "2026-06-12"
+    },
+    {
+      "id": "a_18",
+      "questionId": "g1_19",
+      "correct": true,
+      "timestamp": "2026-06-12"
+    },
+    {
+      "id": "a_19",
+      "questionId": "g1_20",
+      "correct": true,
+      "timestamp": "2026-06-12"
+    },
+    {
+      "id": "a_20",
+      "questionId": "g1_21",
+      "correct": true,
+      "timestamp": "2026-06-12"
+    },
+    {
+      "id": "a_21",
+      "questionId": "g1_22",
+      "correct": true,
+      "timestamp": "2026-06-12"
+    },
+    {
+      "id": "a_22",
+      "questionId": "g1_23",
+      "correct": true,
+      "timestamp": "2026-06-12"
+    },
+    {
+      "id": "a_23",
+      "questionId": "g1_24",
+      "correct": true,
+      "timestamp": "2026-06-12"
+    },
+    {
+      "id": "a_24",
+      "questionId": "g1_25",
+      "correct": true,
+      "timestamp": "2026-06-13"
+    },
+    {
+      "id": "a_25",
+      "questionId": "g1_26",
+      "correct": true,
+      "timestamp": "2026-06-13"
+    },
+    {
+      "id": "a_26",
+      "questionId": "g1_27",
+      "correct": true,
+      "timestamp": "2026-06-13"
+    },
+    {
+      "id": "a_27",
+      "questionId": "g1_28",
+      "correct": true,
+      "timestamp": "2026-06-13"
+    },
+    {
+      "id": "a_28",
+      "questionId": "g1_29",
+      "correct": true,
+      "timestamp": "2026-06-13"
+    },
+    {
+      "id": "a_29",
+      "questionId": "g1_30",
+      "correct": true,
+      "timestamp": "2026-06-13"
+    },
+    {
+      "id": "a_30",
+      "questionId": "g1_01",
+      "correct": true,
+      "timestamp": "2026-06-13"
+    },
+    {
+      "id": "a_31",
+      "questionId": "g1_02",
+      "correct": true,
+      "timestamp": "2026-06-13"
+    },
+    {
+      "id": "a_32",
+      "questionId": "g1_03",
+      "correct": true,
+      "timestamp": "2026-06-14"
+    },
+    {
+      "id": "a_33",
+      "questionId": "g1_04",
+      "correct": true,
+      "timestamp": "2026-06-14"
+    },
+    {
+      "id": "a_34",
+      "questionId": "g1_05",
+      "correct": true,
+      "timestamp": "2026-06-14"
+    },
+    {
+      "id": "a_35",
+      "questionId": "g1_06",
+      "correct": true,
+      "timestamp": "2026-06-14"
+    },
+    {
+      "id": "a_36",
+      "questionId": "g1_07",
+      "correct": true,
+      "timestamp": "2026-06-14"
+    },
+    {
+      "id": "a_37",
+      "questionId": "g1_08",
+      "correct": true,
+      "timestamp": "2026-06-14"
+    },
+    {
+      "id": "a_38",
+      "questionId": "g1_09",
+      "correct": true,
+      "timestamp": "2026-06-14"
+    },
+    {
+      "id": "a_39",
+      "questionId": "g1_10",
+      "correct": true,
+      "timestamp": "2026-06-14"
+    },
+    {
+      "id": "a_40",
+      "questionId": "g1_11",
+      "correct": true,
+      "timestamp": "2026-06-15"
+    },
+    {
+      "id": "a_41",
+      "questionId": "g1_12",
+      "correct": true,
+      "timestamp": "2026-06-15"
+    },
+    {
+      "id": "a_42",
+      "questionId": "g1_13",
+      "correct": true,
+      "timestamp": "2026-06-15"
+    },
+    {
+      "id": "a_43",
+      "questionId": "g1_14",
+      "correct": true,
+      "timestamp": "2026-06-15"
+    },
+    {
+      "id": "a_44",
+      "questionId": "g1_15",
+      "correct": true,
+      "timestamp": "2026-06-15"
+    },
+    {
+      "id": "a_45",
+      "questionId": "g1_16",
+      "correct": true,
+      "timestamp": "2026-06-15"
+    },
+    {
+      "id": "a_46",
+      "questionId": "g1_17",
+      "correct": true,
+      "timestamp": "2026-06-15"
+    },
+    {
+      "id": "a_47",
+      "questionId": "g1_18",
+      "correct": true,
+      "timestamp": "2026-06-15"
+    },
+    {
+      "id": "a_48",
+      "questionId": "g1_19",
+      "correct": true,
+      "timestamp": "2026-06-16"
+    },
+    {
+      "id": "a_49",
+      "questionId": "g1_20",
+      "correct": true,
+      "timestamp": "2026-06-16"
+    },
+    {
+      "id": "a_50",
+      "questionId": "g1_21",
+      "correct": true,
+      "timestamp": "2026-06-16"
+    },
+    {
+      "id": "a_51",
+      "questionId": "g1_22",
+      "correct": true,
+      "timestamp": "2026-06-16"
+    },
+    {
+      "id": "a_52",
+      "questionId": "g1_23",
+      "correct": true,
+      "timestamp": "2026-06-16"
+    },
+    {
+      "id": "a_53",
+      "questionId": "g1_24",
+      "correct": true,
+      "timestamp": "2026-06-16"
+    },
+    {
+      "id": "a_54",
+      "questionId": "g1_25",
+      "correct": true,
+      "timestamp": "2026-06-16"
+    },
+    {
+      "id": "a_55",
+      "questionId": "g1_26",
+      "correct": true,
+      "timestamp": "2026-06-16"
+    },
+    {
+      "id": "a_56",
+      "questionId": "g1_27",
+      "correct": true,
+      "timestamp": "2026-06-17"
+    },
+    {
+      "id": "a_57",
+      "questionId": "g1_28",
+      "correct": true,
+      "timestamp": "2026-06-17"
+    },
+    {
+      "id": "a_58",
+      "questionId": "g1_29",
+      "correct": true,
+      "timestamp": "2026-06-17"
+    },
+    {
+      "id": "a_59",
+      "questionId": "g1_30",
+      "correct": true,
+      "timestamp": "2026-06-17"
+    },
+    {
+      "id": "a_60",
+      "questionId": "g1_01",
+      "correct": true,
+      "timestamp": "2026-06-17"
+    },
+    {
+      "id": "a_61",
+      "questionId": "g1_02",
+      "correct": true,
+      "timestamp": "2026-06-17"
+    },
+    {
+      "id": "a_62",
+      "questionId": "g1_03",
+      "correct": true,
+      "timestamp": "2026-06-17"
+    },
+    {
+      "id": "a_63",
+      "questionId": "g1_04",
+      "correct": true,
+      "timestamp": "2026-06-17"
+    },
+    {
+      "id": "a_64",
+      "questionId": "g1_05",
+      "correct": true,
+      "timestamp": "2026-06-18"
+    },
+    {
+      "id": "a_65",
+      "questionId": "g1_06",
+      "correct": true,
+      "timestamp": "2026-06-18"
+    },
+    {
+      "id": "a_66",
+      "questionId": "g1_07",
+      "correct": true,
+      "timestamp": "2026-06-18"
+    },
+    {
+      "id": "a_67",
+      "questionId": "g1_08",
+      "correct": true,
+      "timestamp": "2026-06-18"
+    },
+    {
+      "id": "a_68",
+      "questionId": "g1_09",
+      "correct": true,
+      "timestamp": "2026-06-18"
+    },
+    {
+      "id": "a_69",
+      "questionId": "g1_10",
+      "correct": true,
+      "timestamp": "2026-06-18"
+    },
+    {
+      "id": "a_70",
+      "questionId": "g1_11",
+      "correct": true,
+      "timestamp": "2026-06-18"
+    },
+    {
+      "id": "a_71",
+      "questionId": "g1_12",
+      "correct": true,
+      "timestamp": "2026-06-18"
+    },
+    {
+      "id": "a_72",
+      "questionId": "g1_13",
+      "correct": true,
+      "timestamp": "2026-06-19"
+    },
+    {
+      "id": "a_73",
+      "questionId": "g1_14",
+      "correct": true,
+      "timestamp": "2026-06-19"
+    },
+    {
+      "id": "a_74",
+      "questionId": "g1_15",
+      "correct": true,
+      "timestamp": "2026-06-19"
+    },
+    {
+      "id": "a_75",
+      "questionId": "g1_16",
+      "correct": true,
+      "timestamp": "2026-06-19"
+    },
+    {
+      "id": "a_76",
+      "questionId": "g1_17",
+      "correct": true,
+      "timestamp": "2026-06-19"
+    },
+    {
+      "id": "a_77",
+      "questionId": "g1_18",
+      "correct": true,
+      "timestamp": "2026-06-19"
+    },
+    {
+      "id": "a_78",
+      "questionId": "g1_19",
+      "correct": true,
+      "timestamp": "2026-06-19"
+    },
+    {
+      "id": "a_79",
+      "questionId": "g1_20",
+      "correct": true,
+      "timestamp": "2026-06-19"
+    },
+    {
+      "id": "a_80",
+      "questionId": "g1_21",
+      "correct": true,
+      "timestamp": "2026-06-20"
+    },
+    {
+      "id": "a_81",
+      "questionId": "g1_22",
+      "correct": true,
+      "timestamp": "2026-06-20"
+    },
+    {
+      "id": "a_82",
+      "questionId": "g1_23",
+      "correct": true,
+      "timestamp": "2026-06-20"
+    },
+    {
+      "id": "a_83",
+      "questionId": "g1_24",
+      "correct": true,
+      "timestamp": "2026-06-20"
+    },
+    {
+      "id": "a_84",
+      "questionId": "g1_25",
+      "correct": true,
+      "timestamp": "2026-06-20"
+    },
+    {
+      "id": "a_85",
+      "questionId": "g1_26",
+      "correct": true,
+      "timestamp": "2026-06-20"
+    },
+    {
+      "id": "a_86",
+      "questionId": "g1_27",
+      "correct": true,
+      "timestamp": "2026-06-20"
+    },
+    {
+      "id": "a_87",
+      "questionId": "g1_28",
+      "correct": true,
+      "timestamp": "2026-06-20"
+    },
+    {
+      "id": "a_88",
+      "questionId": "g1_29",
+      "correct": true,
+      "timestamp": "2026-06-21"
+    },
+    {
+      "id": "a_89",
+      "questionId": "g1_30",
+      "correct": true,
+      "timestamp": "2026-06-21"
+    },
+    {
+      "id": "a_90",
+      "questionId": "g1_01",
+      "correct": true,
+      "timestamp": "2026-06-21"
+    },
+    {
+      "id": "a_91",
+      "questionId": "g1_02",
+      "correct": true,
+      "timestamp": "2026-06-21"
+    },
+    {
+      "id": "a_92",
+      "questionId": "g1_03",
+      "correct": true,
+      "timestamp": "2026-06-21"
+    },
+    {
+      "id": "a_93",
+      "questionId": "g1_04",
+      "correct": true,
+      "timestamp": "2026-06-21"
+    },
+    {
+      "id": "a_94",
+      "questionId": "g1_05",
+      "correct": true,
+      "timestamp": "2026-06-21"
+    }
+  ],
+  "questionReviewCounts": {},
+  "questionReviewDates": {},
+  "storiesRead": [
+    "playground_ball_mystery"
+  ],
+  "rewards": {},
+  "inventory": {},
+  "carrotMascot": {},
+  "settings": {},
+  "decorations": [],
+  "parentRewards": [],
+  "rewardRedemptions": [],
+  "parentGateAttempts": [],
+  "badges": [
+    {
+      "id": "first_star"
+    },
+    {
+      "id": "streak_7"
+    }
+  ],
+  "level": 3,
+  "resumeCards": 2,
+  "skillMistakes": {},
+  "lastStreakCheckDate": "2026-06-16",
+  "weeklyCards": [],
+  "equipSlots": {},
+  "curriculumProfile": {
+    "country": "CN",
+    "textbookEdition": "PEP",
+    "grade": 1,
+    "semester": "lower",
+    "detectedAt": "2026-06-10T00:00:00.000Z",
+    "semesterProgress": "review"
+  },
+  "learnerProfile": {
+    "curriculumProfile": {
+      "country": "CN",
+      "textbookEdition": "PEP",
+      "grade": 1,
+      "semester": "lower",
+      "detectedAt": "2026-06-10T00:00:00.000Z"
+    },
+    "skillMastery": {},
+    "currentDifficultyLevel": 3,
+    "startedAt": "2026-04-20T00:00:00.000Z",
+    "totalCompleted": 85,
+    "recentAccuracy": 85,
+    "recentFirstTryAccuracy": 80,
+    "averageAttempts": 1.2,
+    "fullHintRate": 0.05,
+    "difficultyBias": 0
+  },
+  "usageStage": 3,
+  "trainingMode": "adaptive",
+  "schoolHarder": false
+}
