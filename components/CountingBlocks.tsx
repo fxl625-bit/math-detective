@@ -21,7 +21,7 @@ export default function CountingBlocks({
   className = '',
 }: CountingBlocksProps) {
   const [count, setCount] = useState(0);
-  const [dragging, setDragging] = useState<string | null>(null);
+  const [, setDragging] = useState<string | null>(null);
 
   const handleAdd = () => {
     if (count < maxBlocks) {

@@ -30,20 +30,6 @@ function hasValidNoisePhrases(question: {
   return Array.isArray(question.noisePhrases) && question.noisePhrases.length > 0;
 }
 
-function hasValidExtraInfo(question: {
-  extraNumbers?: number[];
-  noisePhrases?: string[];
-  usefulPhrases?: string[];
-  text?: string;
-}): boolean {
-  const extraCount = (question.extraNumbers ?? []).length;
-  const noiseCount = (question.noisePhrases ?? []).length;
-  if (extraCount === 0 && noiseCount === 0) return false;
-  // 至少有一些 usefulPhrases
-  if ((question.usefulPhrases ?? []).length === 0) return false;
-  return true;
-}
-
 /**
  * 修复非法 todayLesson：
  * - 检查 identify_extra_info / spot_extra_info step 是否指向合法题目
@@ -127,7 +113,7 @@ export function handleAppVersionUpgrade(
   );
 
   // 1. 数据迁移
-  let migrated = migrateGameState(state);
+  const migrated = migrateGameState(state);
 
   // 2. 修复 todayLesson
   let needsLessonRebuild = false;
@@ -135,7 +121,7 @@ export function handleAppVersionUpgrade(
   try {
     const raw = localStorage.getItem(lessonKey);
     if (raw) {
-      let lesson = JSON.parse(raw) as TodayLesson;
+      const lesson = JSON.parse(raw) as TodayLesson;
       const { wasRepaired } = repairInvalidTodayLesson(lesson, getQuestionById);
       if (wasRepaired) {
         console.info('[Upgrade] Invalid todayLesson detected, needs rebuild');

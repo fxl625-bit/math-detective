@@ -14,7 +14,7 @@
  * - not_enough_information: 信息不足
  */
 
-import type { Question, AnswerType, SubAnswer, RankingAnswer, RankingOption } from './types';
+import type { Question, AnswerType, RankingAnswer } from './types';
 
 // ========== 结果类型 ==========
 
@@ -450,7 +450,6 @@ function safeEval(expr: string): number | null {
     // 只允许数字、运算符、括号、空格
     const cleaned = expr.replace(/[^0-9+\-*/().\s]/g, '');
     if (!cleaned) return null;
-    // eslint-disable-next-line no-eval
     const result = Function(`"use strict"; return (${cleaned})`)();
     return typeof result === 'number' && isFinite(result) ? result : null;
   } catch {

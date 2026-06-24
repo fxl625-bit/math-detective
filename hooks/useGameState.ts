@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { GameState, DEFAULT_GAME_STATE, DEFAULT_PARENT_REWARDS, MistakeRecord, ParentReward, RewardRedemption, ParentGateAttempt } from '@/lib/types';
+import { GameState, DEFAULT_GAME_STATE, DEFAULT_PARENT_REWARDS, MistakeRecord, ParentReward, ParentGateAttempt } from '@/lib/types';
 import {
   loadState,
   saveState,
@@ -21,6 +21,14 @@ import { logAppVersion } from '@/lib/appVersion';
 import { handleAppVersionUpgrade, UPGRADE_TOAST_MESSAGE } from '@/lib/versionUpgrade';
 import { questions as allQuestions } from '@/data/questions';
 
+declare global {
+  interface Window {
+    __debugLog?: (msg: string) => void;
+    __upgradeToast?: string;
+    __needsLessonRebuild?: boolean;
+  }
+}
+
 let globalState: GameState | null = null;
 let listeners: Array<(s: GameState) => void> = [];
 
@@ -38,45 +46,45 @@ function update(updater: (s: GameState) => GameState) {
 
 export function useGameState() {
   const [state, setState] = useState<GameState>(() => {
-    if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] init start');
-    
+    if (typeof window !== 'undefined' && window.__debugLog) window.__debugLog('[useGameState] init start');
+
     // v2.6.1: 版本检测与升级
     logAppVersion();
-    
+
     if (globalState) {
-      if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] using cached globalState');
+      if (typeof window !== 'undefined' && window.__debugLog) window.__debugLog('[useGameState] using cached globalState');
       return globalState;
     }
     try {
       const loaded = loadState();
       const normalized = normalizeStats(loaded);
-      
+
       // v2.6.1: 版本升级处理
       const { needsLessonRebuild, wasUpgraded } = handleAppVersionUpgrade(
         normalized,
         (id) => allQuestions.find(q => q.id === id)
       );
       if (wasUpgraded) {
-        if (typeof window !== 'undefined' && (window as any).__debugLog) {
-          (window as any).__debugLog('[useGameState] version upgraded, needsLessonRebuild=' + needsLessonRebuild);
+        if (typeof window !== 'undefined' && window.__debugLog) {
+          window.__debugLog('[useGameState] version upgraded, needsLessonRebuild=' + needsLessonRebuild);
         }
         // 标记需要显示 toast（由页面层处理）
-        (window as any).__upgradeToast = UPGRADE_TOAST_MESSAGE;
+        window.__upgradeToast = UPGRADE_TOAST_MESSAGE;
       }
       if (needsLessonRebuild) {
-        (window as any).__needsLessonRebuild = true;
+        window.__needsLessonRebuild = true;
       }
-      
+
       const daily = checkDailyReset(normalized);
       const weekly = checkWeeklyCard(daily);
       const leveled = { ...weekly, level: calculateLevel(weekly.stars) };
       const badged = { ...leveled, badges: checkBadges(leveled) };
       globalState = badged;
-      if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] init done, stars=' + badged.stars);
+      if (typeof window !== 'undefined' && window.__debugLog) window.__debugLog('[useGameState] init done, stars=' + badged.stars);
       return badged;
-    } catch (e) {
-      if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] ERROR: ' + (e instanceof Error ? e.message : String(e)));
-      throw e;
+    } catch (_e) {
+      if (typeof window !== 'undefined' && window.__debugLog) window.__debugLog('[useGameState] ERROR: ' + (_e instanceof Error ? _e.message : String(_e)));
+      throw _e;
     }
   });
 
@@ -286,7 +294,6 @@ export function useGameState() {
 
   const restoreDefaultParentRewards = useCallback(() => {
     update((s) => {
-      const existingIds = new Set(s.parentRewards.map((r) => r.id));
       const defaults = DEFAULT_PARENT_REWARDS
         .filter((d) => !s.parentRewards.some((r) => r.name === d.name))
         .map((d, i) => ({

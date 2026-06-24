@@ -1,6 +1,5 @@
 import { allQuestions } from '@/data/questions';
 import { getVisual } from '@/data/visualItems';
-import type { Question } from './types';
 
 // Reuse the existing questions import for backward compat
 const questions = allQuestions;

@@ -202,7 +202,7 @@ export function completeQuestion(
   const newStars = getStarReward(state.level);
 
   let newSkillLevel = state.skillLevel || 1;
-  if (state.correctCount % 5 === 0 && newSkillLevel < 10) {
+  if ((state.correctCount + 1) % 5 === 0 && newSkillLevel < 10) {
     newSkillLevel += 1;
   }
 

@@ -9,14 +9,12 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Play, CheckCircle, XCircle, AlertTriangle, Search } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle } from 'lucide-react';
 import { allQuestions } from '@/data/questions';
 import { allStories } from '@/data/stories';
 import { checkAnswer, resolveAnswerType } from '@/lib/answerChecker';
-import { isQuestionCompatibleWithTheme, inferSceneType, inferThemeTags } from '@/lib/storySystem';
+import { isQuestionCompatibleWithTheme } from '@/lib/storySystem';
 import { textRevealsAnswer, hintRevealsAnswer } from '@/lib/hintSafety';
-import type { Question, ProblemType, AnswerType } from '@/lib/types';
-import type { CaseStory } from '@/lib/storySystem';
 import AppButton from '@/components/ui/AppButton';
 import AppCard from '@/components/ui/AppCard';
 import PageContainer from '@/components/layout/PageContainer';
@@ -141,7 +139,7 @@ export default function TestModePage() {
         </Link>
         <div>
           <h1 className="text-lg font-extrabold text-amber-800">静态题库检查</h1>
-          <p className="text-xs text-gray-500">v2.8.4 | 静态题库统计不等于真实通关验收</p>
+          <p className="text-xs text-gray-500">v2.11.4 | 静态题库统计不等于真实通关验收</p>
         </div>
       </div>
 

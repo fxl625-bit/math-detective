@@ -10,7 +10,6 @@ interface LevelBadgeProps {
 }
 
 export default function LevelBadge({
-  level,
   name,
   icon,
   size = 'md',

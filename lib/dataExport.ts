@@ -148,8 +148,8 @@ function computeSummary(
   const mistakesInState = Array.isArray(learningState?.mistakes) ? (learningState.mistakes as unknown[]).length : 0;
   const mistakesCount = mistakes ? mistakes.length : mistakesInState;
 
-  const lessonSteps = Array.isArray((todayLesson as any)?.steps) ? (todayLesson as any).steps : [];
-  const completedLessons = lessonSteps.filter((s: any) => s?.status === 'completed').length;
+  const lessonSteps: unknown[] = Array.isArray(todayLesson?.steps) ? todayLesson.steps : [];
+  const completedLessons = lessonSteps.filter((s) => (s as { status?: string })?.status === 'completed').length;
 
   const dataKeys: string[] = [];
   if (learningState) dataKeys.push('learningState');
@@ -211,10 +211,11 @@ export function createDataSnapshot(): ExportPayload {
     collectibleCards: deepClone(learningState.collectibleCards) || [],
   } : null;
 
+  const parentSettings = learningState?.parentSettings as { gradeBand?: string; dailyGoal?: number } | undefined;
   const settings: Record<string, unknown> | null = learningState ? {
     parentSettings: deepClone(learningState.parentSettings),
-    gradeBand: (learningState.parentSettings as any)?.gradeBand || 'G1',
-    dailyGoal: (learningState.parentSettings as any)?.dailyGoal || 5,
+    gradeBand: parentSettings?.gradeBand || 'G1',
+    dailyGoal: parentSettings?.dailyGoal || 5,
   } : null;
 
   const data: ExportData = {

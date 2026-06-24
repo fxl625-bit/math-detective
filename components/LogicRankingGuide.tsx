@@ -27,10 +27,10 @@ export default function LogicRankingGuide({
   const [hintLevel, setHintLevel] = useState<HintLevelShown>('light');
   const [submitted, setSubmitted] = useState(false);
 
-  const people = question.people || [];
+  const people = useMemo(() => question.people || [], [question.people]);
   const statements = question.statements || [];
   const structuredHints = question.structuredHints;
-  const rankingOptions: RankingOption[] = question.rankingOptions || [];
+  const rankingOptions: RankingOption[] = useMemo(() => question.rankingOptions || [], [question.rankingOptions]);
   const correctRanking = question.correctRanking;
 
   // v2.6.6: 使用题目自带的 rankingOptions，不再运行时生成
@@ -49,6 +49,7 @@ export default function LogicRankingGuide({
 
   // Reset state when phase changes
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset answer/feedback on phase change
     setSelectedOptionId(null);
     setFeedback(null);
     setIsCorrect(false);
@@ -58,7 +59,6 @@ export default function LogicRankingGuide({
 
   // ========== Hint helpers ==========
 
-  const showLightHint = () => setHintLevel('light');
   const showMediumHint = () => setHintLevel('medium');
   const showFullHint = () => {
     setHintLevel('full');

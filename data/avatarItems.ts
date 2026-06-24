@@ -1,5 +1,7 @@
 // ========== 装扮槽位与锚点系统 ==========
 
+import type { TargetAndTransition } from 'framer-motion';
+
 export type AvatarSlot = 'hat' | 'face' | 'coat' | 'handheld' | 'badge' | 'background' | 'aura' | 'pet' | 'sticker';
 
 export type AvatarAnchor =
@@ -19,7 +21,7 @@ export interface AvatarItem {
   /** CSS class string for absolute positioning — used directly in the mascot render */
   positionClass: string;
   /** Framer Motion animate props */
-  animateProps?: Record<string, any>;
+  animateProps?: TargetAndTransition;
   unlockCondition: {
     type: 'default' | 'stars' | 'streak' | 'level' | 'questions_completed' | 'perfect_questions' | 'reward_redemptions' | 'all_step_types';
     value?: number;
@@ -255,7 +257,7 @@ export function getAvatarItemById(id: string): AvatarItem | undefined {
   return allAvatarItems.find(i => i.id === id);
 }
 
-export function getUnlockedItems(state: { stars: number; streak: number; level: number; totalCompleted: number; correctCount: number; wrongCount: number; rewardRedemptions: any[] }): AvatarItem[] {
+export function getUnlockedItems(state: { stars: number; streak: number; level: number; totalCompleted: number; correctCount: number; wrongCount: number; rewardRedemptions: unknown[] }): AvatarItem[] {
   return allAvatarItems.filter(item => {
     if (item.defaultUnlocked) return true;
     const c = item.unlockCondition;

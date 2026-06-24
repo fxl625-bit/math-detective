@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart3, Target, TrendingUp, Lightbulb, Settings, Check, Brain, GraduationCap, Bug, Download, Copy, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useGameState } from '@/hooks/useGameState';
@@ -60,6 +60,7 @@ export default function ParentReportPage() {
   const [formDailyGoal, setFormDailyGoal] = useState(state.parentSettings.dailyGoal);
   const [formGrade, setFormGrade] = useState<GradeBand>(state.parentSettings.gradeBand);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   if (!mounted) return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl mb-4 animate-bounce-gentle">📊</div><p className="text-green-600 font-bold">正在加载报告...</p></div></div>;
@@ -72,7 +73,7 @@ export default function ParentReportPage() {
   //   - 7日正确率 = 最近7天内的正确数 / 7天内提交题数
   //   - 今日完成 = 今日首次答对的题目数
   const accuracyStats = getAccuracyStats(state);
-  const { todayCompleted, overallAccuracy, last7DaysAccuracy, totalAttempts, correctAttempts, last7DaysTotalAttempts, last7DaysCorrectAttempts } = accuracyStats;
+  const { todayCompleted, overallAccuracy, last7DaysAccuracy, totalAttempts } = accuracyStats;
   const errorTypes = state.mistakes.reduce<Record<string, number>>((acc, m) => {
     acc[m.errorType] = (acc[m.errorType] || 0) + 1;
     return acc;
@@ -622,9 +623,9 @@ export default function ParentReportPage() {
                       exportedAt: payload.exportedAt,
                       appVersion: payload.appVersion,
                       summary: payload.summary,
-                      weeklySnapshots: (payload.data.learningState as any)?.weeklySnapshots || [],
-                      attemptRecords: (payload.data.learningState as any)?.attemptRecords || [],
-                      badges: (payload.data.learningState as any)?.badges || [],
+                      weeklySnapshots: payload.data.learningState?.weeklySnapshots || [],
+                      attemptRecords: payload.data.learningState?.attemptRecords || [],
+                      badges: payload.data.learningState?.badges || [],
                     };
                     const json = JSON.stringify(report, null, 2);
                     const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
@@ -678,7 +679,7 @@ export default function ParentReportPage() {
 
 // ========== Skill Radar Chart (SVG) ==========
 
-function SkillRadarChart({ skillMistakes, totalCompleted }: { skillMistakes: Record<string, number>; totalCompleted: number }) {
+function SkillRadarChart({ skillMistakes, totalCompleted: _totalCompleted }: { skillMistakes: Record<string, number>; totalCompleted: number }) {
   const skills: { key: string; label: string; mistakes: number }[] = [
     { key: 'find_numbers', label: '找数字', mistakes: skillMistakes.find_numbers || 0 },
     { key: 'find_keywords', label: '找关键词', mistakes: skillMistakes.find_keywords || 0 },

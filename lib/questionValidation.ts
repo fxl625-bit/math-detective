@@ -17,16 +17,14 @@ import type {
   LessonType,
   KeywordType,
   NumberRole,
-  GradeBand,
   QuestionValidationResult,
   LessonStepType,
 } from './types';
 import {
   ALLOWED_KEYWORD_TYPES,
-  FORBIDDEN_KEYWORD_TYPES,
   LESSON_TYPE_TO_STEP_TYPE,
 } from './types';
-import { hintRevealsAnswer, textRevealsAnswer, stepsRevealAnswer, stringStepsRevealAnswer } from './hintSafety';
+import { hintRevealsAnswer, stepsRevealAnswer, stringStepsRevealAnswer } from './hintSafety';
 import { classifyKeyword } from '@/data/keywordRules';
 
 // ========== 关键词分类规则 ==========
@@ -748,7 +746,7 @@ export function validateOptions(q: Question): string[] {
 export function validateCrossReference(
   question: Question,
   stepType: LessonStepType,
-  storyTitle?: string,
+  _storyTitle?: string,
 ): string[] {
   const errors: string[] = [];
   const lessonType = question.lessonType || inferLessonType(question);

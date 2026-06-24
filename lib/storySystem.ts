@@ -209,18 +209,12 @@ export function isQuestionCompatibleWithTheme(
     requiredOk = story.requiredTags.some(tag => qTags.includes(tag));
   }
 
-  // 7. allowedSceneTypes 检查
-  let sceneOk = true;
-  if (story.allowedSceneTypes?.length) {
-    sceneOk = story.allowedSceneTypes.includes(qScene);
-  }
-
-  // 8. strict 模式：requiredTags 必须命中
+  // 7. strict 模式：requiredTags 必须命中
   if (strictness === 'strict') {
     return requiredOk;
   }
 
-  // 9. semi_strict 模式：requiredTags 必须命中
+  // 8. semi_strict 模式：requiredTags 必须命中
   return requiredOk;
 }
 

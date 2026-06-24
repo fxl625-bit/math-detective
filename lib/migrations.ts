@@ -1,5 +1,5 @@
-import { GameState, DEFAULT_GAME_STATE, TodayLesson, LessonStepType } from './types';
-import { normalizeLesson, normalizeStep, getDefaultPhasesForStepType } from './lessonPlanner';
+import { GameState, DEFAULT_GAME_STATE, TodayLesson } from './types';
+import { normalizeLesson } from './lessonPlanner';
 
 export const LEARNING_STATE_VERSION = 8;
 

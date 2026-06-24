@@ -10,59 +10,11 @@
  * 不能出现：第一次点击只准备状态，第二次点击才推进。
  */
 
-import type { GameState, TodayLesson, LessonStep, StepPhase, LessonStepType, Question } from './types';
-import { normalizeLesson, normalizeStep, advancePhase, completeCurrentStep, saveTodayLesson, getCurrentStep, getCurrentPhase, getDefaultPhasesForStepType, buildStepFromQuestion, selectQuestionForStep, validateStepQuestionCompatibility, clearTodayLesson, generateSafeFallbackLesson } from './lessonPlanner';
+import type { GameState, TodayLesson, LessonStep, StepPhase, LessonStepType } from './types';
+import { normalizeLesson, advancePhase, completeCurrentStep, getCurrentStep, getDefaultPhasesForStepType, buildStepFromQuestion, selectQuestionForStep, validateStepQuestionCompatibility, generateSafeFallbackLesson } from './lessonPlanner';
 import { getQuestionById } from '@/data/questions';
 import { loadState } from './storage';
 import { checkAnswer } from './answerChecker';
-
-// ========== v2.6.6: Ranking 答案校验 ==========
-
-function isRankingAnswerCorrect(input: string, question: Question): boolean {
-  const ranking = question.correctRanking;
-  if (!ranking) return false;
-
-  const expectedOrder = ranking.order || [
-    ranking.first, ranking.second, ranking.third,
-    ranking.fourth, ranking.fifth,
-  ].filter(Boolean) as string[];
-  const trimmed = input.trim();
-
-  // 方式1: option id
-  if (question.rankingOptions && question.rankingOptions.length > 0) {
-    const option = question.rankingOptions.find(o => o.id === trimmed);
-    if (option) return option.correct;
-  }
-
-  // 方式2: order array (逗号分隔)
-  if (trimmed.includes(',')) {
-    const inputOrder = trimmed.split(/[,，]+/).map(s => s.trim()).filter(Boolean);
-    if (inputOrder.length === expectedOrder.length) {
-      return inputOrder.every((name, i) => name === expectedOrder[i]);
-    }
-  }
-
-  // 方式3: 文本兜底
-  const patterns = [
-    /^([^-]+)-([^-]+)-([^-]+)$/,
-    /^([^、]+)、([^、]+)、([^、]+)$/,
-    /^(\S+)\s+(\S+)\s+(\S+)$/,
-    /^第一(\S+)第二(\S+)第三(\S+)$/,
-    /^第一名(\S+)第二名(\S+)第三名(\S+)$/,
-  ];
-
-  for (const pattern of patterns) {
-    const match = trimmed.match(pattern);
-    if (match) {
-      const parsed = [match[1].trim(), match[2].trim(), match[3].trim()];
-      if (parsed.length === expectedOrder.length) {
-        return parsed.every((name, i) => name === expectedOrder[i]);
-      }
-    }
-  }
-
-  return false;
-}
 
 // ========== 类型定义 ==========
 
@@ -294,11 +246,9 @@ function handleCompleteStep(
   lesson: TodayLesson,
   gameState: GameState,
   currentStep: LessonStep,
-  payload: LessonActionPayload,
-  source: string
+  _payload: LessonActionPayload,
+  _source: string
 ): LessonTransactionResult {
-  const question = getQuestionById(currentStep.questionId);
-
   // v2.6.4: stats 已由 runLessonAction 在 submit_answer 时记录
   // complete_step 仅推进 lesson 状态，不重复记录
   const afterStep = completeCurrentStep(lesson);
@@ -322,8 +272,8 @@ function handleCompletePhase(
   lesson: TodayLesson,
   gameState: GameState,
   currentStep: LessonStep,
-  payload: LessonActionPayload,
-  source: string
+  _payload: LessonActionPayload,
+  _source: string
 ): LessonTransactionResult {
   const afterAdvance = advancePhase(lesson);
 
@@ -358,8 +308,8 @@ function handleContinueAfterRepair(
   lesson: TodayLesson,
   gameState: GameState,
   currentStep: LessonStep,
-  payload: LessonActionPayload,
-  source: string
+  _payload: LessonActionPayload,
+  _source: string
 ): LessonTransactionResult {
   const question = getQuestionById(currentStep.questionId);
 
@@ -450,8 +400,8 @@ function handleRepairCurrentStep(
   lesson: TodayLesson,
   gameState: GameState,
   currentStep: LessonStep,
-  payload: LessonActionPayload,
-  source: string
+  _payload: LessonActionPayload,
+  _source: string
 ): LessonTransactionResult {
   // 修复当前 step：正常化 phase
   const question = getQuestionById(currentStep.questionId) || undefined;
@@ -793,7 +743,7 @@ function handleGoPrevLevel(
 
 // ========== 工具函数 ==========
 
-function noChange(state: LearningState, reason: string, action: LessonAction, source: string): LessonTransactionResult {
+function noChange(state: LearningState, reason: string, _action: LessonAction, _source: string): LessonTransactionResult {
   const lesson = state.lesson;
   const currentStep = getCurrentStep(lesson);
   const currentPhaseIdx = currentStep?.currentPhaseIndex ?? 0;
@@ -818,7 +768,7 @@ function noChangeResult(
   lesson: TodayLesson,
   gameState: GameState,
   reason: string,
-  source: string
+  _source: string
 ): LessonTransactionResult {
   const currentStep = getCurrentStep(lesson);
   const currentPhaseIdx = currentStep?.currentPhaseIndex ?? 0;

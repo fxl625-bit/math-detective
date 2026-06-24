@@ -1,5 +1,8 @@
 'use client';
 
+/* eslint-disable react-hooks/purity, react-hooks/exhaustive-deps -- legacy standalone level
+   page (see ARCHIVE.md); question pool is shuffled once on mount via Math.random by design. */
+
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';

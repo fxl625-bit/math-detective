@@ -23,7 +23,7 @@ const POLYFILL_SCRIPT =
   '});' +
   '}();</script>';
 
-export async function middleware(request: NextRequest) {
+export async function middleware(_request: NextRequest) {
   const response = await NextResponse.next();
   const contentType = response.headers.get('content-type') || '';
 

@@ -21,13 +21,14 @@ export default function MistakesPage() {
   const [activeReinforce, setActiveReinforce] = useState<string | null>(null);
   const [reinforceAnswers, setReinforceAnswers] = useState<Record<string, string>>({});
   const [reinforceDone, setReinforceDone] = useState<Record<string, boolean>>({});
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration mount guard
   useEffect(() => setMounted(true), []);
 
   if (!mounted) return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl mb-4 animate-bounce-gentle">📒</div><p className="text-blue-600 font-bold">正在加载错题本...</p></div></div>;
 
   const mistakes = [...state.mistakes].reverse();
 
-  function startReinforce(recordId: string, qId: string) {
+  function startReinforce(recordId: string, _qId: string) {
     const mistake = state.mistakes.find(m => m.questionId + '_' + m.date === recordId);
     if (!mistake) return;
     const challenge = generateReinforceChallenge(mistake, state.completedQuestions);
@@ -185,7 +186,7 @@ export default function MistakesPage() {
                                   {!isAnswered ? (
                                     <div className="flex gap-2">
                                       <input type="number" inputMode="numeric" placeholder="输入答案"
-                                        onChange={(e) => {
+                                        onChange={(_e) => {
                                           // store temp
                                         }}
                                         onKeyDown={(e) => {

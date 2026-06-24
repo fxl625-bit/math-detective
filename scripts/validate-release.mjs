@@ -1,5 +1,5 @@
 /**
- * Release blocker (v2.8.4)
+ * Release blocker (v2.11.4)
  *
  * All gates must pass before deploy. Any failure exits 1.
  *
@@ -27,7 +27,7 @@ const STEPS = [
 ];
 
 console.log('========================================');
-console.log('  Math Detective validate:release v2.8.4');
+console.log('  Math Detective validate:release v2.11.4');
 console.log('========================================');
 console.log('');
 

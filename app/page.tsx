@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Gift, BookOpen, BarChart3, ShieldCheck, Star, X } from 'lucide-react';
+import { Play, Gift, BookOpen, BarChart3, ShieldCheck } from 'lucide-react';
 import { useGameState } from '@/hooks/useGameState';
 import DetectiveMascot from '@/components/DetectiveMascot';
 import StarDisplay from '@/components/StarDisplay';
@@ -56,12 +56,13 @@ function getFoxStatus(state: { lastPlayDate: string; streak: number }, isLessonD
 export default function DashboardPage() {
   const { state, doCheckin } = useGameState();
   const [mounted, setMounted] = useState(false);
-  const [storyIntroShown, setStoryIntroShown] = useState(false);
+  const [storyIntroShown] = useState(false);
   const [showCheckin, setShowCheckin] = useState(false);
   const [checkinBonus, setCheckinBonus] = useState<number | null>(null);
   const [checkinDone, setCheckinDone] = useState(false);
   const [cardFlipped, setCardFlipped] = useState<number | null>(null);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   // 检查签到（每天最多自动弹一次，关闭后不再弹）

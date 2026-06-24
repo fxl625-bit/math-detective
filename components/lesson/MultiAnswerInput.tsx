@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Question, SubAnswer } from '@/lib/types';
+import type { Question } from '@/lib/types';
 import { checkMultiAnswer, type AnswerCheckResult } from '@/lib/answerChecker';
 
 interface MultiAnswerInputProps {

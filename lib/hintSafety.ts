@@ -91,7 +91,6 @@ export function textRevealsAnswer(text: string, question: Question): boolean {
 
   // 1. 直接包含答案值（数字题）
   if (typeof answer === 'number') {
-    const numStr = String(answer);
     // 避免误判：如果文本中的数字是线索数字而非答案，需要更精确匹配
     // 只匹配作为"结论"或"结果"出现的数字
     if (/\b(?:是|为|得|＝|=|答案|结果)\s*\d+\b/.test(text)) {

@@ -1,6 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+/* eslint-disable react-hooks/purity, react-hooks/exhaustive-deps -- legacy standalone level
+   page (see ARCHIVE.md); question pool is shuffled once on mount via Math.random by design. */
+
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Eraser, RotateCcw } from 'lucide-react';
@@ -47,7 +50,7 @@ export default function NoiseReductionPage() {
   const blocks = useMemo(() => {
     if (!currentQ) return [];
     const result: { text: string; isNoise: boolean }[] = [];
-    let text = currentQ.text;
+    const text = currentQ.text;
 
     // Mark noise phrases
     const noisePositions: { start: number; end: number }[] = [];

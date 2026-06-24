@@ -1,10 +1,10 @@
 import { Question, MistakeRecord, GradeBand, CognitiveSkill, LessonStepType, StepPhase, LessonStep, TodayLesson, LearningProfile, TomorrowLessonPreview, VirtualReward } from './types';
-import { getQuestionById, allQuestions, questionsByGrade, getQuestionsByFilter } from '@/data/questions';
+import { getQuestionById, allQuestions, questionsByGrade } from '@/data/questions';
 import { loadState, getAccuracyStats } from './storage';
 import { allStories } from '@/data/stories';
 import { getCaseStoryForDate, getRecentStoryIds, saveRecentStoryId, isQuestionCompatibleWithTheme, type CaseStory } from './storySystem';
 import { classifyKeyword } from '@/data/keywordRules';
-import { inferLessonType, extractNumbers, classifyNumberRole } from './questionValidation';
+import { inferLessonType, classifyNumberRole } from './questionValidation';
 import { isQuestionSafeForLesson } from './questionSafety';
 
 // ========== 关卡配置 ==========
@@ -423,8 +423,6 @@ function getEffectiveMaxDifficulty(profile: LearningProfile): number {
  * 根据学习画像和今日进度自动编排课程
  */
 export function getTodayLesson(): TodayLesson {
-  const today = getDateStr();
-
   // 尝试从 localStorage 读取已保存的今日课程
   if (typeof window !== 'undefined') {
     try {
@@ -669,8 +667,8 @@ function getDueReviewQuestions(
 
 function buildDailyLesson(
   profile: LearningProfile,
-  completedIds: string[],
-  mistakes: MistakeRecord[]
+  _completedIds: string[],
+  _mistakes: MistakeRecord[]
 ): TodayLesson {
   const today = getDateStr();
   const maxDifficulty = getEffectiveMaxDifficulty(profile);
@@ -691,7 +689,6 @@ function buildDailyLesson(
   const dueReviews = getDueReviewQuestions(profile, fullState, []);
   // 每天 2 道复习题（如果有足够的待复习题）
   const reviewSlots = Math.min(2, dueReviews.length);
-  const newSlots = stepTypes.length - reviewSlots;
 
   const usedQuestionIds: string[] = [];
   const steps: LessonStep[] = [];
@@ -907,17 +904,6 @@ function buildSafeLessonFromPool(pool: Question[], today: string, gradeBand: Gra
     currentStepIndex: 0,
     completed: false,
   };
-}
-
-function isSafeForActionWords(q: Question): boolean {
-  if (q.keywords.length === 0) return false;
-  if (q.keywords.some(k => FORBIDDEN_IN_ACTION_WORDS.has(k.word))) return false;
-  if (q.text.includes('倍') || q.text.includes('岁') || q.text.includes('年龄')) return false;
-  return q.keywords.every(k => {
-    const cls = classifyKeyword(k.word);
-    if (!cls) return true;
-    return cls.category === 'addition_change' || cls.category === 'subtraction_change';
-  });
 }
 
 // ========== 阶段推进 ==========
@@ -1169,7 +1155,7 @@ export function validateStepQuestionCompatibility(
     }
   }
 
-  // 5.// 5. simulation: 必须有 visualKey
+  // 5. simulation: 必须有 visualKey
   if (st === 'simulation') {
     if (!question.visualKey) {
       return '没有可视化素材，不适合演示关卡';

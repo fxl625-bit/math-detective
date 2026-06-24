@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AvatarItem, getAvatarItemById } from '@/data/avatarItems';
+import { AvatarItem } from '@/data/avatarItems';
 
 interface DetectiveMascotProps {
   mood?: 'happy' | 'thinking' | 'encourage' | 'excited';
@@ -39,6 +39,7 @@ export default function DetectiveMascot({
   const { px, emojiClass, decoSize } = SIZE_MAP[size];
   const [imgError, setImgError] = useState(false);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- reset image error when mood changes
   useEffect(() => { setImgError(false); }, [mood]);
 
   // 按 zIndex 排序 + 按 slot 分组（同 slot 只保留最后装备的，canStack 的除外）
@@ -96,11 +97,15 @@ export default function DetectiveMascot({
     </div>
   );
 
-  const messages = Array.isArray(message)
-    ? message
-    : typeof message === 'string' && message.length > 0
-      ? [message]
-      : null;
+  const messages = useMemo(
+    () =>
+      Array.isArray(message)
+        ? message
+        : typeof message === 'string' && message.length > 0
+          ? [message]
+          : null,
+    [message]
+  );
 
   const [currentMsgIndex, setCurrentMsgIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState('');
@@ -108,11 +113,12 @@ export default function DetectiveMascot({
 
   useEffect(() => {
     if (messages && messages.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset typewriter when message changes
       setCurrentMsgIndex(0);
       setDisplayedText('');
       setIsTyping(true);
     }
-  }, [message]);
+  }, [messages]);
 
   useEffect(() => {
     if (!messages || messages.length === 0 || !isTyping) return;

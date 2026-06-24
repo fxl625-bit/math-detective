@@ -1,3 +1,78 @@
+## v2.11.4 - 独立复审：关键字分类修正 + checkOk 混合运算修复 + 全量 ESLint 清理 (2026-06-24)
+
+> 本版基于对 v2.11.3 修复的**独立复审**。复审发现 v2.11.3 的 checkOk 改动建立在错误的关键字分类之上，存在语义错误与设计缺陷，本版予以修正。v2.11.3 CHANGELOG 条目保留原样以存档当时结论。
+
+### Bug 修复
+* **P0: 修正关键字分类错误（`data/keywordRules.ts`）**
+  - `给了` / `送给了` 此前被错误归类为 `addition_change`，与题库标注矛盾（g1t_06、g2_06 均标 `type: 'subtract'`）
+  - 语义：独立的"给了/送给了"是"给出去"=减少方向，改为 `subtraction_change`
+  - 保留 `又给了` 为 `addition_change`（"又给了他"=收到=增加，题库 g1_02/g1_10 标 `add`）
+* **P0: 修复 checkOk 对 mixed 运算题永远判错（`app/play/page.tsx` FindActionWordsPhased）**
+  - 根因：关键字方向既有增又有减时，回退到 `question.operation='mixed'`，但选项 `m` 数组只含 addition/subtraction，导致无论选什么都显示红色（孩子永远"答错"）
+  - 修复：关键字方向混合时两个选项都判为正确（题目"既变多又变少"，孩子选任一方向都说明理解了关键字含义）
+  - 影响题：g2_03、g2_16 等"下了+又上来""捞出+放进"类两步加减题
+  - 注：此缺陷在 v2.11.3 旧版 checkOk 中同样存在，非本次复审引入
+
+### 代码质量（全量 ESLint 清理）
+* ESLint 警告 184 → 23，**产品代码 0 警告**（剩余 23 条全部在 `scripts/` 与 `tests/` 构建工具中，范围外）
+* `eslint.config.mjs` — 增加 `argsIgnorePattern: '^_'` / `varsIgnorePattern: '^_'`，启用下划线前缀忽略约定
+* 移除死代码：`lib/lessonTransaction.ts` 的 `isRankingAnswerCorrect`、`lib/lessonPlanner.ts` 的 `isSafeForActionWords`、`app/play/page.tsx` 的 `isRankingAnswerCorrect` 及辅助函数、`app/rewards` 的 `clearAllCaches`、`lib/versionUpgrade.ts` 的 `hasValidExtraInfo` 等
+* `components/Confetti.tsx` — `Math.random()` 移入 `useMemo`，避免每次渲染重新随机（潜在动画跳变 bug）
+* `components/DetectiveMascot.tsx` / `components/LogicRankingGuide.tsx` — 派生数组用 `useMemo` 稳定，修正 exhaustive-deps
+* `hooks/useGameState.ts` — `(window as any).__debugLog` 改为类型化 `Window` 扩展
+* 多处 `any` 收敛为精确类型（dataExport、avatarItems、parent-report、SequencePatternGuide）
+* 合理的 setState-in-effect / purity 模式加注释化 eslint-disable（hydration guard、装饰性随机等）
+
+### 版本同步
+* `package.json`、`lib/appVersion.ts`、`VERSION.md`、`docs/`、`scripts/`、`app/parent/test/` — 全部同步至 v2.11.4
+
+### 验证结果
+* TypeScript: ✅ 0 errors
+* ESLint: ✅ 产品代码 0 warnings
+* Build (webpack): ✅ 通过
+* validate:release: ✅ 10/11 通过（仅 E2E 因 Windows 环境失败，已知限制）
+
+### 已知遗留（记录于 docs/CURRENT_ISSUES.md）
+* "给了"方向本质依赖语境（"妈妈给了他" vs "他给了别人"），静态分类表无法全覆盖；长期应改用题目自带 `keyword.type`
+* mixed 运算题进入 `find_action_words` 时缺少"既加又减"第三选项，当前以"两个都算对"兜底
+
+---
+
+## v2.11.3 - 封版：关键字语义修复 + 版本号同步 + 代码清理 (2026-06-24)
+
+### Bug 修复
+* **P1: 修复 Q2 Action Word Semantic — checkOk 验证逻辑**
+  - 根因：`FindActionWordsPhased` 中 `checkOk()` 与 `question.operation`（数学解法）比对，而非关键字方向
+  - 修复：`checkOk()` 现在从 `classifyKeyword()` 获取 `actionDirection` → `keyword.type` → `question.operation` 回退链
+  - 影响：关键字"又给了"（增加方向）在减法题中正确判定为 "increase (GREEN)"
+* Q5 Double-Submit 确认无此问题（submitCount: 1，行为正常）
+
+### 版本同步
+* `package.json`、`lib/appVersion.ts`、`VERSION.md`、`docs/`、`scripts/`、`app/parent/test/` — 全部同步至 v2.11.3
+* 与 Obsidian 产品定义 v2.11 对齐
+
+### 技术清理
+* `app/play/page.tsx` — 移除 12+ 条未使用导入、死代码、未使用变量 `correctOp`
+* `lib/lessonPlanner.ts` — 修复重复注释标记
+* `lib/storage.ts` — skillLevel 升级偏移修复（`correctCount % 5` → `(correctCount + 1) % 5`）
+* `lib/answerSubmission.ts` — 移除死代码（0 导入引用，已被 lessonTransaction 取代）
+* `data/keywordRules.ts` — 新增 50+ 条关键字分类，覆盖率 28%→79%
+* `README.md` — 更新项目结构、脚本说明、文档引用
+* 新增 `docs/CURRENT_ISSUES.md` — 已知问题清单
+* `VERSION.md` — 追加 v2.11.3 版本条目
+* ESLint 警告从原 19+ 降至 17 条
+
+### 验证结果
+* TypeScript: ✅ 0 errors
+* Build (webpack): ✅ 通过
+* validate:release: ✅ 10/11 通过（仅 E2E 因 Windows 环境失败，已知限制）
+
+### 已知限制
+* E2E 测试在 Windows 开发机上可能因服务器启动问题失败（CI 正常）
+* 17 条 ESLint 警告为既有代码（未使用变量、effect 中 setState 等），不影响功能
+
+---
+
 ## v2.8.4 - P0 修复：积分发放与数据导出 (2026-06-16)
 
 ### 核心修复

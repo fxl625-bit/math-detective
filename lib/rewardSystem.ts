@@ -94,7 +94,7 @@ export function markDailyRewardShown(
 export function migrateRewardFlags(lesson: TodayLesson): TodayLesson {
   if (!lesson.completed) return lesson;
 
-  let updated = { ...lesson };
+  const updated = { ...lesson };
   let needsFix = false;
 
   if (updated.rewardClaimed === undefined) {

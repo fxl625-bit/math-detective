@@ -172,7 +172,7 @@ export default function FullSolvePage() {
                   }`}
                   onClick={() => {
                     const next = new Set(foundNumbers);
-                    next.has(i) ? next.delete(i) : next.add(i);
+                    if (next.has(i)) { next.delete(i); } else { next.add(i); }
                     setFoundNumbers(next);
                   }}
                   whileHover={{ scale: 1.05 }}
@@ -228,7 +228,7 @@ export default function FullSolvePage() {
                   }`}
                   onClick={() => {
                     const next = new Set(foundKeywords);
-                    next.has(i) ? next.delete(i) : next.add(i);
+                    if (next.has(i)) { next.delete(i); } else { next.add(i); }
                     setFoundKeywords(next);
                   }}
                   whileHover={{ scale: 1.05 }}
@@ -283,7 +283,7 @@ export default function FullSolvePage() {
                   }`}
                   onClick={() => {
                     const next = new Set(erasedNoise);
-                    next.has(i) ? next.delete(i) : next.add(i);
+                    if (next.has(i)) { next.delete(i); } else { next.add(i); }
                     setErasedNoise(next);
                   }}
                   whileHover={{ scale: 1.01 }}

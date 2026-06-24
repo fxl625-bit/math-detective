@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Edit, Trash2, Check, X, Plus, ShieldCheck, ShieldOff, RefreshCw, AlertTriangle, Info, Zap, RotateCw, Trash } from 'lucide-react';
+import { Star, Edit, Trash2, Check, X, Plus, ShieldCheck, ShieldOff, RefreshCw, AlertTriangle, Zap, RotateCw, Trash } from 'lucide-react';
 import { useGameState } from '@/hooks/useGameState';
-import StarDisplay from '@/components/StarDisplay';
 import DetectiveMascot from '@/components/DetectiveMascot';
 import AppCard from '@/components/ui/AppCard';
 import AppButton from '@/components/ui/AppButton';
@@ -16,9 +15,8 @@ import CostumeShop from '@/components/CostumeShop';
 import { badges as badgeData } from '@/data/badges';
 import { APP_VERSION, APP_BUILD_TIME, APP_COMMIT_SHA, refreshToLatestVersion, clearPageCacheAndRefresh } from '@/lib/appVersion';
 import { LEARNING_STATE_VERSION } from '@/lib/migrations';
-import { getDateString } from '@/lib/storage';
 import { getVirtualRewards } from '@/lib/lessonPlanner';
-import { ParentReward, DEFAULT_PARENT_REWARDS } from '@/lib/types';
+import { ParentReward } from '@/lib/types';
 
 // ========== 家长验证题生成 ==========
 
@@ -77,6 +75,7 @@ function ParentGateModal({
 
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setChallenge(generateParentGateQuestion());
       setAnswer('');
       setError('');
@@ -240,6 +239,7 @@ export default function RewardsPage() {
   });
 
   // All useEffect hooks
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), []);
 
   // All useCallback hooks
@@ -810,6 +810,7 @@ function VersionAndCacheSection() {
       const raw = localStorage.getItem('math-detective-today-lesson');
       if (raw) {
         const lesson = JSON.parse(raw);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTodayInfo({
           date: lesson.date,
           completed: lesson.completed,
@@ -826,14 +827,6 @@ function VersionAndCacheSection() {
       alert('今日任务已重建。返回首页将自动生成新任务。');
       window.location.href = '/';
     }
-  }
-
-  function clearAllCaches() {
-    import('@/lib/appVersion').then(({ clearOldCachesSafely }) => {
-      clearOldCachesSafely().then(() => {
-        alert('缓存已清理。建议刷新页面。');
-      });
-    });
   }
 
   return (

@@ -112,7 +112,7 @@ export default function SequencePatternGuide({
           phase={phase}
           lightHint="先看看每两个相邻数字之间差多少。"
           mediumHint="从3到7多了4，从7到11也多了4。每次都多4！"
-          fullSteps={question.structuredHints?.fullSteps as any}
+          fullSteps={question.structuredHints?.fullSteps}
         />
 
         <div className="flex justify-between">
@@ -209,7 +209,7 @@ export default function SequencePatternGuide({
           phase={phase}
           lightHint="先看看每两个相邻数字之间差多少。"
           mediumHint="从3到7多了4，从7到11也多了4。每次都多4！"
-          fullSteps={question.structuredHints?.fullSteps as any}
+          fullSteps={question.structuredHints?.fullSteps}
         />
 
         <div className="flex justify-between">
@@ -315,7 +315,7 @@ export default function SequencePatternGuide({
 
 // ========== 单答案降级组件 ==========
 
-function SingleAnswerFallback({ question, onSubmit }: { question: Question; onSubmit: (val: string) => void }) {
+function SingleAnswerFallback({ onSubmit }: { question: Question; onSubmit: (val: string) => void }) {
   const [value, setValue] = useState('');
   const [submitted, setSubmitted] = useState(false);
 

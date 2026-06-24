@@ -4,21 +4,20 @@ import { Suspense, useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowLeft, Check, X, ArrowUpRight, ArrowDownRight, ShieldCheck, Lightbulb, Calculator } from 'lucide-react';
+import { ArrowLeft, Check, ArrowUpRight, ArrowDownRight, Lightbulb, Calculator } from 'lucide-react';
 import LogicRankingGuide from '@/components/LogicRankingGuide';
 import SequencePatternGuide from '@/components/lesson/SequencePatternGuide';
 import { useGameState } from '@/hooks/useGameState';
 import { loadState, getAccuracyStats } from '@/lib/storage';
-import { getTodayLesson, normalizeLesson, safeNormalizeLesson, generateSafeFallbackLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson, validateStepQuestionCompatibility } from '@/lib/lessonPlanner';
+import { getTodayLesson, safeNormalizeLesson, generateSafeFallbackLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson, validateStepQuestionCompatibility } from '@/lib/lessonPlanner';
 import { getQuestionById } from '@/data/questions';
-import { getStepNarrative } from '@/lib/storySystem';
 import { getVisual } from '@/data/visualItems';
-import type { TodayLesson, LessonStep, LessonStepType, StepPhase } from '@/lib/types';
-import type { Question, KeywordItem } from '@/lib/types';
-import { needsAddSubtractPrompt, getKeywordTypeDescription, classifyKeyword } from '@/data/keywordRules';
-import { inferLessonType, extractNumbers, classifyNumberRole } from '@/lib/questionValidation';
+import type { TodayLesson, LessonStep, StepPhase } from '@/lib/types';
+import type { Question } from '@/lib/types';
+import { needsAddSubtractPrompt, classifyKeyword } from '@/data/keywordRules';
+import { inferLessonType, classifyNumberRole } from '@/lib/questionValidation';
 import { checkAnswer, resolveAnswerType } from '@/lib/answerChecker';
-import { textRevealsAnswer, hintRevealsAnswer, stringStepsRevealAnswer } from '@/lib/hintSafety';
+import { hintRevealsAnswer } from '@/lib/hintSafety';
 import { grantDailyRewardOnce, markDailyRewardShown } from '@/lib/rewardSystem';
 import { commitLessonTransaction, updateDebugState, assertCorrectAnswerAdvanced, assertRepairContinued, getDebugState, type LessonAction, type LearningState, type LessonActionPayload } from '@/lib/lessonTransaction';
 import HintSystem from '@/components/lesson/HintSystem';
@@ -50,8 +49,6 @@ declare global {
   }
 }
 
-const STEP_ORDER: LessonStepType[] = ['find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve', 'find_compare_numbers', 'spot_extra_info', 'spot_missing_info'];
-
 export default function PlayPage() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-orange-50" />}>
@@ -69,11 +66,11 @@ function PlayPageContent() {
   const lessonRef = useRef<TodayLesson | null>(null);
   const transitioningRef = useRef(false);
   const [mounted, setMounted] = useState(false);
-  const [isAdvancing, setIsAdvancing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [feedback, setFeedback] = useState<{ show: boolean; type: 'success' | 'hint' | 'info'; message: string }>({ show: false, type: 'info', message: '' });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hydration guard pattern
     setMounted(true);
     const raw = getTodayLesson();
     const validated = safeNormalizeLesson(raw);
@@ -142,24 +139,6 @@ function PlayPageContent() {
   }, [lesson]);
 
   // v2.7.6: 检测非法 step 并就地重建（不跳首页）
-  useEffect(() => {
-    if (!lesson || lesson.completed || !mounted) return;
-    const step = getCurrentStep(lesson);
-    if (!step) return;
-    const q = getQuestionById(step.questionId);
-    if (!q) {
-      console.warn('[v2.7.6] Current step has invalid questionId, rebuilding lesson');
-      handleRegenerateLesson();
-      return;
-    }
-    // 检查 stepType 与 question 兼容性
-    const compatError = validateStepQuestionCompatibility(step, q);
-    if (compatError) {
-      console.warn('[v2.7.6] Current step incompatible, rebuilding lesson:', compatError);
-      handleRegenerateLesson();
-    }
-  }, [lesson?.currentStepIndex, mounted]);
-
   const handleRegenerateLesson = useCallback(() => {
     clearTodayLesson();
     const fresh = getTodayLesson();
@@ -178,6 +157,26 @@ function PlayPageContent() {
     setFeedback({ show: false, type: 'info', message: '' });
   }, []);
 
+  useEffect(() => {
+    if (!lesson || lesson.completed || !mounted) return;
+    const step = getCurrentStep(lesson);
+    if (!step) return;
+    const q = getQuestionById(step.questionId);
+    if (!q) {
+      console.warn('[v2.7.6] Current step has invalid questionId, rebuilding lesson');
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- rebuild invalid lesson on load
+      handleRegenerateLesson();
+      return;
+    }
+    // 检查 stepType 与 question 兼容性
+    const compatError = validateStepQuestionCompatibility(step, q);
+    if (compatError) {
+      console.warn('[v2.7.6] Current step incompatible, rebuilding lesson:', compatError);
+      handleRegenerateLesson();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally omit handleRegenerateLesson/lesson to prevent infinite loop
+  }, [lesson?.currentStepIndex, mounted]);
+
   // ========== v2.6.4 统一事务系统：runLessonAction ==========
 
   const runLessonAction = useCallback((
@@ -190,7 +189,6 @@ function PlayPageContent() {
       return;
     }
     transitioningRef.current = true;
-    setIsAdvancing(true);
 
     try {
       const currentLesson = lessonRef.current;
@@ -307,9 +305,9 @@ function PlayPageContent() {
     } finally {
       setTimeout(() => {
         transitioningRef.current = false;
-        setIsAdvancing(false);
       }, 300);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- addStars is stable from useGameState
   }, [state, completeQuestion]);
 
   // ========== 专用 action 处理器 ==========
@@ -325,7 +323,7 @@ function PlayPageContent() {
   }, [runLessonAction]);
 
   // 答题完成后完成关卡（从 explain 按钮调用）
-  const handleStepComplete = useCallback((correct: boolean) => {
+  const handleStepComplete = useCallback((_correct: boolean) => {
     runLessonAction('complete_step', {}, 'StepComplete');
   }, [runLessonAction]);
 
@@ -429,6 +427,7 @@ function PlayPageContent() {
       errorType: 'answer_wrong',
       retriedCorrect: false,
     });
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- question may be null; callback is safe to recreate
   }, [question, completeQuestion]);
 
   if (!mounted) {
@@ -471,7 +470,7 @@ function PlayPageContent() {
   if (lesson.completed) {
     const profile = getLearningProfile();
     const tomorrowPreview = getTomorrowLessonPreview(profile, state);
-    const { overallAccuracy: todayAccuracy, todayCompleted } = getAccuracyStats(state);
+    const { overallAccuracy: todayAccuracy } = getAccuracyStats(state);
     const starsEarned = state.level >= 5 ? 15 : state.level >= 3 ? 10 : 5;
     const completeCaseStory = getCaseStoryForLesson(lesson);
 
@@ -606,12 +605,6 @@ function PlayPageContent() {
     const isDebugMode = typeof window !== 'undefined' && localStorage.getItem('mathDetectiveDebug') === '1';
     const inferredLessonType = question ? (question.lessonType || inferLessonType(question)) : null;
 
-    // v2.6.11: 从 question 生成 step 文案（不再依赖 story 模板）
-    const isLogicRanking = question?.problemType === 'logic_ranking'
-      || question?.problemType === 'logic_truth'
-      || question?.problemType === 'logic_ordering';
-    const isSequence = question?.problemType === 'pattern'
-      || question?.problemType === 'sequence_arithmetic';
     const displayCaseStoryTitle = caseStory?.title || '';
 
     // v2.6.11: step 描述从 step 对象获取（由 buildStepFromQuestion 生成）
@@ -705,87 +698,6 @@ function PlayPageContent() {
       <Confetti show={showConfetti} />
     </PageContainer>
   );
-}
-
-// ========== v2.6.6: Ranking 答案校验 ==========
-
-/**
- * 校验排名答案是否正确。
- * 支持：
- * 1. option id (如 "A")
- * 2. order array (逗号分隔，如 "小华,小红,小明")
- * 3. 文本兜底（带分隔符的格式）
- */
-function isRankingAnswerCorrect(input: string, question: Question): boolean {
-  const ranking = question.correctRanking;
-  if (!ranking) return false;
-
-  const expectedOrder = ranking.order || [
-    ranking.first, ranking.second, ranking.third,
-    ranking.fourth, ranking.fifth,
-  ].filter(Boolean) as string[];
-  const trimmed = input.trim();
-
-  // 方式1: option id (如 "A")
-  if (question.rankingOptions && question.rankingOptions.length > 0) {
-    const option = question.rankingOptions.find(o => o.id === trimmed);
-    if (option) return option.correct;
-  }
-
-  // 方式2: order array (逗号分隔)
-  if (trimmed.includes(',')) {
-    const inputOrder = trimmed.split(/[,，]+/).map(s => s.trim()).filter(Boolean);
-    return isOrderMatch(inputOrder, expectedOrder);
-  }
-
-  // 方式3: 文本兜底 — 解析各种分隔符格式
-  const normalized = normalizeRankingInput(trimmed);
-  if (normalized) {
-    return isOrderMatch(normalized, expectedOrder);
-  }
-
-  // 方式4: 检查是否只有部分答案（只输入第一名）
-  if (expectedOrder.length > 1) {
-    const partialMatch = expectedOrder.slice(0, 1).every(name => trimmed.includes(name));
-    if (partialMatch && !expectedOrder.slice(1).every(name => trimmed.includes(name))) {
-      // 只匹配了第一名但不完整 — 不视为正确
-      console.log('[RankingAnswer] Partial answer detected — only first place');
-      return false;
-    }
-  }
-
-  return false;
-}
-
-function isOrderMatch(inputOrder: string[], expectedOrder: string[]): boolean {
-  if (inputOrder.length !== expectedOrder.length) return false;
-  return inputOrder.every((name, i) => name === expectedOrder[i]);
-}
-
-function normalizeRankingInput(input: string): string[] | null {
-  // 尝试各种格式
-  const patterns = [
-    // 小华-小红-小明
-    /^([^-]+)-([^-]+)-([^-]+)$/,
-    // 小华，小红，小明  (already handled above)
-    // 小华、小红、小明
-    /^([^、]+)、([^、]+)、([^、]+)$/,
-    // 小华 小红 小明
-    /^(\S+)\s+(\S+)\s+(\S+)$/,
-    // 第一小华第二小红第三小明
-    /^第一(\S+)第二(\S+)第三(\S+)$/,
-    // 第一名小华第二名小红第三名小明
-    /^第一名(\S+)第二名(\S+)第三名(\S+)$/,
-  ];
-
-  for (const pattern of patterns) {
-    const match = input.match(pattern);
-    if (match) {
-      return [match[1].trim(), match[2].trim(), match[3].trim()];
-    }
-  }
-
-  return null;
 }
 
 // ========== v2.7.6: 非法步骤自动重建（不跳首页） ==========
@@ -1128,7 +1040,7 @@ function generateSafeDefaultHint(question: Question): string {
 
 // ========== Shared: Equation + Answer Phase ==========
 
-function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrongAnswer, onSubmitAnswer }: {
+function EquationAnswerPhase({ question, visual: _visual, onCorrect, onPhaseBack, onWrongAnswer, onSubmitAnswer }: {
   question: Question;
   visual: ReturnType<typeof getVisual>;
   onCorrect: () => void;
@@ -1357,7 +1269,7 @@ function FindNumbersPhased({
               }`}
               onClick={() => {
                 const next = new Set(found);
-                next.has(i) ? next.delete(i) : next.add(i);
+                if (next.has(i)) { next.delete(i); } else { next.add(i); }
                 setFound(next);
               }}
               whileHover={{ scale: 1.05 }}
@@ -1409,7 +1321,7 @@ function FindActionWordsPhased({
   phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer,
 }: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
   const [found, setFound] = useState<Set<number>>(new Set());
-  const [opChoice, setOpChoice] = useState<'add' | 'subtract' | null>(null);
+  const [opChoice, setOpChoice] = useState<string | null>(null);
 
   // v2.6.9: data-layer repair ensures this never happens, safety net only
   const lessonType = inferLessonType(question);
@@ -1422,7 +1334,6 @@ function FindActionWordsPhased({
     );
 
   const allFound = found.size === question.keywords.length;
-  const correctOp = question.operation === 'addition' ? 'add' : question.operation === 'subtraction' ? 'subtract' : null;
 
   if (phase === 'read') {
     return (
@@ -1464,7 +1375,7 @@ function FindActionWordsPhased({
               }`}
               onClick={() => {
                 const next = new Set(found);
-                next.has(i) ? next.delete(i) : next.add(i);
+                if (next.has(i)) { next.delete(i); } else { next.add(i); }
                 setFound(next);
               }}
               whileHover={{ scale: 1.05 }}
@@ -1517,7 +1428,21 @@ function FindActionWordsPhased({
             ? [{ v:'share', l:'每份一样多（平均分）', i:'➗', m:['division'] }, { v:'add', l:'数量合起来', i:'📈', m:['addition'] }]
             : [{ v:'add', l:'数量变多，用加法', i:'📈', m:['addition'] }, { v:'subtract', l:'数量变少，用减法', i:'📉', m:['subtraction'] }];
 
-    const checkOk = (v:string) => optionList.find(o=>o.v===v)?.m.includes(question.operation) ?? false;
+    const checkOk = (v: string) => {
+      // v2.11.4: Derive expected operation from keyword direction, not mathematical solution.
+      if (isAddSubtractOnly) {
+        const kwClasses = question.keywords
+          .map(k => classifyKeyword(k.word))
+          .filter(Boolean);
+        const allIncrease = kwClasses.length > 0 && kwClasses.every(c => c?.category === 'addition_change');
+        const allDecrease = kwClasses.length > 0 && kwClasses.every(c => c?.category === 'subtraction_change');
+        if (allIncrease) return optionList.find(o => o.v === v)?.m.includes('addition') ?? false;
+        if (allDecrease) return optionList.find(o => o.v === v)?.m.includes('subtraction') ?? false;
+        // mixed keywords (both increase and decrease) — both options are acceptable
+        return true;
+      }
+      return optionList.find(o => o.v === v)?.m.includes(question.operation) ?? false;
+    };
 
     return (
       <div className="space-y-4">
@@ -1540,7 +1465,7 @@ function FindActionWordsPhased({
                     : 'bg-white border-gray-200 text-gray-700 hover:border-amber-300'
                 )}
                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                onClick={() => setOpChoice(opt.v as any)}
+                onClick={() => setOpChoice(opt.v)}
               >
                 <span className="text-2xl">{opt.i}</span><span className="text-left">{opt.l}</span>
               </motion.button>
@@ -1744,7 +1669,7 @@ function RemoveNoisePhased({
   function handleErase(idx: number) {
     if (noiseDone) return;
     const next = new Set(erased);
-    next.has(idx) ? next.delete(idx) : next.add(idx);
+    if (next.has(idx)) { next.delete(idx); } else { next.add(idx); }
     setErased(next);
 
     const allNoiseGone = Array.from(noiseIdx).every((i) => next.has(i));
@@ -2177,7 +2102,7 @@ function SpotExtraInfoPhased({
               }`}
               onClick={() => {
                 const next = new Set(foundExtra);
-                next.has(i) ? next.delete(i) : next.add(i);
+                if (next.has(i)) { next.delete(i); } else { next.add(i); }
                 setFoundExtra(next);
               }}
               whileHover={{ scale: 1.05 }}

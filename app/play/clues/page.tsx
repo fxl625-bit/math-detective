@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, X, Star } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import Link from 'next/link';
 import { questions } from '@/data/questions';
 import { useGameState } from '@/hooks/useGameState';
@@ -27,26 +27,15 @@ export default function FindCluesPage() {
     return undone[Math.floor(Math.random() * undone.length)];
   });
 
-  const [blocks, setBlocks] = useState<QuestionBlock[]>(() => {
-    const result: QuestionBlock[] = [];
+  const [blocks] = useState<QuestionBlock[]>(() => {
     // Build blocks from usefulPhrases and noisePhrases
-    const useful = q.usefulPhrases;
-    const noise = q.noisePhrases;
-
-    // Reconstruct text as blocks
-    let remaining = q.text;
-    const allPhrases = [...useful, ...noise].sort(() => Math.random());
-
-    // Simple approach: split by phrases we know
-    const knownPhrases = [...useful, ...noise];
-    // Actually, let's use a simpler approach: split by segments
     const segments = splitTextIntoBlocks(q);
     return segments;
   });
 
   const [foundBlocks, setFoundBlocks] = useState<Set<number>>(new Set());
   const [showNumbers, setShowNumbers] = useState(false);
-  const [numberCount, setNumberCount] = useState(0);
+  const [, setNumberCount] = useState(0);
   const [showEquation, setShowEquation] = useState(false);
   const [userAnswer, setUserAnswer] = useState('');
   const [feedback, setFeedback] = useState<{
@@ -59,13 +48,6 @@ export default function FindCluesPage() {
   const [shakeInput, setShakeInput] = useState(false);
   const mountedRef = useRef(true);
   useEffect(() => { return () => { mountedRef.current = false; }; }, []);
-
-  const allCluesFound = blocks.filter((b) => b.type !== 'normal').every((_b, i) => {
-    const globalIdx = blocks.findIndex(
-      (block, bi) => block.type !== 'normal' && blocks.slice(0, bi).filter((b) => b.type !== 'normal').length === blocks.slice(0, i).filter((b) => b.type !== 'normal').length
-    );
-    return foundBlocks.has(i);
-  });
 
   // Recalculate: get indices of clue blocks
   const clueIndices = blocks
@@ -396,7 +378,7 @@ export default function FindCluesPage() {
 
 function splitTextIntoBlocks(q: typeof questions[0]): QuestionBlock[] {
   const blocks: QuestionBlock[] = [];
-  let text = q.text;
+  const text = q.text;
 
   // Build a list of all known phrases with positions
   const phrases: { text: string; type: QuestionBlock['type']; start: number }[] = [];
