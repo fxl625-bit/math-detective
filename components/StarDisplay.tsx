@@ -1,6 +1,6 @@
 'use client';
 
-import { Star } from 'lucide-react';
+import { Coins } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface StarDisplayProps {
@@ -15,12 +15,12 @@ export default function StarDisplay({ count, size = 'md', animate = false }: Sta
 
   return (
     <motion.div
-      className={`flex items-center gap-1 font-bold ${sizeClass} text-amber-500`}
+      className={`flex items-center gap-1 font-bold ${sizeClass} text-amber-700`}
       animate={animate ? { scale: [1, 1.1, 1] } : {}}
       transition={{ duration: 0.3 }}
     >
-      <Star className={size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-7 h-7' : 'w-5 h-5'} fill="currentColor" />
-      <span>{count}</span>
+      <Coins aria-hidden="true" className={size === 'sm' ? 'w-4 h-4' : size === 'lg' ? 'w-7 h-7' : 'w-5 h-5'} />
+      <span>{count} 积分</span>
     </motion.div>
   );
 }

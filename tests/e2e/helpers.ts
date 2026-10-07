@@ -26,6 +26,7 @@ declare global {
       submitAnswer: () => boolean;
       goNext: () => boolean;
       getValidationStatus: () => Record<string, unknown>;
+      setLesson: (lesson: Record<string, unknown>) => void;
     };
   }
 }

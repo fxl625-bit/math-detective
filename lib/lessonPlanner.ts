@@ -1,12 +1,18 @@
 import { Question, MistakeRecord, GradeBand, CognitiveSkill, LessonStepType, StepPhase, LessonStep, TodayLesson, LearningProfile, TomorrowLessonPreview, VirtualReward, GameState, type AssessmentTier } from './types';
 import type { Semester, LearnerProfile as CurriculumLearnerProfile, UsageStage } from './curriculum/types';
-import { getQuestionById, allQuestions, questionsByGrade, getQuestionsByFilter } from '@/data/questions';
-import { loadState, getAccuracyStats } from './storage';
+import { resolveEffectiveSemester } from './curriculum/semesterDetector';
+import { getQuestionById, allQuestions, safeQuestions, questionsByGrade, getQuestionsByFilter, isQuestionSafeForNewLesson } from '@/data/questions';
+import { loadState, saveState, getAccuracyStats } from './storage';
 import { allStories } from '@/data/stories';
 import { getCaseStoryForDate, getRecentStoryIds, saveRecentStoryId, isQuestionCompatibleWithTheme, type CaseStory } from './storySystem';
 import { classifyKeyword } from '@/data/keywordRules';
 import { inferLessonType, extractNumbers, classifyNumberRole } from './questionValidation';
 import { isQuestionSafeForLesson } from './questionSafety';
+import { APP_VERSION } from './appVersion';
+import { createLessonSignature, normalizeLearningSettingsFromParent } from './learningSettings';
+import { getAvailableLearningUnits } from './curriculum/unitCoverage';
+import { questionLearningMetadata, progressionQuestions } from '@/data/questions/progression';
+import { CORE_SLOT_TITLE, orderDailyCandidates, selectDistinctCoreCandidates, type DailyCoreSlot } from './curriculum/unitQuestionSelection';
 import {
   detectUsageStage,
   buildLearnerProfile,
@@ -81,6 +87,226 @@ const STEP_DESCRIPTIONS: Record<LessonStepType, string> = {
   spot_missing_info: '判断题目中是否缺少必要信息',
   answer_only: '仔细读题，直接算出答案',
 };
+
+function hashSignature(value: string): string {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index++) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function stableSerialize(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableSerialize).join(',')}]`;
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record).filter(key => record[key] !== undefined).sort().map(key => `${JSON.stringify(key)}:${stableSerialize(record[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
+function resolveEffectiveLessonSettings(state: GameState): {
+  settings: ReturnType<typeof normalizeLearningSettingsFromParent>;
+  unitSource: 'manual' | 'default_for_grade' | 'unknown';
+} {
+  const base = state.parentSettings.learningSettings || normalizeLearningSettingsFromParent(state.parentSettings);
+  const available = getAvailableLearningUnits(base.grade);
+  const unit = base.unitId ? available.find(candidate => candidate.id === base.unitId) : available[0];
+  return {
+    settings: unit ? { ...base, unitId: unit.id } : base,
+    unitSource: unit ? (base.unitId ? 'manual' : 'default_for_grade') : (base.unitId ? 'manual' : 'unknown'),
+  };
+}
+
+function attachLessonMetadata(
+  lesson: TodayLesson,
+  metadata: { lessonId: string; lessonSignature: string; learningSettings: ReturnType<typeof normalizeLearningSettingsFromParent> },
+): TodayLesson {
+  lesson.lessonId = metadata.lessonId;
+  lesson.lessonSignature = metadata.lessonSignature;
+  lesson.contentVersion = 'learning-path-v1';
+  lesson.settingSnapshot = metadata.learningSettings;
+  (lesson as any).generatedByVersion = APP_VERSION;
+  (lesson as any).generatorVersion = 6;
+  lesson.steps.forEach((step, index) => {
+    step.questionInstanceId = `${metadata.lessonId}:${index}:${step.questionId}`;
+  });
+  return lesson;
+}
+
+const CORE_SLOT_ORDER: DailyCoreSlot[] = [
+  'due_review', 'current_concept', 'same_skill_variant', 'application', 'stretch', 'olympiad',
+];
+const CORE_SLOT_ROLE: Record<DailyCoreSlot, NonNullable<LessonStep['role']>> = {
+  due_review: 'due_review',
+  current_concept: 'current_concept',
+  same_skill_variant: 'same_skill_variant',
+  application: 'application',
+  stretch: 'stretch',
+  olympiad: 'olympiad',
+};
+
+function buildUnitCoreLesson(params: {
+  date: string;
+  grade: LearningProfile['gradeBand'];
+  semester: Semester;
+  unitId: string;
+  unitSource: 'manual' | 'default_for_grade';
+  settings: ReturnType<typeof normalizeLearningSettingsFromParent>;
+  signature: string;
+  lessonId: string;
+  state: GameState;
+}): TodayLesson {
+  const questionById = new Map([...allQuestions, ...progressionQuestions].map(question => [question.id, question]));
+  const metadata = questionLearningMetadata.filter(item => item.unitId === params.unitId);
+  const learningEvents = params.state.learningEvents || [];
+  const prerequisitesNotKnownWeak = (skillKeys: string[]) => skillKeys.every(skillKey => {
+    const submissions = learningEvents.filter(event => event.eventType === 'attempt_submitted'
+      && event.result && event.skillIds.includes(skillKey) && event.firstAttemptKnown !== false);
+    const firstByInstance = new Map<string, typeof submissions[number]>();
+    for (const event of submissions) if (!firstByInstance.has(event.questionInstanceId)) firstByInstance.set(event.questionInstanceId, event);
+    const first = [...firstByInstance.values()];
+    if (first.length < 3) return true; // unknown prerequisite history is a prompt for support, not a permanent lock
+    return first.filter(event => event.result === 'correct').length / first.length >= 0.6;
+  });
+  const tableEligible = (item: (typeof metadata)[number]) => {
+    if (params.unitId !== 'g2-u1' && params.unitId !== 'g2-u2') return true;
+    const record = item as typeof item & { tableRequirement?: 'concept' | 'facts'; multiplicationFacts?: Array<[number, number]> };
+    if (record.tableRequirement === 'concept') return true;
+    if (record.tableRequirement !== 'facts' || !params.settings.learnedTableRange?.length || !record.multiplicationFacts?.length) return false;
+    const learned = new Set(params.settings.learnedTableRange);
+    return record.multiplicationFacts.every(([left, right]) =>
+      Number.isInteger(left) && Number.isInteger(right)
+      && left >= 1 && left <= 9 && right >= 1 && right <= 9
+      && (learned.has(left) || learned.has(right)),
+    );
+  };
+  const availableCandidates = (role: 'foundation' | 'application' | 'advanced' | 'olympiad') => metadata
+    .filter(item => item.role === role && tableEligible(item))
+    .map(item => ({ item, question: questionById.get(item.questionId) }))
+    .filter((entry): entry is { item: typeof metadata[number]; question: Question } =>
+      !!entry.question
+      && entry.question.gradeBand === params.grade
+      && isQuestionSafeForNewLesson(entry.question)
+      && isQuestionSafeForLesson(entry.question).safe,
+    );
+  const foundation = availableCandidates('foundation');
+  const ordered = (entries: ReturnType<typeof availableCandidates>, slot: DailyCoreSlot) => {
+    if (!entries.length) return entries;
+    const candidatesAtEarnedTier = entries.filter(({ item, question }) => {
+      const skillKeys = (item as any).targetSkillKeys || (question.id.startsWith('prog_') ? question.curriculumSkillIds : []);
+      const skillKey = skillKeys?.[0];
+      if (!skillKey) return item.tier === 1;
+      const key = `${params.grade}:${params.unitId}:${skillKey}`;
+      const earnedTier = params.state.learningDifficultyProgress?.[key]?.difficulty || 1;
+      if (item.tier > earnedTier) return false;
+      return item.tier < 2 || prerequisitesNotKnownWeak((item as any).prerequisiteSkillKeys || []);
+    });
+    const source = candidatesAtEarnedTier.length ? candidatesAtEarnedTier : entries.filter(({ item }) => item.tier === 1);
+    if (!source.length) return [];
+    const rotated = orderDailyCandidates(source, params.date, params.unitId, slot);
+    if (slot !== 'stretch' && slot !== 'olympiad') return rotated;
+    const safeTierOne = rotated.filter(({ item }) => item.tier === 1);
+    const qualifiedTierTwo = rotated.filter(({ item }) => item.tier >= 2);
+    const tierTwoHeldForEvidence = entries.some(({ item }) => item.tier >= 2) && qualifiedTierTwo.length === 0;
+    if (tierTwoHeldForEvidence) selectionNotes.push(`${slot} 槽缺少本技能进阶证据或存在明确薄弱先修，保持入门难度`);
+    if (params.settings.challengePreference === 'guided') return [...safeTierOne, ...qualifiedTierTwo];
+    if (qualifiedTierTwo.length) return [...qualifiedTierTwo, ...safeTierOne];
+    return rotated;
+  };
+  const dueReviewCandidates = foundation.filter(({ question }) => isDueForReview(question.id, params.state));
+  const selectionNotes: string[] = [];
+  const targetSkillOf = (entry: (typeof foundation)[number]) =>
+    (entry.item as any).targetSkillKeys?.[0]
+      || (entry.question.id.startsWith('prog_') ? entry.question.curriculumSkillIds?.[0] : undefined);
+  const conceptOrder = ordered(foundation, 'current_concept');
+  const pairedSkill = conceptOrder
+    .map(targetSkillOf)
+    .find((skill): skill is string => !!skill && new Set(foundation.filter(entry => targetSkillOf(entry) === skill).map(entry => entry.question.id)).size >= 2);
+  const pairedFoundation = pairedSkill ? foundation.filter(entry => targetSkillOf(entry) === pairedSkill) : [];
+  if (!pairedSkill) selectionNotes.push('本单元暂无同一数学技能的两道基础题，概念/变式槽明确留缺');
+  const entriesBySlot: Record<DailyCoreSlot, ReturnType<typeof availableCandidates>> = {
+    // For a first lesson (or when nothing is due), this slot is a retrieval
+    // warm-up from the unit foundation pool instead of silently shrinking the lesson.
+    due_review: ordered(dueReviewCandidates.length ? dueReviewCandidates : foundation, 'due_review'),
+    current_concept: pairedSkill ? ordered(pairedFoundation, 'current_concept') : [],
+    same_skill_variant: pairedSkill ? ordered(pairedFoundation, 'same_skill_variant') : [],
+    application: ordered(availableCandidates('application'), 'application'),
+    stretch: ordered(availableCandidates('advanced'), 'stretch'),
+    olympiad: ordered(availableCandidates('olympiad'), 'olympiad'),
+  };
+  const uniqueSelection = selectDistinctCoreCandidates(Object.fromEntries(
+    CORE_SLOT_ORDER.map(slot => [slot, entriesBySlot[slot].map(({ question, item }) => ({ questionId: question.id, role: item.role }))]),
+  ) as Parameters<typeof selectDistinctCoreCandidates>[0]);
+
+  const firstSelectedIndex = uniqueSelection.findIndex(Boolean);
+  const gaps: string[] = [];
+  if (dueReviewCandidates.length === 0) selectionNotes.push('到期复习暂缺，本槽使用本单元基础热身题');
+  const steps: LessonStep[] = [];
+  uniqueSelection.forEach((selected, index) => {
+    const slot = CORE_SLOT_ORDER[index];
+    if (!selected) {
+      gaps.push(`${slot} 槽暂无可用的不同安全题`);
+      return;
+    }
+    const entry = entriesBySlot[slot].find(({ question, item }) => question.id === selected.questionId && item.role === selected.role);
+    if (!entry) return;
+    const { question, item } = entry;
+    const type: LessonStepType = 'answer_only';
+    const role = CORE_SLOT_ROLE[slot];
+    steps.push({
+      id: `${params.date}_${slot}_${question.id}`,
+      type,
+      title: `${CORE_SLOT_TITLE[slot]}${item.tier >= 2 ? ' · 进阶' : ''}`,
+      description: question.text,
+      questionId: question.id,
+      phases: ['read', 'answer', 'explain'],
+      currentPhaseIndex: 0,
+      status: index === firstSelectedIndex ? 'current' : 'locked',
+      requiresAnswer: true,
+      role,
+      skill: (item as any).targetSkillKeys?.[0]
+        || (question.id.startsWith('prog_') ? question.curriculumSkillIds?.[0] : undefined),
+      method: item.method,
+      tier: `tier${item.tier}` as LessonStep['tier'],
+      settingSnapshot: params.settings,
+    });
+  });
+  const lesson: TodayLesson = {
+    date: params.date,
+    steps,
+    currentStepIndex: 0,
+    completed: false,
+    requestedCore: 6,
+    actualCore: steps.length,
+    coreGapReasons: gaps,
+    coreSelectionNotes: selectionNotes,
+    unitSource: params.unitSource,
+  };
+  attachLessonMetadata(lesson, {
+    lessonId: params.lessonId,
+    lessonSignature: params.signature,
+    learningSettings: params.settings,
+  });
+  (lesson as any).curriculumSnapshot = {
+    grade: Number(params.grade.slice(1)),
+    semester: params.semester,
+    semesterSource: params.settings.semesterSource,
+    textbookEdition: params.settings.textbookEdition,
+    unitId: params.unitId,
+    unitSource: params.unitSource,
+    challengePreference: params.settings.challengePreference,
+    learnedTableRange: params.settings.learnedTableRange,
+    lessonSignature: params.signature,
+    contentVersion: 'learning-path-v1',
+    requestedCore: 6,
+    actualCore: steps.length,
+    coreGapReasons: gaps,
+    coreSelectionNotes: selectionNotes,
+  };
+  return lesson;
+}
 
 /** v2.6.5: 根据题型生成动态关卡标题 */
 export function getDynamicStepTitle(type: LessonStepType, question?: Question): string {
@@ -160,6 +386,9 @@ export function getDefaultPhasesForStepType(type: LessonStepType, question?: Que
       return ['read', 'find_numbers', 'spot_extra_info', 'answer', 'explain'];
     case 'spot_missing_info':
       return ['read', 'spot_missing_info', 'answer', 'explain'];
+    case 'answer_only':
+      // v2.11.1: No read phase — answer input must show immediately
+      return ['answer', 'explain'];
     default:
       return ['read', 'answer', 'explain'];
   }
@@ -188,6 +417,7 @@ export function normalizeStep(step: Partial<LessonStep>, question?: Question): L
       : `step_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
   return {
+    ...step,
     id,
     type,
     title: step.title || STEP_TITLES[type] || '今日任务',
@@ -196,7 +426,6 @@ export function normalizeStep(step: Partial<LessonStep>, question?: Question): L
     status: step.status || 'locked',
     phases,
     currentPhaseIndex,
-    awardedAt: (step as any).awardedAt || undefined,
     requiresAnswer:
       typeof step.requiresAnswer === 'boolean'
         ? step.requiresAnswer
@@ -217,6 +446,7 @@ export function normalizeLesson(lesson: TodayLesson | null): TodayLesson | null 
       : 0;
 
   return {
+    ...lesson,
     date: lesson.date || getDateStr(),
     steps,
     currentStepIndex,
@@ -239,12 +469,18 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
 
   const today = getDateStr();
 
-  // 2. 日期不是今天 → 丢弃，重新生成
+  // 2. Keep a genuinely started course across midnight; unstarted stale courses expire.
   if (lesson.date !== today) {
-    if (typeof window !== 'undefined') {
+    const started = lesson.completed !== true && Array.isArray(lesson.steps) && (
+      lesson.currentStepIndex > 0 || lesson.steps.some((step, index) =>
+        step.status === 'completed' || step.awardedAt != null ||
+        (index === lesson.currentStepIndex && step.currentPhaseIndex > 0)
+      )
+    );
+    if (!started && typeof window !== 'undefined') {
       try { localStorage.removeItem('math-detective-today-lesson'); } catch { /* ignore */ }
     }
-    return null;
+    if (!started) return null;
   }
 
   // 3. 没有步骤 → 重新生成
@@ -311,7 +547,8 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
   // 11. 没有 current step → 说明全部完成
   if (currentIdx >= n) {
     return {
-      date: today,
+      ...lesson,
+      date: lesson.date,
       steps,
       currentStepIndex: 0,
       completed: true,
@@ -342,14 +579,63 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
         }
 
         const compatError = validateStepQuestionCompatibility(current, q);
-        if (compatError || themeMismatch) {
+        const unsafeQuestion = !isQuestionSafeForNewLesson(q);
+        if (compatError || themeMismatch || unsafeQuestion) {
           if (typeof window !== 'undefined') {
             console.warn(`[safeNormalizeLesson] step[${currentStepIdx}].question incompatible: ${compatError}. Auto-repairing.`);
           }
           const state = loadState();
-          const fallback = generateSafeFallbackLesson(state.parentSettings.gradeBand);
-          saveTodayLesson(fallback);
-          return fallback;
+          const instanceId = current.questionInstanceId;
+          const hasSuccessfulCurrentInstance = Boolean(instanceId && (state.learningEvents || []).some(event =>
+            event.questionInstanceId === instanceId
+            && (event.eventType === 'question_completed' || (event.eventType === 'attempt_submitted' && event.result === 'correct'))
+          ));
+          if (current.status === 'completed' || current.awardedAt || hasSuccessfulCurrentInstance) {
+            // Correct/completed history is immutable. Wrong attempts remain in the
+            // event log, but an unsafe current item may be replaced by a new instance.
+          } else {
+            const sourceGrade = lesson.settingSnapshot?.grade || (lesson as any).curriculumSnapshot?.grade && `G${(lesson as any).curriculumSnapshot.grade}` || state.parentSettings.learningSettings?.grade || state.parentSettings.gradeBand;
+            const unitId = lesson.settingSnapshot?.unitId ?? (lesson as any).curriculumSnapshot?.unitId ?? null;
+            const metadataRole = current.role === 'stretch' ? 'advanced'
+              : current.role === 'olympiad' ? 'olympiad'
+              : current.role === 'application' ? 'application'
+              : current.role ? 'foundation' : null;
+            const usedOtherIds = new Set(steps.filter((_, index) => index !== currentStepIdx).map(step => step.questionId));
+            const replacement = unitId && metadataRole
+              ? questionLearningMetadata.filter(item => item.unitId === unitId && item.role === metadataRole)
+                .map(item => ({ item, question: getQuestionById(item.questionId) }))
+                .find(({ item, question }) => Boolean(question && !usedOtherIds.has(question.id)
+                  && question.gradeBand === sourceGrade && isQuestionSafeForNewLesson(question)
+                  && validateStepQuestionCompatibility(current, question) === null))
+              : undefined;
+            if (replacement?.question) {
+              const repairedSteps = [...steps];
+              repairedSteps[currentStepIdx] = {
+                ...current,
+                id: `${lesson.date}_repair_${currentStepIdx}_${replacement.question.id}`,
+                questionId: replacement.question.id,
+                description: replacement.question.text,
+                title: getDynamicStepTitle(current.type, replacement.question),
+                phases: current.type === 'answer_only' ? ['read', 'answer', 'explain'] : getDefaultPhasesForStepType(current.type, replacement.question),
+                status: 'current',
+                currentPhaseIndex: 0,
+                questionInstanceId: `${lesson.lessonId || lesson.date}:repair:${currentStepIdx}:${replacement.question.id}:${Date.now()}`,
+                skill: (replacement.item as any).targetSkillKeys?.[0]
+                  || (replacement.question.id.startsWith('prog_') ? replacement.question.curriculumSkillIds?.[0] : undefined),
+                method: replacement.item.method,
+                tier: `tier${replacement.item.tier}` as LessonStep['tier'],
+                settingSnapshot: current.settingSnapshot,
+                awardedAt: undefined,
+              };
+              const repaired: TodayLesson = { ...lesson, steps: repairedSteps, currentStepIndex: currentIdx };
+              saveTodayLesson(repaired);
+              return repaired;
+            } else {
+              const reason = `当前 ${current.role || '未知角色'} 题目 ${current.questionId} 不可用于新练习，且本单元暂未找到同类替代题。`;
+              const coreGapReasons = [...new Set([...(lesson.coreGapReasons || []), reason])];
+              return { ...lesson, steps, currentStepIndex: currentIdx, coreGapReasons };
+            }
+          }
         }
       }
     }
@@ -359,7 +645,8 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
   const allDone = steps.every(s => s.status === 'completed');
   if (allDone) {
     return {
-      date: today,
+      ...lesson,
+      date: lesson.date,
       steps,
       currentStepIndex: 0,
       completed: true,
@@ -368,7 +655,8 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
   }
 
   return {
-    date: today,
+    ...lesson,
+    date: lesson.date,
     steps,
     currentStepIndex: currentIdx,
     completed: false,
@@ -423,7 +711,7 @@ export function getTomorrowLessonPreview(
 
   const stepTypes = getStepTypesForGrade(profile.gradeBand);
 
-  const gradePool = questionsByGrade[profile.gradeBand] || allQuestions;
+  const gradePool = questionsByGrade[profile.gradeBand] || safeQuestions;
   const previewQ = gradePool.find(q => q.difficulty >= 1 && q.difficulty <= maxDifficulty);
 
   const estimatedStars = stepTypes.length * (state.level >= 5 ? 3 : state.level >= 3 ? 2 : 1);
@@ -488,7 +776,7 @@ function getEffectiveMaxDifficulty(profile: LearningProfile, learnerProfile?: Cu
 function getUsageContext(state: {
   totalCompleted: number;
   completedQuestions: string[];
-  parentSettings: { gradeBand: GradeBand; semester?: string; semesterOverride?: string };
+  parentSettings: GameState['parentSettings'];
   learnerProfile?: any;
 }): {
   usageStage: UsageStage;
@@ -505,7 +793,11 @@ function getUsageContext(state: {
   });
   const gradeMatch = state.parentSettings.gradeBand.match(/G(\d+)/);
   const grade = gradeMatch ? parseInt(gradeMatch[1]) : 1;
-  const semester = (state.parentSettings.semesterOverride || state.parentSettings.semester || 'lower') as Semester;
+  const semester = resolveEffectiveSemester({
+    semesterOverride: state.parentSettings.learningSettings?.semesterSource === 'manual'
+      ? state.parentSettings.learningSettings.semester
+      : state.parentSettings.semesterOverride as Semester | undefined,
+  }).semester;
 
   return {
     usageStage: stageInfo.stage,
@@ -525,37 +817,73 @@ export function getTodayLesson(): TodayLesson {
   if (typeof window !== 'undefined') {
     try {
       const saved = localStorage.getItem('math-detective-today-lesson');
-      if (saved) {
-        const parsed: TodayLesson = JSON.parse(saved);
+      const persistedSnapshot = loadState();
+      const savedLesson: TodayLesson | null = saved ? JSON.parse(saved) : null;
+      const snapshotLesson = persistedSnapshot.lastCommittedLesson || null;
+      const snapshotStarted = !!snapshotLesson && snapshotLesson.completed !== true && (
+        snapshotLesson.currentStepIndex > 0 || snapshotLesson.steps.some((step, index) =>
+          step.status === 'completed' || step.awardedAt != null || (index === snapshotLesson.currentStepIndex && step.currentPhaseIndex > 0),
+        )
+      );
+      const sameLifecycle = !!snapshotLesson && !!savedLesson
+        && snapshotLesson.lessonId === savedLesson.lessonId;
+      const snapshotWins = !!snapshotLesson && (
+        (sameLifecycle && (snapshotLesson.persistenceRevision || 0) > (savedLesson?.persistenceRevision || 0))
+        || (!savedLesson && (snapshotLesson.date === today || snapshotStarted))
+        || (!!savedLesson && snapshotLesson.date !== savedLesson.date && snapshotStarted)
+        || (!!savedLesson && snapshotLesson.date === today && savedLesson.date !== today)
+      );
+      const parsed: TodayLesson | null = snapshotWins ? snapshotLesson : savedLesson;
+      if (parsed) {
 
         // v2.10.2: Enhanced version check — auto-invalidate old/safe lessons
         const version = (parsed as any).generatedByVersion;
         const generatorVersion = (parsed as any).generatorVersion || 0;
         const lessonSemester = (parsed as any).curriculumSnapshot?.semester;
         const state = loadState();
-        const currentSemester = state.curriculumProfile?.semester;
+        const settings = resolveEffectiveLessonSettings(state).settings;
+        const expectedSignature = createLessonSignature({
+          settings,
+          curriculumVersion: 'curriculum-v1',
+          contentVersion: 'learning-path-v1',
+          trainingMode: state.parentSettings.trainingMode,
+          schoolHarder: state.parentSettings.schoolHarder,
+        });
+        const currentSemester = settings.semester;
+        const hasStartedCourse = parsed.completed !== true &&
+          Array.isArray(parsed.steps) &&
+          (parsed.currentStepIndex > 0 || parsed.steps.some((step, index) =>
+            step.status === 'completed' ||
+            step.awardedAt != null ||
+            (index === parsed.currentStepIndex && step.currentPhaseIndex > 0)
+          ));
+        const semesterMismatch = Boolean(lessonSemester && currentSemester && lessonSemester !== currentSemester);
+        const preserveCurrentCourse = parsed.completed === true || hasStartedCourse;
 
         // Check if any step ID contains "safe_" (safe fallback lesson)
         const hasSafeSteps = parsed.steps?.some((s: any) => s.id?.includes('_safe_'));
 
-        const needsRebuild =
+        const needsRebuild = !preserveCurrentCourse && (
           // 没有 version 标记（旧版本生成）
           !version ||
           // generatorVersion 低于 4（v2.10.2 之前）
-          generatorVersion < 5 ||
-          // 学期不匹配（用户切换了学期设置）
-          (lessonSemester && currentSemester && lessonSemester !== currentSemester) ||
-          // Safe fallback lesson — always replace with proper curriculum
+          generatorVersion < 6 ||
+          // Keep a started or completed course stable despite stale metadata or semester snapshots.
+          semesterMismatch ||
+          // Replace a safe fallback before the course has started; do not discard active progress.
           hasSafeSteps ||
           // Loop-detected lesson — force rebuild
-          (parsed as any)._loopDetected === true;
+          (parsed as any)._loopDetected === true ||
+          // Rebuild an unstarted course when its normalized learning contract changed.
+          (parsed.lessonSignature !== expectedSignature)
+        );
 
         if (!needsRebuild) {
           // 先用 safeNormalizeLesson 校验，异常数据自动修复
           const safe = safeNormalizeLesson(parsed);
-          if (safe && safe.date === today) {
+          if (safe && (safe.date === today || hasStartedCourse)) {
             // 自动修复后重新保存
-            if (JSON.stringify(safe) !== saved) {
+            if (stableSerialize(safe) !== stableSerialize(parsed)) {
               saveTodayLesson(safe);
             }
             if (typeof window !== 'undefined') {
@@ -713,7 +1041,7 @@ export function selectQuestionForStep(params: {
   };
 
   // Try grade-specific pool
-  const pool = questionsByGrade[grade] || allQuestions;
+  const pool = questionsByGrade[grade] || safeQuestions;
   let result = tryPool(pool, stepType !== 'remove_noise');
 
   // Degrade: lower difficulty (v2.7.1: 保留安全+主题过滤)
@@ -735,7 +1063,7 @@ export function selectQuestionForStep(params: {
 
   // Degrade: wider grade band (ONLY for specific types)
   if (!result && stepType !== 'remove_noise' && stepType !== 'spot_extra_info' && stepType !== 'spot_missing_info') {
-    result = tryPool(allQuestions, stepType !== 'find_numbers');
+      result = tryPool(safeQuestions, stepType !== 'find_numbers');
   }
 
   // P0修复：不再无差别fallback到任意题目。如果找不到匹配题，返回null让上层处理。
@@ -785,7 +1113,7 @@ function getDueReviewQuestions(
 ): Question[] {
   const excludeSet = new Set(excludeIds);
   const maxDifficulty = getEffectiveMaxDifficulty(profile);
-  const pool = questionsByGrade[profile.gradeBand] || allQuestions;
+  const pool = questionsByGrade[profile.gradeBand] || safeQuestions;
 
   return pool.filter(q =>
     !excludeSet.has(q.id) &&
@@ -807,10 +1135,68 @@ export function buildDailyLesson(
   // Load full state for v2.9.0 features
   // In browser: loadState() from localStorage; in tests: use overrideState
   const fullState = overrideState || loadState();
+  const baseLearningSettings = fullState.parentSettings.learningSettings || normalizeLearningSettingsFromParent(fullState.parentSettings);
+  const resolvedSettings = resolveEffectiveLessonSettings(fullState);
+  const selectedUnitId = resolvedSettings.settings.unitId;
+  const selectedUnit = selectedUnitId ? getAvailableLearningUnits(resolvedSettings.settings.grade).find(unit => unit.id === selectedUnitId) : undefined;
+  const unitSource = resolvedSettings.unitSource;
+  const learningSettings = resolvedSettings.settings;
+  const lessonSignature = createLessonSignature({
+    settings: learningSettings,
+    curriculumVersion: 'curriculum-v1',
+    contentVersion: 'learning-path-v1',
+    trainingMode: fullState.parentSettings.trainingMode,
+    schoolHarder: fullState.parentSettings.schoolHarder,
+  });
+  const lessonId = `${today}-${hashSignature(lessonSignature)}`;
   const ctx = getUsageContext(fullState);
   const { usageStage, semester, grade, learnerProfile } = ctx;
   const maxDifficulty = getEffectiveMaxDifficulty(profile, learnerProfile);
 
+  const uncovered: TodayLesson = {
+    date: today,
+    steps: [],
+    currentStepIndex: 0,
+    completed: false,
+    requestedCore: 6,
+    actualCore: 0,
+    coreGapReasons: [baseLearningSettings.unitId
+      ? `所选单元 ${baseLearningSettings.unitId} 尚无通过内容覆盖核验的题目池`
+      : `${baseLearningSettings.grade} 尚无通过内容覆盖核验的学习单元`],
+    unitSource: baseLearningSettings.unitId ? 'manual' : 'unknown',
+  };
+  attachLessonMetadata(uncovered, { lessonId, lessonSignature, learningSettings });
+  (uncovered as any).curriculumSnapshot = {
+    grade: Number(learningSettings.grade.slice(1)),
+    semester: learningSettings.semester,
+    semesterSource: learningSettings.semesterSource,
+    textbookEdition: learningSettings.textbookEdition,
+    unitId: baseLearningSettings.unitId,
+    unitSource: uncovered.unitSource,
+    lessonSignature,
+    requestedCore: 6,
+    actualCore: 0,
+    coreGapReasons: uncovered.coreGapReasons,
+  };
+
+  // New grade-aware curriculum is the only active generator when approved
+  // unit content exists. Never fall through to the legacy cross-unit planner.
+  if (selectedUnit) {
+    const effectiveGrade = learningSettings.grade;
+    return buildUnitCoreLesson({
+      date: today,
+      grade: effectiveGrade,
+      semester: learningSettings.semester,
+      unitId: selectedUnit.id,
+      unitSource: unitSource as 'manual' | 'default_for_grade',
+      settings: learningSettings,
+      signature: lessonSignature,
+      lessonId,
+      state: fullState,
+    });
+  }
+
+  const legacyPlanner = (): TodayLesson => {
   // v2.9.1: Get semester progress
   const semesterProgress = fullState.curriculumProfile?.semesterProgress as any || 'early';
 
@@ -876,7 +1262,7 @@ export function buildDailyLesson(
 
     // First try curriculum-aware selection if we have a learnerProfile
     if (learnerProfile && slotPlan) {
-      const pool = questionsByGrade[profile.gradeBand] || allQuestions;
+      const pool = questionsByGrade[profile.gradeBand] || safeQuestions;
       diagnostic.sourcePoolSize = pool.length;
 
       // Try with the requested step type first
@@ -1148,7 +1534,9 @@ export function buildDailyLesson(
   // If no steps at all, generate safe fallback
   if (steps.length === 0) {
     console.warn('[buildDailyLesson] No steps generated — using safe fallback');
-    return generateSafeFallbackLesson(profile.gradeBand);
+    return attachLessonMetadata(generateSafeFallbackLesson(profile.gradeBand), {
+      lessonId, lessonSignature, learningSettings,
+    });
   }
 
   // v2.9.1: Version stamp + curriculum snapshot for stale detection
@@ -1161,12 +1549,18 @@ export function buildDailyLesson(
   };
 
   // Attach version metadata
-  (lesson as any).generatedByVersion = 'v2.10.2';
-  (lesson as any).generatorVersion = 4;
+  attachLessonMetadata(lesson, { lessonId, lessonSignature, learningSettings });
   (lesson as any).curriculumSnapshot = {
     grade,
     semester,
     semesterProgress,
+    semesterSource: learningSettings.semesterSource,
+    textbookEdition: learningSettings.textbookEdition,
+    unitId: learningSettings.unitId,
+    challengePreference: learningSettings.challengePreference,
+    learnedTableRange: learningSettings.learnedTableRange,
+    lessonSignature,
+    contentVersion: 'learning-path-v1',
     usageStage,
     currentDifficultyLevel: learnerProfile?.currentDifficultyLevel ?? profile.skillLevel,
     singleDigitLimit,
@@ -1178,11 +1572,11 @@ export function buildDailyLesson(
   } : null;
 
   // ===== DEV DIAGNOSTICS =====
-  if (typeof window !== 'undefined' && (process as any).env?.NODE_ENV === 'development') {
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
     try {
       console.log('========== LESSON GENERATION DIAGNOSTICS ==========');
       console.table({
-        appVersion: 'v2.9.1',
+        appVersion: APP_VERSION,
         grade: `G${grade}`,
         semester,
         semesterProgress,
@@ -1223,7 +1617,7 @@ export function buildDailyLesson(
     try {
       (window as any).__MD_DEBUG__ = (window as any).__MD_DEBUG__ || {};
       (window as any).__MD_DEBUG__.lastLessonGenerationReport = {
-        appVersion: 'v2.11.0',
+        appVersion: APP_VERSION,
         plannerVersion: 5,
         reusedOldLesson: false,
         grade,
@@ -1264,6 +1658,8 @@ export function buildDailyLesson(
   }
 
   return lesson;
+  };
+  return uncovered;
 }
 
 // ========== v2.6.9: 安全降级课程生成器 ==========
@@ -1278,7 +1674,7 @@ export function buildDailyLesson(
  */
 export function generateSafeFallbackLesson(gradeBand: GradeBand): TodayLesson {
   const today = getDateStr();
-  const pool = questionsByGrade[gradeBand] || allQuestions;
+  const pool = questionsByGrade[gradeBand] || safeQuestions;
 
   // 筛选安全题目：必须包含加减动作词，且不包含任何禁止词
   const SAFE_FORBIDDEN = new Set([
@@ -1367,8 +1763,8 @@ function buildSafeLessonFromPool(pool: Question[], today: string, gradeBand: Gra
   };
 
   // v2.9.1: Version stamp even for fallback
-  (lesson as any).generatedByVersion = 'v2.10.2';
-  (lesson as any).generatorVersion = 4;
+  (lesson as any).generatedByVersion = APP_VERSION;
+  (lesson as any).generatorVersion = 5;
   (lesson as any).fallbackUsed = true;
   (lesson as any).fallbackReason = 'safe_fallback_no_candidates';
 
@@ -1503,17 +1899,41 @@ export function completeCurrentStep(lesson: TodayLesson): TodayLesson {
   };
 }
 
-export function saveTodayLesson(lesson: TodayLesson): void {
-  if (typeof window === 'undefined') return;
+export function saveTodayLesson(lesson: TodayLesson): boolean {
+  if (typeof window === 'undefined') return false;
   try {
-    localStorage.setItem('math-detective-today-lesson', JSON.stringify(lesson));
-  } catch { /* ignore */ }
+    const state = loadState();
+    const revision = Math.max(state.lessonPersistenceRevision || 0, lesson.persistenceRevision || 0) + 1;
+    const persisted = { ...lesson, persistenceRevision: revision };
+    const nextState = { ...state, lastCommittedLesson: persisted, lessonPersistenceRevision: revision };
+    if (!saveState(nextState)) return false;
+    localStorage.setItem('math-detective-today-lesson', JSON.stringify(persisted));
+    return true;
+  } catch { return false; }
+}
+
+/** Read a persisted course for reporting without generating a new lesson. */
+export function getStoredTodayLesson(): TodayLesson | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const saved = localStorage.getItem('math-detective-today-lesson');
+    const fromKey = saved ? normalizeLesson(JSON.parse(saved) as TodayLesson) : null;
+    const snapshot = loadState().lastCommittedLesson || null;
+    const newer = snapshot && (snapshot.persistenceRevision || 0) > (fromKey?.persistenceRevision || 0)
+      ? normalizeLesson(snapshot)
+      : null;
+    return newer || fromKey;
+  } catch {
+    return null;
+  }
 }
 
 export function clearTodayLesson(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.removeItem('math-detective-today-lesson');
+    const state = loadState();
+    saveState({ ...state, lastCommittedLesson: undefined, lessonPersistenceRevision: (state.lessonPersistenceRevision || 0) + 1 });
   } catch { /* ignore */ }
 }
 

@@ -1,910 +1,167 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Edit, Trash2, Check, X, Plus, ShieldCheck, ShieldOff, RefreshCw, AlertTriangle, Info, Zap, RotateCw, Trash } from 'lucide-react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Coins, Gift, Medal, ShieldCheck, Shirt, KeyRound } from 'lucide-react';
+import { DEFAULT_PARENT_REWARDS, type GameState, type ParentReward } from '@/lib/types';
 import { useGameState } from '@/hooks/useGameState';
-import StarDisplay from '@/components/StarDisplay';
-import DetectiveMascot from '@/components/DetectiveMascot';
-import AppCard from '@/components/ui/AppCard';
-import AppButton from '@/components/ui/AppButton';
 import PageContainer from '@/components/layout/PageContainer';
-import ParentRewardForm from '@/components/ParentRewardForm';
-import RedeemConfirmModal from '@/components/RedeemConfirmModal';
-import CostumeShop from '@/components/CostumeShop';
-import { badges as badgeData } from '@/data/badges';
-import { APP_VERSION, APP_BUILD_TIME, APP_COMMIT_SHA, refreshToLatestVersion, clearPageCacheAndRefresh } from '@/lib/appVersion';
-import { LEARNING_STATE_VERSION } from '@/lib/migrations';
-import { getDateString } from '@/lib/storage';
-import { getVirtualRewards } from '@/lib/lessonPlanner';
-import { ParentReward, DEFAULT_PARENT_REWARDS } from '@/lib/types';
+import FamilyPointsPanel from '@/components/rewards/FamilyPointsPanel';
+import DetectiveStage from '@/components/rewards/DetectiveStage';
+import MedalGallery from '@/components/rewards/MedalGallery';
+import WardrobePanel from '@/components/rewards/WardrobePanel';
+import { getUnlockedItems, getAvatarItemById } from '@/data/avatarItems';
+import ParentPasswordGate from '@/components/ParentPasswordGate';
+import { clearParentAccess, grantParentAccess, isParentAccessGranted, useParentAccess } from '@/hooks/useParentAccess';
 
-// ========== 家长验证题生成 ==========
+type Tab = 'points' | 'honors' | 'wardrobe' | 'parent';
+type RewardDraft = Pick<ParentReward, 'name' | 'description' | 'icon' | 'enabled'>;
 
-function randomInt(min: number, max: number) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+const rewardIdeas: RewardDraft[] = [
+  { name: '亲子桌游时间', description: '一起挑一款桌游，约好合适的时间玩一局。', icon: '🎲', enabled: true },
+  { name: '一起烘焙', description: '和家长一起选一个简单食谱，安排一次烘焙时间。', icon: '🧁', enabled: true },
+  { name: '公园探险', description: '和家长商量一次公园散步或自然观察。', icon: '🌳', enabled: true },
+  { name: '选择周末电影', description: '从家长同意的片单里选一部周末一起看。', icon: '🎬', enabled: true },
+  { name: '睡前故事', description: '邀请家长安排一次睡前共读或讲故事时间。', icon: '📖', enabled: true },
+  { name: '手工创作时间', description: '和家长一起选材料，做一个小手工。', icon: '✂️', enabled: true },
+  { name: '选择周末活动', description: '和家长一起从可安排的活动中选一个。', icon: '🗓️', enabled: true },
+  { name: '专属亲子时间', description: '和家长约定一段专心陪伴的时间，并一起决定做什么。', icon: '💛', enabled: true },
+];
+
+function createActionId(prefix: string) {
+  const secureUuid = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : null;
+  return `${prefix}:${secureUuid || `${Date.now()}-${Math.random().toString(36).slice(2)}`}`;
 }
 
-function generateParentGateQuestion(): { question: string; answer: number } {
-  const templates = [
-    () => {
-      const a = randomInt(17, 59);
-      const b = randomInt(18, 69);
-      return { question: `${a} + ${b} = ?`, answer: a + b };
-    },
-    () => {
-      const a = randomInt(60, 150);
-      const b = randomInt(18, 69);
-      return { question: `${a} - ${b} = ?`, answer: a - b };
-    },
-    () => {
-      const a = randomInt(12, 19);
-      const b = randomInt(6, 9);
-      return { question: `${a} × ${b} = ?`, answer: a * b };
-    },
-    () => {
-      const b = randomInt(6, 12);
-      const answer = randomInt(8, 18);
-      return { question: `${b * answer} ÷ ${b} = ?`, answer };
-    },
-    () => {
-      const a = randomInt(20, 59);
-      const b = randomInt(20, 59);
-      return { question: `${a} + ${b} = ?`, answer: a + b };
-    },
-  ];
-  return templates[randomInt(0, templates.length - 1)]();
+function RewardEditor({ value, draft, onSave, onCancel }: { value?: ParentReward; draft?: RewardDraft; onSave: (reward: Omit<ParentReward, 'id' | 'createdAt'>) => void; onCancel: () => void }) {
+  const initial = value || draft;
+  const [name, setName] = useState(initial?.name || '');
+  const [description, setDescription] = useState(initial?.description || '');
+  const [icon, setIcon] = useState(initial?.icon || '🎁');
+  const [enabled, setEnabled] = useState(initial?.enabled ?? true);
+  return <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-4"><form role="dialog" aria-modal="true" aria-labelledby="reward-editor-title" onSubmit={event => { event.preventDefault(); if (name.trim()) onSave({ name: name.trim(), description: description.trim(), icon, enabled, cost: 15 }); }} className="w-full space-y-3 rounded-t-3xl bg-white p-5 sm:max-w-lg sm:rounded-3xl">
+    <h2 id="reward-editor-title" className="text-xl font-extrabold text-slate-950">{value ? '编辑家庭奖励' : '新增家庭奖励'}</h2>
+    <p className="text-sm text-slate-600">奖励说明会显示在申请卡片上；申请成本统一为 15 积分。</p>
+    <label className="block text-sm font-bold">奖励名称<input autoFocus value={name} onChange={event => setName(event.target.value)} maxLength={80} required className="mt-1 min-h-11 w-full rounded-xl border border-slate-300 px-3" /></label>
+    <label className="block text-sm font-bold">奖励说明<textarea value={description} onChange={event => setDescription(event.target.value)} maxLength={300} rows={3} className="mt-1 w-full rounded-xl border border-slate-300 p-3" /></label>
+    <label className="block text-sm font-bold">图标<input value={icon} onChange={event => setIcon(event.target.value)} maxLength={8} className="mt-1 min-h-11 w-full rounded-xl border border-slate-300 px-3" /></label>
+    <label className="flex min-h-11 items-center gap-2 text-sm font-bold"><input type="checkbox" checked={enabled} onChange={event => setEnabled(event.target.checked)} />启用此奖励</label>
+    <div className="flex gap-2"><button type="button" onClick={onCancel} className="min-h-11 flex-1 rounded-xl border border-slate-300 font-bold">返回</button><button type="submit" disabled={!name.trim()} className="min-h-11 flex-1 rounded-xl bg-blue-800 font-bold text-white disabled:bg-slate-300">保存</button></div>
+  </form></div>;
 }
-
-// ========== 子组件 ==========
-
-function ParentGateModal({
-  open,
-  onSuccess,
-  onClose,
-  onLogAttempt,
-}: {
-  open: boolean;
-  onSuccess: () => void;
-  onClose: () => void;
-  onLogAttempt: (q: string, input: string, correct: boolean, reason: string) => void;
-}) {
-  const [challenge, setChallenge] = useState(() => generateParentGateQuestion());
-  const [answer, setAnswer] = useState('');
-  const [error, setError] = useState('');
-  const [failCount, setFailCount] = useState(0);
-
-  useEffect(() => {
-    if (open) {
-      setChallenge(generateParentGateQuestion());
-      setAnswer('');
-      setError('');
-      setFailCount(0);
-    }
-  }, [open]);
-
-  if (!open) return null;
-
-  const handleSubmit = () => {
-    const trimmed = answer.trim();
-    if (!trimmed) {
-      onLogAttempt(challenge.question, '', false, 'empty_answer');
-      setError('请输入答案');
-      return;
-    }
-    const num = parseInt(trimmed);
-    if (num === challenge.answer) {
-      onLogAttempt(challenge.question, trimmed, true, 'success');
-      setAnswer('');
-      setError('');
-      setFailCount(0);
-      onSuccess();
-    } else {
-      const newFailCount = failCount + 1;
-      onLogAttempt(challenge.question, trimmed, false, 'wrong_answer');
-      setFailCount(newFailCount);
-      setAnswer('');
-      if (newFailCount >= 3) {
-        setError('请稍后再试，建议让爸爸妈妈来操作。');
-      } else {
-        setError('验证失败，请让爸爸妈妈操作。');
-      }
-      setChallenge(generateParentGateQuestion());
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onClose}>
-      <div
-        className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm p-5 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="text-center mb-4">
-          <div className="text-4xl mb-2">🔐</div>
-          <h2 className="text-lg font-extrabold text-gray-800">请爸爸妈妈验证</h2>
-          <p className="text-sm text-gray-500 mt-1">
-            这里可以修改奖励内容，请让爸爸妈妈来操作。
-          </p>
-        </div>
-
-        <div className="text-center mb-4">
-          <p className="text-2xl font-extrabold text-amber-700">{challenge.question}</p>
-        </div>
-
-        <input
-          type="number"
-          value={answer}
-          onChange={(e) => { setAnswer(e.target.value); setError(''); }}
-          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-          className="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-400 focus:outline-none text-xl text-center font-extrabold mb-3"
-          placeholder="请输入答案"
-          autoFocus
-        />
-
-        {error && (
-          <p className={`text-sm font-bold text-center mb-3 ${failCount >= 3 ? 'text-amber-600' : 'text-red-500'}`}>
-            {error}
-          </p>
-        )}
-
-        <div className="flex gap-2">
-          <AppButton variant="ghost" size="md" fullWidth onClick={onClose}>
-            取消
-          </AppButton>
-          <AppButton variant="primary" size="md" fullWidth onClick={handleSubmit} disabled={failCount >= 3}>
-            确认
-          </AppButton>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ConfirmModal({
-  open,
-  title,
-  message,
-  confirmLabel,
-  confirmVariant,
-  onConfirm,
-  onCancel,
-}: {
-  open: boolean;
-  title: string;
-  message: string;
-  confirmLabel?: string;
-  confirmVariant?: 'primary' | 'danger' | 'ghost';
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40" onClick={onCancel}>
-      <div className="bg-white rounded-t-3xl sm:rounded-3xl w-full sm:max-w-sm p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <div className="text-center mb-4">
-          <div className="text-3xl mb-2"><AlertTriangle size={32} className="mx-auto text-amber-500" /></div>
-          <h2 className="text-lg font-extrabold text-gray-800">{title}</h2>
-          <p className="text-sm text-gray-500 mt-1">{message}</p>
-        </div>
-        <div className="flex gap-2">
-          <AppButton variant="ghost" size="md" fullWidth onClick={onCancel}>取消</AppButton>
-          <AppButton variant={confirmVariant || 'danger'} size="md" fullWidth onClick={onConfirm}>
-            {confirmLabel || '确认'}
-          </AppButton>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ========== 主组件 ==========
 
 export default function RewardsPage() {
-  const {
-    state,
-    addParentReward,
-    updateParentReward,
-    removeParentReward,
-    redeemRewardWithPending,
-    confirmRedemption,
-    cancelRedemption,
-    addParentGateAttempt,
-    clearParentGateAttempts,
-    resetTodayLesson,
-    clearLearningProgress,
-    resetAllState,
-    restoreDefaultParentRewards,
-  } = useGameState();
-
-  // All useState hooks
+  const { state, getState, commitGameState, clearParentGateAttempts, resetTodayLesson, clearLearningProgress, resetAllState } = useGameState();
   const [mounted, setMounted] = useState(false);
-  const [redeemMsg, setRedeemMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<'virtual' | 'redeem' | 'parent' | 'costume'>('virtual');
-  const [parentAuthed, setParentAuthed] = useState(false);
-  const [gateModalOpen, setGateModalOpen] = useState(false);
-
-  // Reward form state
-  const [rewardFormOpen, setRewardFormOpen] = useState(false);
-  const [editingReward, setEditingReward] = useState<ParentReward | undefined>(undefined);
-  const [formKey, setFormKey] = useState(0);
-
-  // Redeem modal state
-  const [redeemTarget, setRedeemTarget] = useState<ParentReward | null>(null);
-  const [redeemModalOpen, setRedeemModalOpen] = useState(false);
-
-  // Confirm modal state (for reset operations)
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmAction, setConfirmAction] = useState<{ title: string; message: string; label: string; variant: 'primary' | 'danger'; fn: () => void }>({
-    title: '', message: '', label: '', variant: 'danger', fn: () => {},
-  });
-
-  // All useEffect hooks
+  const [tab, setTab] = useState<Tab>('points');
+  const parentAuthed = useParentAccess();
+  const [showGate, setShowGate] = useState(false);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [editor, setEditor] = useState<ParentReward | null | undefined>(undefined);
+  const [editorDraft, setEditorDraft] = useState<RewardDraft | undefined>(undefined);
+  const [message, setMessage] = useState('');
   useEffect(() => setMounted(true), []);
-
-  // All useCallback hooks
-  const logGateAttempt = useCallback((question: string, input: string, correct: boolean, reason: string) => {
-    addParentGateAttempt({
-      attemptedAt: new Date().toISOString(),
-      question,
-      inputAnswer: input,
-      correct,
-      reason: reason as 'wrong_answer' | 'empty_answer' | 'cancelled' | 'success',
-    });
-  }, [addParentGateAttempt]);
-
-  const handleGateSuccess = useCallback(() => {
-    setParentAuthed(true);
-    setGateModalOpen(false);
-    setActiveTab('parent');
-  }, []);
-
-  const handleGateCancel = useCallback(() => {
-    logGateAttempt('', '', false, 'cancelled');
-    setGateModalOpen(false);
-  }, [logGateAttempt]);
-
-  const openGate = useCallback(() => {
-    setGateModalOpen(true);
-  }, []);
-
-  const exitParentMode = useCallback(() => {
-    setParentAuthed(false);
-    setActiveTab('virtual');
-  }, []);
-
-  // Reward CRUD
-  const handleAddReward = useCallback((data: Omit<ParentReward, 'id' | 'createdAt'>) => {
-    addParentReward(data);
-  }, [addParentReward]);
-
-  const handleEditReward = useCallback((data: Omit<ParentReward, 'id' | 'createdAt'>) => {
-    if (editingReward) {
-      updateParentReward(editingReward.id, data);
-    }
-  }, [editingReward, updateParentReward]);
-
-  const openAddForm = useCallback(() => {
-    setEditingReward(undefined);
-    setFormKey((k) => k + 1);
-    setRewardFormOpen(true);
-  }, []);
-
-  const openEditForm = useCallback((reward: ParentReward) => {
-    setEditingReward(reward);
-    setFormKey((k) => k + 1);
-    setRewardFormOpen(true);
-  }, []);
-
-  const handleFormSave = useCallback((data: Omit<ParentReward, 'id' | 'createdAt'>) => {
-    if (editingReward) {
-      handleEditReward(data);
-    } else {
-      handleAddReward(data);
-    }
-    setRewardFormOpen(false);
-    setEditingReward(undefined);
-  }, [editingReward, handleAddReward, handleEditReward]);
-
-  const handleFormClose = useCallback(() => {
-    setRewardFormOpen(false);
-    setEditingReward(undefined);
-  }, []);
-
-  // Redeem flow
-  const handleOpenRedeem = useCallback((reward: ParentReward) => {
-    setRedeemTarget(reward);
-    setRedeemModalOpen(true);
-  }, []);
-
-  const handleConfirmRedeem = useCallback(() => {
-    if (!redeemTarget) return;
-    const success = redeemRewardWithPending(redeemTarget);
-    setRedeemMsg(success
-      ? `成功兑换 "${redeemTarget.name}"！请找爸爸妈妈确认奖励～`
-      : '星星不够哦，继续做题攒星星吧！⭐');
-    setRedeemModalOpen(false);
-    setRedeemTarget(null);
-    setTimeout(() => setRedeemMsg(''), 3000);
-  }, [redeemTarget, redeemRewardWithPending]);
-
-  // Reset confirm flow
-  const showConfirm = useCallback((title: string, message: string, label: string, variant: 'primary' | 'danger', fn: () => void) => {
-    setConfirmAction({ title, message, label, variant, fn });
-    setConfirmOpen(true);
-  }, []);
-
-  const handleConfirmAction = useCallback(() => {
-    confirmAction.fn();
-    setConfirmOpen(false);
-    setRedeemMsg('操作成功！');
-    setTimeout(() => setRedeemMsg(''), 2000);
-  }, [confirmAction]);
-
-  // ALL hooks defined. Now conditional return.
-  if (!mounted) return <div className="min-h-screen flex items-center justify-center"><div className="text-center"><div className="text-4xl mb-4 animate-bounce-gentle">🎁</div><p className="text-pink-600 font-bold">正在加载奖励中心...</p></div></div>;
-
-  // Derived data
-  const virtualRewards = getVirtualRewards(state);
-  const allRewards = state.parentRewards || [];
-  const enabledRewards = allRewards.filter((r) => r.enabled);
-  const redemptions = state.rewardRedemptions || [];
-  const pendingRedemptions = redemptions.filter((r) => r.status === 'pending');
-  const confirmedRedemptions = redemptions.filter((r) => r.status === 'confirmed');
-  const gateAttempts = state.parentGateAttempts || [];
-  const recentAttempts = gateAttempts.slice(0, 20);
-  const failedAttempts = recentAttempts.filter((a) => !a.correct);
-  const unlockedCount = virtualRewards.filter((v) => v.unlocked).length;
-
-  return (
-    <PageContainer>
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-extrabold text-pink-800">🎁 奖励中心</h1>
-        {parentAuthed ? (
-          <AppButton variant="ghost" size="sm" onClick={exitParentMode}>
-            <ShieldOff size={16} /> 退出家长模式
-          </AppButton>
-        ) : (
-          <AppButton variant="ghost" size="sm" onClick={openGate}>
-            <ShieldCheck size={16} /> 家长设置
-          </AppButton>
-        )}
-      </div>
-
-      {/* Stars */}
-      <AppCard variant="amber">
-        <div className="flex items-center gap-4">
-          <div className="text-5xl">⭐</div>
-          <div>
-            <div className="text-2xl font-extrabold text-amber-500">{state.stars}</div>
-            <div className="text-sm text-gray-500">可用星星</div>
-          </div>
-          <div className="flex-1" />
-          <DetectiveMascot mood="happy" size="sm" />
-        </div>
-      </AppCard>
-
-      {/* Redeem message */}
-      <AnimatePresence>
-        {redeemMsg && (
-          <motion.div
-            className="bg-green-50 border-2 border-green-200 rounded-2xl p-3 text-green-700 font-bold text-center"
-            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-          >
-            {redeemMsg}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Tabs */}
-      <div className="flex gap-2 bg-gray-100 rounded-xl p-1">
-        <button
-          className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'virtual' ? 'bg-white shadow text-purple-700' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('virtual')}
-        >
-          🏆 我的侦探奖励 ({unlockedCount}/{virtualRewards.length})
-        </button>
-        <button
-          className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'redeem' ? 'bg-white shadow text-pink-700' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('redeem')}
-        >
-          🛒 家长奖励兑换
-        </button>
-        <button
-          className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'costume' ? 'bg-white shadow text-orange-700' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('costume')}
-        >
-          🧥 换装
-        </button>
-        {parentAuthed && (
-          <button
-            className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${activeTab === 'parent' ? 'bg-white shadow text-blue-700' : 'text-gray-500'}`}
-            onClick={() => setActiveTab('parent')}
-          >
-            ⚙️ 家长设置
-          </button>
-        )}
-      </div>
-
-      {/* ========== Tab 1: Virtual Rewards ========== */}
-      {activeTab === 'virtual' && (
-        <div className="space-y-4">
-          {/* Virtual rewards grid */}
-          <h3 className="text-sm font-bold text-gray-500">侦探成就</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {virtualRewards.map((reward, i) => (
-              <motion.div
-                key={reward.id}
-                className={`p-4 rounded-2xl border-2 text-center ${
-                  reward.unlocked
-                    ? 'bg-amber-50 border-amber-200'
-                    : 'bg-gray-50 border-gray-200 opacity-60'
-                }`}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: i * 0.05 }}
-              >
-                <div className={`text-4xl mb-2 ${reward.unlocked ? '' : 'grayscale'}`}>
-                  {reward.icon}
-                </div>
-                <div className={`font-extrabold text-sm ${reward.unlocked ? 'text-gray-800' : 'text-gray-400'}`}>
-                  {reward.title}
-                </div>
-                <div className="text-xs text-gray-500 mt-0.5">
-                  {reward.unlocked ? reward.description : reward.unlockCondition}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Badges section (from existing badgeData) */}
-          <h3 className="text-sm font-bold text-gray-500 mt-4">已获得徽章</h3>
-          {state.badges.length === 0 ? (
-            <AppCard variant="gray">
-              <div className="text-center py-3 text-gray-500 text-sm">
-                继续完成侦探任务来解锁徽章吧！
-              </div>
-            </AppCard>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {badgeData.filter((b) => state.badges.includes(b.id)).map((badge) => (
-                <div key={badge.id} className="p-4 rounded-2xl border-2 bg-amber-50 border-amber-200 text-center">
-                  <div className="text-4xl mb-1">{badge.icon}</div>
-                  <div className="font-extrabold text-sm text-gray-800">{badge.name}</div>
-                  <div className="text-xs text-gray-500">{badge.description}</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ========== Tab 2: Parent Reward Exchange ========== */}
-      {activeTab === 'redeem' && (
-        <div className="space-y-4">
-          {enabledRewards.length === 0 ? (
-            <AppCard variant="gray">
-              <div className="text-center py-4 text-gray-500">
-                <div className="text-3xl mb-2">🎁</div>
-                <p className="font-bold">还没有可以兑换的奖励</p>
-                <p className="text-sm">请家长在家长设置中添加奖励</p>
-              </div>
-            </AppCard>
-          ) : (
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-gray-500">可兑换奖励</h3>
-              {enabledRewards.map((reward, i) => (
-                <motion.div
-                  key={reward.id}
-                  className="card-detective p-4 flex items-center gap-3"
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                >
-                  <div className="text-3xl">{reward.icon}</div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-extrabold text-gray-800 text-sm">
-                      {reward.name}
-                      <span className="ml-1 text-xs bg-pink-100 text-pink-600 px-1.5 py-0.5 rounded-full">家长奖励</span>
-                    </div>
-                    {reward.description && (
-                      <div className="text-xs text-gray-500 mt-0.5">{reward.description}</div>
-                    )}
-                  </div>
-                  <AppButton
-                    variant={state.stars >= reward.cost ? 'primary' : 'ghost'}
-                    size="sm"
-                    disabled={state.stars < reward.cost}
-                    onClick={() => handleOpenRedeem(reward)}
-                  >
-                    <Star size={14} fill={state.stars >= reward.cost ? 'white' : 'currentColor'} />
-                    {reward.cost}
-                  </AppButton>
-                </motion.div>
-              ))}
-            </div>
-          )}
-
-          {pendingRedemptions.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-bold text-amber-600">⏳ 等待家长确认</h3>
-              {pendingRedemptions.map((r) => (
-                <div key={r.id} className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
-                  <span className="text-sm font-bold text-amber-700">{r.rewardName}</span>
-                  <span className="text-xs text-amber-500">-{r.starsSpent}⭐</span>
-                  <span className="ml-auto text-xs bg-amber-200 text-amber-700 px-2 py-0.5 rounded-full">待确认</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {confirmedRedemptions.length > 0 && (
-            <div className="space-y-2">
-              <h3 className="text-sm font-bold text-green-600">✅ 已确认奖励</h3>
-              {confirmedRedemptions.map((r) => (
-                <div key={r.id} className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-center gap-2">
-                  <span className="text-sm font-bold text-green-700">{r.rewardName}</span>
-                  <span className="text-xs text-green-500">-{r.starsSpent}⭐</span>
-                  <span className="ml-auto text-xs bg-green-200 text-green-700 px-2 py-0.5 rounded-full">已确认</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ========== Tab 3: Parent Settings (authed only) ========== */}
-      {activeTab === 'parent' && parentAuthed && (
-        <div className="space-y-4">
-          {/* Reward Management */}
-          <AppButton variant="primary" size="md" fullWidth onClick={openAddForm}>
-            <Plus size={18} /> 添加新奖励
-          </AppButton>
-
-          {allRewards.length === 0 ? (
-            <AppCard variant="gray">
-              <div className="text-center py-4 text-gray-500">
-                <div className="text-3xl mb-2">📝</div>
-                <p className="font-bold">还没有自定义奖励</p>
-                <p className="text-sm">点击上方按钮添加第一个奖励，或恢复默认奖励</p>
-              </div>
-            </AppCard>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-500">全部奖励</h3>
-                <button
-                  onClick={() => showConfirm(
-                    '恢复默认家长奖励',
-                    '确定要恢复默认家长奖励吗？这会把默认奖励添加到当前列表中（不会删除已有奖励）。',
-                    '恢复默认',
-                    'primary',
-                    restoreDefaultParentRewards
-                  )}
-                  className="text-xs text-amber-600 font-bold hover:underline"
-                >
-                  恢复默认奖励
-                </button>
-              </div>
-              {allRewards.map((reward) => (
-                <AppCard key={reward.id} variant={reward.enabled ? 'default' : 'gray'}>
-                  <div className="flex items-center gap-3">
-                    <div className="text-3xl">{reward.icon}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-gray-800 text-sm">{reward.name}</div>
-                      <div className="text-xs text-gray-500">{reward.description}</div>
-                      <div className="flex items-center gap-1 text-xs text-amber-600 font-bold mt-1">
-                        <Star size={12} fill="currentColor" /> {reward.cost}
-                        {!reward.enabled && <span className="text-gray-400 ml-1">（已停用）</span>}
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <button onClick={() => openEditForm(reward)} className="p-2 rounded-xl hover:bg-amber-100 text-amber-600">
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={() => updateParentReward(reward.id, { enabled: !reward.enabled })}
-                        className={`p-2 rounded-xl ${reward.enabled ? 'hover:bg-red-100 text-red-500' : 'hover:bg-green-100 text-green-500'}`}
-                      >
-                        {reward.enabled ? <X size={16} /> : <Check size={16} />}
-                      </button>
-                      <button
-                        onClick={() => { if (confirm('确定删除这个奖励吗？')) removeParentReward(reward.id); }}
-                        className="p-2 rounded-xl hover:bg-red-100 text-red-400"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </div>
-                </AppCard>
-              ))}
-            </div>
-          )}
-
-          {/* Redemption Management */}
-          {redemptions.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-gray-500">兑换记录</h3>
-              {redemptions.map((r) => (
-                <AppCard key={r.id} variant={r.status === 'confirmed' ? 'green' : r.status === 'cancelled' ? 'gray' : 'amber'}>
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="font-extrabold text-gray-800 text-sm">{r.rewardName}</div>
-                      <div className="text-xs text-gray-500">
-                        {new Date(r.redeemedAt).toLocaleDateString('zh-CN')} · -{r.starsSpent} ⭐
-                      </div>
-                    </div>
-                    {r.status === 'pending' && (
-                      <div className="flex gap-1">
-                        <AppButton variant="success" size="sm" onClick={() => confirmRedemption(r.id)}>
-                          <Check size={14} /> 确认
-                        </AppButton>
-                        <AppButton variant="danger" size="sm" onClick={() => cancelRedemption(r.id, true)}>
-                          <X size={14} /> 取消
-                        </AppButton>
-                      </div>
-                    )}
-                    {r.status === 'confirmed' && (
-                      <span className="text-xs bg-green-200 text-green-700 px-2 py-1 rounded-full font-bold">已确认</span>
-                    )}
-                    {r.status === 'cancelled' && (
-                      <span className="text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded-full font-bold">已取消</span>
-                    )}
-                  </div>
-                </AppCard>
-              ))}
-            </div>
-          )}
-
-          {/* Gate Attempt Log */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-gray-500">🔐 家长模式访问记录</h3>
-              {gateAttempts.length > 0 && (
-                <button onClick={clearParentGateAttempts} className="text-xs text-gray-400 hover:text-red-500 font-bold">
-                  清空记录
-                </button>
-              )}
-            </div>
-            {recentAttempts.length === 0 ? (
-              <p className="text-xs text-gray-400">暂无访问记录</p>
-            ) : (
-              <div className="space-y-2">
-                {failedAttempts.length > 0 && (
-                  <p className="text-xs text-amber-600 bg-amber-50 rounded-lg p-2">
-                    最近有人尝试进入家长设置，如果不是爸爸妈妈操作，可以适当提高验证难度。
-                  </p>
-                )}
-                {recentAttempts.map((a) => (
-                  <div key={a.id} className={`text-xs p-3 rounded-xl border ${
-                    a.correct ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-                  }`}>
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold">
-                        {new Date(a.attemptedAt).toLocaleTimeString('zh-CN')}
-                      </span>
-                      <span className={a.correct ? 'text-green-600 font-bold' : 'text-red-500 font-bold'}>
-                        {a.correct ? '✅ 成功' : '❌ 失败'}
-                      </span>
-                    </div>
-                    <div className="text-gray-600 mt-1">
-                      题目：{a.question} 输入：{a.inputAnswer || '(空)'}
-                      {a.reason === 'cancelled' && ' · 已取消'}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* ========== v2.6.1: 版本与缓存 ========== */}
-          <VersionAndCacheSection />
-          {/* =================================== */}
-
-          {/* Reset Tools */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-bold text-gray-500">🛠️ 重置与测试工具</h3>
-
-            <AppButton
-              variant="ghost"
-              size="sm"
-              fullWidth
-              onClick={() => showConfirm(
-                '重置今日任务',
-                '确定要重置今日任务吗？这不会清空星星和历史记录。',
-                '重置今日任务',
-                'danger',
-                resetTodayLesson
-              )}
-            >
-              <RefreshCw size={14} /> 重置今日任务
-            </AppButton>
-
-            <AppButton
-              variant="ghost"
-              size="sm"
-              fullWidth
-              onClick={() => showConfirm(
-                '清空学习进度',
-                '确定要清空学习进度吗？星星、打卡、错题、徽章都会清空，但家长自定义奖励会保留。',
-                '清空学习进度',
-                'danger',
-                clearLearningProgress
-              )}
-            >
-              <RefreshCw size={14} /> 清空学习进度（保留奖励）
-            </AppButton>
-
-            <AppButton
-              variant="danger"
-              size="sm"
-              fullWidth
-              onClick={() => showConfirm(
-                '恢复全部初始状态',
-                '确定要恢复全部初始状态吗？这会清空所有学习记录、奖励设置和兑换记录。此操作不可撤销！',
-                '全部重置',
-                'danger',
-                resetAllState
-              )}
-            >
-              <AlertTriangle size={14} /> 恢复全部初始状态
-            </AppButton>
-          </div>
-        </div>
-      )}
-
-      {/* ========== Tab 4: Costume Shop ========== */}
-      {activeTab === 'costume' && (
-        <div className="space-y-4">
-          <div className="text-center">
-            <p className="text-sm text-gray-500">收集装饰品，装扮你的侦探！</p>
-          </div>
-          <CostumeShop />
-        </div>
-      )}
-
-      {/* Modals */}
-      <ParentGateModal
-        open={gateModalOpen}
-        onSuccess={handleGateSuccess}
-        onClose={handleGateCancel}
-        onLogAttempt={logGateAttempt}
-      />
-
-      <ParentRewardForm
-        key={formKey}
-        open={rewardFormOpen}
-        onClose={handleFormClose}
-        onSave={handleFormSave}
-        initialData={editingReward}
-      />
-
-      <RedeemConfirmModal
-        open={redeemModalOpen}
-        reward={redeemTarget}
-        currentStars={state.stars}
-        onConfirm={handleConfirmRedeem}
-        onCancel={() => { setRedeemModalOpen(false); setRedeemTarget(null); }}
-      />
-
-      <ConfirmModal
-        open={confirmOpen}
-        title={confirmAction.title}
-        message={confirmAction.message}
-        confirmLabel={confirmAction.label}
-        confirmVariant={confirmAction.variant}
-        onConfirm={handleConfirmAction}
-        onCancel={() => setConfirmOpen(false)}
-      />
-    </PageContainer>
-  );
-}
-
-// ========== v2.6.1: 版本与缓存组件 ==========
-
-function VersionAndCacheSection() {
-  const [todayInfo, setTodayInfo] = useState<{
-    date?: string; completed?: boolean; stepsLen?: number; stepIdx?: number;
-  }>({});
-
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('math-detective-today-lesson');
-      if (raw) {
-        const lesson = JSON.parse(raw);
-        setTodayInfo({
-          date: lesson.date,
-          completed: lesson.completed,
-          stepsLen: lesson.steps?.length,
-          stepIdx: lesson.currentStepIndex,
-        });
-      }
-    } catch { /* ignore */ }
-  }, []);
-
-  function rebuildTodayLesson() {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('math-detective-today-lesson');
-      alert('今日任务已重建。返回首页将自动生成新任务。');
-      window.location.href = '/';
+    if (!parentAuthed) {
+      setEditor(undefined); setEditorDraft(undefined); setShowPasswordChange(false);
+      if (tab === 'parent') setShowGate(true);
     }
+  }, [parentAuthed, tab]);
+  const rewards = useMemo(() => state.parentRewards || [], [state.parentRewards]);
+
+  if (!mounted) return <div className="grid min-h-[55vh] place-items-center text-sm font-bold text-amber-900">正在打开奖励中心…</div>;
+
+  function enterParent() {
+    grantParentAccess();
+    setShowGate(false); setTab('parent');
   }
 
-  function clearAllCaches() {
-    import('@/lib/appVersion').then(({ clearOldCachesSafely }) => {
-      clearOldCachesSafely().then(() => {
-        alert('缓存已清理。建议刷新页面。');
-      });
-    });
+  function saveReward(reward: Omit<ParentReward, 'id' | 'createdAt'>) {
+    if (!isParentAccessGranted()) { setMessage('家长验证已过期，请重新验证后操作。'); return; }
+    const current = getState();
+    const currentRewards = current.parentRewards || [];
+    const next: GameState = editor
+      ? { ...current, parentRewards: currentRewards.map(item => item.id === editor.id ? { ...item, ...reward, cost: 15 } : item) }
+      : { ...current, parentRewards: [...currentRewards, { ...reward, cost: 15, id: createActionId('reward'), createdAt: new Date().toISOString() }] };
+    if (!commitGameState(next)) { setMessage('奖励没有保存成功，请保持内容不变后重试。'); return; }
+    setEditor(undefined); setEditorDraft(undefined); setMessage('奖励已保存；申请成本为 15 积分。');
   }
 
-  return (
-    <div className="space-y-3">
-      <h3 className="text-sm font-bold text-gray-500">📋 版本与缓存</h3>
+  function updateReward(id: string, update: Partial<ParentReward>) {
+    if (!isParentAccessGranted()) { setMessage('家长验证已过期，请重新验证后操作。'); return; }
+    const current = getState();
+    const next = { ...current, parentRewards: (current.parentRewards || []).map(item => item.id === id ? { ...item, ...update, cost: 15 } : item) };
+    setMessage(commitGameState(next) ? '奖励设置已保存。' : '没有保存成功，请重试。');
+  }
 
-      <AppCard variant="gray">
-        <div className="space-y-2 text-xs font-mono text-gray-600">
-          <div className="flex justify-between">
-            <span>当前版本</span>
-            <span className="font-bold text-amber-600">v{APP_VERSION}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>构建时间</span>
-            <span>{APP_BUILD_TIME || '-'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Commit</span>
-            <span>{APP_COMMIT_SHA.slice(0, 7)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>数据版本</span>
-            <span>v{LEARNING_STATE_VERSION}</span>
-          </div>
-          <hr className="border-gray-200" />
-          <div className="flex justify-between">
-            <span>今日任务</span>
-            <span className={todayInfo.date ? 'text-green-600' : 'text-gray-400'}>
-              {todayInfo.date || '无'}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>任务完成</span>
-            <span>{todayInfo.completed ? '✅ 是' : '⏳ 否'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>关卡</span>
-            <span>
-              {todayInfo.stepsLen != null ? `${todayInfo.stepsLen} 关` : '-'}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>当前关卡</span>
-            <span>
-              {todayInfo.stepIdx != null ? `第 ${todayInfo.stepIdx + 1} 关` : '-'}
-            </span>
-          </div>
-        </div>
-      </AppCard>
+  function deleteReward(id: string) {
+    if (!isParentAccessGranted()) { setMessage('家长验证已过期，请重新验证后操作。'); return; }
+    if (!window.confirm('确定删除这项家庭奖励吗？历史兑换记录会保留。')) return;
+    if (!isParentAccessGranted()) { setMessage('家长验证已过期，请重新验证后操作。'); return; }
+    const current = getState();
+    const next = { ...current, parentRewards: (current.parentRewards || []).filter(item => item.id !== id) };
+    setMessage(commitGameState(next) ? '奖励已删除。' : '没有保存成功，请重试。');
+  }
 
-      <div className="grid grid-cols-2 gap-2">
-        <AppButton variant="ghost" size="sm" onClick={async () => { await refreshToLatestVersion(); }}>
-          <Zap size={14} /> 刷新到最新版本
-        </AppButton>
-        <AppButton variant="ghost" size="sm" onClick={async () => { await clearPageCacheAndRefresh(); }}>
-          <Trash size={14} /> 清除缓存并刷新
-        </AppButton>
-      </div>
+  function restoreExampleRewards() {
+    if (!isParentAccessGranted()) { setMessage('家长验证已过期，请重新验证后操作。'); return; }
+    const current = getState();
+    const currentRewards = current.parentRewards || [];
+    const names = new Set(currentRewards.map(reward => reward.name));
+    const missing = DEFAULT_PARENT_REWARDS.filter(reward => !names.has(reward.name)).map(reward => ({
+      ...reward, cost: 15, id: createActionId('reward-default'), createdAt: new Date().toISOString(),
+    }));
+    if (!missing.length) { setMessage('示例奖励已全部在列表中。'); return; }
+    setMessage(commitGameState({ ...current, parentRewards: [...currentRewards, ...missing] })
+      ? `已添加 ${missing.length} 项示例奖励，原奖励和说明均保留。` : '没有保存成功，请重试。');
+  }
 
-      <AppButton
-        variant="ghost" size="sm" fullWidth
-        onClick={() => { if (confirm('确定重建今日任务吗？当前进度会丢失，但星星和奖励保留。')) rebuildTodayLesson(); }}
-      >
-        <RotateCw size={14} /> 重建今日任务
-      </AppButton>
+  function equip(id: string) {
+    const current = getState();
+    const unlocked = new Set(getUnlockedItems(current).map(item => item.id));
+    if (!unlocked.has(id)) { setMessage('这件装扮尚未解锁，当前只是试穿预览。'); return; }
+    const item = getAvatarItemById(id);
+    if (!item) return;
+    const decorations = [...(current.decorations || [])];
+    const alreadyEquipped = decorations.includes(id);
+    const nextDecorations = alreadyEquipped
+      ? decorations.filter(value => value !== id)
+      : [...decorations.filter(value => {
+        const existing = getAvatarItemById(value);
+        return !(existing && existing.slot === item.slot && !existing.canStack && !item.canStack);
+      }), id];
+    if (!commitGameState({ ...current, decorations: nextDecorations })) setMessage('装扮没有保存成功，请重试。');
+    else setMessage(alreadyEquipped ? '已卸下装扮。' : '装扮已装备。');
+  }
 
-      <Link href="/parent/test">
-        <AppButton variant="ghost" size="sm" fullWidth>
-          🧪 题型测试模式
-        </AppButton>
-      </Link>
-    </div>
-  );
+  const tabItems: { id: Tab; label: string; icon: ReactNode }[] = [
+    { id: 'points', label: '积分', icon: <Coins size={17} /> },
+    { id: 'honors', label: '荣誉', icon: <Medal size={17} /> },
+    { id: 'wardrobe', label: '换装', icon: <Shirt size={17} /> },
+    { id: 'parent', label: '家长', icon: <ShieldCheck size={17} /> },
+  ];
+
+  return <PageContainer className="max-w-5xl space-y-4">
+    <header className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.2em] text-indigo-700">侦探奖励中心</p><h1 className="text-2xl font-black text-slate-950 sm:text-3xl">奖励与侦探档案</h1><p className="mt-1 text-sm text-slate-600">积分来自真实学习和家长记录；荣誉与装扮按学习进度解锁。</p></div>{parentAuthed && <button type="button" className="min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-bold" onClick={() => { clearParentAccess(); setShowGate(false); setShowPasswordChange(false); setTab('points'); }}>退出家长区</button>}</header>
+    <nav aria-label="奖励中心分区" className="grid grid-cols-4 gap-1 rounded-2xl border border-slate-200 bg-white p-1 sm:gap-2">{tabItems.map(item => <button key={item.id} type="button" aria-current={tab === item.id ? 'page' : undefined} onClick={() => { if (item.id === 'parent' && !parentAuthed) { setShowGate(true); return; } if (item.id !== 'parent' && tab === 'parent') { clearParentAccess(); setShowGate(false); } setTab(item.id); }} className={`flex min-h-12 items-center justify-center gap-1 rounded-xl px-1 text-sm font-bold sm:gap-2 sm:px-3 ${tab === item.id ? 'bg-indigo-900 text-white' : 'text-slate-700 hover:bg-indigo-50'}`}>{item.icon}<span>{item.label}</span></button>)}</nav>
+
+    {tab === 'points' && <FamilyPointsPanel state={state} getState={getState} commitGameState={commitGameState} rewards={rewards} parentAuthed={parentAuthed} />}
+    {tab === 'honors' && <div className="space-y-4"><DetectiveStage state={state} size="large" /><MedalGallery state={state} /></div>}
+    {tab === 'wardrobe' && <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5"><header className="mb-3"><h2 className="text-xl font-extrabold text-slate-950">试穿与装备</h2><p className="mt-1 text-sm text-slate-600">点击装备才会保存；锁定物品仅供试穿。家庭积分不会用于购买装扮。</p></header><WardrobePanel state={state} onEquip={equip} /></section>}
+    {tab === 'parent' && parentAuthed && <div className="space-y-4"><FamilyPointsPanel state={state} getState={getState} commitGameState={commitGameState} rewards={rewards} parentAuthed /> <section className="space-y-4 rounded-2xl border border-blue-200 bg-white p-4 sm:p-5">
+      {showPasswordChange && <ParentPasswordGate mode="change" onSuccess={() => { clearParentAccess(); setShowPasswordChange(false); setTab('points'); setMessage('家长密码已更新，需重新验证才能再次进入家长区。'); }} onCancel={() => setShowPasswordChange(false)} />}
+      {!showPasswordChange && <button type="button" className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-blue-300 px-3 text-sm font-bold text-blue-900" onClick={() => setShowPasswordChange(true)}><KeyRound size={17} />修改家长密码</button>}
+      <header className="flex flex-wrap items-start justify-between gap-3"><div><h2 className="text-xl font-extrabold text-slate-950">家庭奖励设置</h2><p className="mt-1 text-sm text-slate-600">原有奖励名称和说明已保留；所有奖励申请统一扣 15 积分。</p></div><div className="flex flex-wrap gap-2"><button type="button" className="min-h-11 rounded-xl border border-blue-300 px-3 text-sm font-bold text-blue-900" onClick={restoreExampleRewards}>恢复示例奖励</button><button type="button" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-800 px-4 font-bold text-white" onClick={() => { setEditorDraft(undefined); setEditor(null); }}><Gift size={17} />新增奖励</button></div></header>
+      <div className="space-y-2">{rewards.map(reward => <article key={reward.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 p-3"><span className="text-2xl">{reward.icon}</span><div className="min-w-0 flex-1"><h3 className="font-bold text-slate-900">{reward.name}</h3><p className="text-sm text-slate-600">{reward.description || '暂无说明'}</p><p className="mt-1 text-xs font-bold text-amber-800">申请成本 15 积分 · {reward.enabled ? '启用中' : '已停用'}</p></div><button type="button" className="min-h-11 rounded-lg border border-slate-300 px-3 text-sm font-bold" onClick={() => setEditor(reward)}>编辑</button><button type="button" className="min-h-11 rounded-lg border border-slate-300 px-3 text-sm font-bold" onClick={() => updateReward(reward.id, { enabled: !reward.enabled })}>{reward.enabled ? '停用' : '启用'}</button><button type="button" className="min-h-11 rounded-lg border border-rose-200 px-3 text-sm font-bold text-rose-800" onClick={() => deleteReward(reward.id)}>删除</button></article>)}</div>
+      <section className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4">
+        <h3 className="font-extrabold text-amber-950">奖励灵感</h3>
+        <p className="mt-1 text-sm text-amber-900">选一个想法后可自行修改名称和说明。它只是草稿，保存前不会加入奖励列表，也不代表家长已经承诺兑现。</p>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">{rewardIdeas.map(idea => <button key={idea.name} type="button" data-testid={`reward-idea-${idea.name}`} onClick={() => { setEditorDraft(idea); setEditor(null); }} className="flex min-h-14 items-center gap-2 rounded-xl border border-amber-200 bg-white px-3 text-left text-sm font-bold text-slate-800 hover:border-amber-500 hover:bg-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-700"><span aria-hidden="true" className="text-xl">{idea.icon}</span><span>{idea.name}</span></button>)}</div>
+      </section>
+      <div className="border-t border-slate-200 pt-4"><h3 className="font-bold text-slate-900">高级工具</h3><p className="mt-1 text-xs text-slate-600">家长密码仅用于此浏览器的本地家长操作区，不代表服务器身份验证。</p><div className="mt-3 grid gap-2 sm:grid-cols-3"><button type="button" className="min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-bold" onClick={() => { if (isParentAccessGranted() && window.confirm('重置今天的课程进度？') && isParentAccessGranted()) resetTodayLesson(); }}>重置今日课程</button><button type="button" className="min-h-11 rounded-xl border border-amber-300 px-3 text-sm font-bold text-amber-900" onClick={() => { if (isParentAccessGranted() && window.confirm('清空所有学习记录？此操作不可撤销。') && isParentAccessGranted()) clearLearningProgress(); }}>清空学习进度</button><button type="button" className="min-h-11 rounded-xl border border-rose-300 px-3 text-sm font-bold text-rose-800" onClick={() => { if (isParentAccessGranted() && window.confirm('恢复全部初始状态？此操作不可撤销。') && isParentAccessGranted()) resetAllState(); }}>全部重置</button></div><button type="button" className="mt-3 min-h-11 rounded-xl border border-slate-300 px-3 text-sm font-bold" onClick={() => { if (isParentAccessGranted()) clearParentGateAttempts(); }}>清空家长区进入记录</button></div>
+    </section></div>}
+
+    {showGate && <div className="fixed inset-0 z-40 flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-4"><div role="dialog" aria-modal="true" aria-label="家长密码验证" className="max-h-[95dvh] w-full overflow-y-auto rounded-t-3xl bg-white p-4 sm:max-w-lg sm:rounded-3xl sm:p-5"><ParentPasswordGate onSuccess={enterParent} onCancel={() => setShowGate(false)} /></div></div>}
+    {parentAuthed && editor !== undefined && <RewardEditor value={editor || undefined} draft={editorDraft} onSave={saveReward} onCancel={() => { setEditor(undefined); setEditorDraft(undefined); }} />}
+    {message && <p role="status" aria-live="polite" className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-semibold">{message}<button type="button" className="ml-2 underline" onClick={() => setMessage('')}>关闭</button></p>}
+  </PageContainer>;
 }

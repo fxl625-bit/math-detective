@@ -5,6 +5,7 @@ import type { Question } from '@/lib/types';
 import DetectiveMascot from '@/components/DetectiveMascot';
 import HintSystem from '@/components/lesson/HintSystem';
 import MultiAnswerInput from '@/components/lesson/MultiAnswerInput';
+import { IntegerInput } from '@/components/lesson/IntegerInput';
 import { resolveAnswerType } from '@/lib/answerChecker';
 
 interface SequencePatternGuideProps {
@@ -264,7 +265,7 @@ export default function SequencePatternGuide({
   // Phase: explain — 展示完整推理
   if (phase === 'explain') {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 pb-24">
         <DetectiveMascot mood="excited" size="md" message="太棒了！来看看完整的推理过程吧！" />
 
         <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-5">
@@ -291,6 +292,7 @@ export default function SequencePatternGuide({
 
         <div className="flex justify-center">
           <button
+            type="button"
             onClick={onPhaseAdvance}
             className="px-10 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl text-lg shadow-lg transition-colors"
           >
@@ -319,36 +321,39 @@ function SingleAnswerFallback({ question, onSubmit }: { question: Question; onSu
   const [value, setValue] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = () => {
-    if (!value.trim() || submitted) return;
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const inputAnswer = e
+      ? (new FormData(e.currentTarget as HTMLFormElement).get('answer') as string || '').trim()
+      : value.trim();
+    if (!inputAnswer || submitted) return;
     setSubmitted(true);
-    onSubmit(value.trim());
+    onSubmit(inputAnswer);
   };
 
   return (
-    <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5">
-      <input
-        type="text"
-        inputMode="decimal"
-        value={value}
-        onChange={e => setValue(e.target.value)}
-        disabled={submitted}
-        className="w-full p-3 text-lg font-bold rounded-xl border-2 border-amber-300 bg-white text-center focus:border-amber-500 focus:ring-2 focus:ring-amber-200"
-        placeholder="输入答案"
-      />
-      <div className="mt-3 flex justify-center">
-        <button
-          onClick={handleSubmit}
-          disabled={!value.trim() || submitted}
-          className={`px-8 py-3 font-bold rounded-xl text-lg shadow-md transition-colors ${
-            value.trim() && !submitted
-              ? 'bg-green-500 hover:bg-green-600 text-white'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }`}
-        >
-          提交答案
-        </button>
+    <form onSubmit={handleSubmit}>
+      <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-5">
+        <IntegerInput
+          value={value}
+          onChange={setValue}
+          onSubmit={() => handleSubmit()}
+          disabled={submitted}
+        />
+        <div className="mt-3 flex justify-center">
+          <button
+            type="submit"
+            disabled={!value.trim() || submitted}
+            className={`px-8 py-3 font-bold rounded-xl text-lg shadow-md transition-colors ${
+              value.trim() && !submitted
+                ? 'bg-green-500 hover:bg-green-600 text-white'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            提交答案
+          </button>
+        </div>
       </div>
-    </div>
+    </form>
   );
 }

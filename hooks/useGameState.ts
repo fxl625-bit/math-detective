@@ -4,22 +4,26 @@ import { useState, useEffect, useCallback } from 'react';
 import { GameState, DEFAULT_GAME_STATE, DEFAULT_PARENT_REWARDS, MistakeRecord, ParentReward, RewardRedemption, ParentGateAttempt } from '@/lib/types';
 import {
   loadState,
+  getStorageRecoveryStatus,
   saveState,
   checkDailyReset,
   updateStreak,
   checkWeeklyCard,
-  calculateLevel,
   checkBadges,
   addMistake,
   retryMistakeCorrect,
   completeQuestion,
-  checkDailyCheckin,
   normalizeStats,
 } from '@/lib/storage';
 import { getAvatarItemById } from '@/data/avatarItems';
 import { logAppVersion } from '@/lib/appVersion';
 import { handleAppVersionUpgrade, UPGRADE_TOAST_MESSAGE } from '@/lib/versionUpgrade';
 import { questions as allQuestions } from '@/data/questions';
+import { updateLearningSettingsState } from '@/lib/learningSettings';
+import { ensurePointsState, claimCheckin, addParentPoints as applyParentPoints, requestReward as applyRewardRequest, resolveRedemption as applyRedemptionResolution, type PointsResult, type ParentPointsInput, type RewardRequestInput, type RedemptionResolutionInput } from '@/lib/familyPoints';
+import { submitMistakeReview as applyMistakeReview, type MistakeReviewInput, type MistakeReviewResult } from '@/lib/mistakeReview';
+import { appendUniqueEvent, createEventIdentity } from '@/lib/learningEvents';
+import { buildMentalMathLearningEvents, buildMentalMathMistakes, type MentalMathSession } from '@/lib/mentalMath';
 
 let globalState: GameState | null = null;
 let listeners: Array<(s: GameState) => void> = [];
@@ -29,11 +33,20 @@ function notify(state: GameState) {
   listeners.forEach((fn) => fn(state));
 }
 
-function update(updater: (s: GameState) => GameState) {
-  const current = globalState ?? loadState();
-  const next = updater(current);
-  saveState(next);
+function latestState(): GameState {
+  if (typeof window === 'undefined') return globalState ?? ensurePointsState(DEFAULT_GAME_STATE);
+  const current = loadState();
+  globalState = current;
+  return current;
+}
+
+function update(updater: (s: GameState) => GameState): boolean {
+  const current = latestState();
+  if (getStorageRecoveryStatus()) return false;
+  const next = ensurePointsState(updater(current));
+  if (!saveState(next)) return false;
   notify(next);
+  return true;
 }
 
 export function useGameState() {
@@ -52,10 +65,19 @@ export function useGameState() {
       const normalized = normalizeStats(loaded);
       
       // v2.6.1: 版本升级处理
-      const { needsLessonRebuild, wasUpgraded } = handleAppVersionUpgrade(
-        normalized,
-        (id) => allQuestions.find(q => q.id === id)
-      );
+      let recoveredState = normalized;
+      let needsLessonRebuild = false;
+      let wasUpgraded = false;
+      if (!getStorageRecoveryStatus()) {
+        try {
+          const upgrade = handleAppVersionUpgrade(normalized, (id) => allQuestions.find(q => q.id === id));
+          recoveredState = upgrade.state;
+          needsLessonRebuild = upgrade.needsLessonRebuild;
+          wasUpgraded = upgrade.wasUpgraded;
+        } catch (error) {
+          console.warn('[useGameState] version migration deferred because browser storage is unavailable', error);
+        }
+      }
       if (wasUpgraded) {
         if (typeof window !== 'undefined' && (window as any).__debugLog) {
           (window as any).__debugLog('[useGameState] version upgraded, needsLessonRebuild=' + needsLessonRebuild);
@@ -67,10 +89,9 @@ export function useGameState() {
         (window as any).__needsLessonRebuild = true;
       }
       
-      const daily = checkDailyReset(normalized);
+      const daily = checkDailyReset(recoveredState);
       const weekly = checkWeeklyCard(daily);
-      const leveled = { ...weekly, level: calculateLevel(weekly.stars) };
-      const badged = { ...leveled, badges: checkBadges(leveled) };
+      const badged = { ...weekly, stars: 0, badges: checkBadges(weekly) };
       globalState = badged;
       if (typeof window !== 'undefined' && (window as any).__debugLog) (window as any).__debugLog('[useGameState] init done, stars=' + badged.stars);
       return badged;
@@ -88,7 +109,7 @@ export function useGameState() {
   }, []);
 
   const refresh = useCallback(() => {
-    const current = globalState ?? loadState();
+    const current = latestState();
     setState(current);
   }, []);
 
@@ -100,7 +121,7 @@ export function useGameState() {
         ns = updateStreak(ns);
         ns = checkWeeklyCard(ns);
         ns = completeQuestion(ns, questionId, correct);
-        ns.level = calculateLevel(ns.stars);
+        ns.stars = 0;
         ns.badges = checkBadges(ns);
 
         if (!correct && mistakeRecord) {
@@ -120,21 +141,23 @@ export function useGameState() {
   }, []);
 
   const setParentSettings = useCallback((settings: Partial<import('@/lib/types').ParentSettings>) => {
-    update((s) => ({
-      ...s,
-      parentSettings: { ...s.parentSettings, ...settings },
-    }));
+    update((s) => updateLearningSettingsState(s, settings));
   }, []);
 
-  const redeemReward = useCallback((cost: number): boolean => {
-    let success = false;
-    update((s) => {
-      if (s.stars < cost) return s;
-      success = true;
-      return { ...s, stars: s.stars - cost };
-    });
-    return success;
+  const saveParentSettings = useCallback((settings: Partial<import('@/lib/types').ParentSettings>): boolean => {
+    try {
+      const current = latestState();
+      if (getStorageRecoveryStatus()) return false;
+      const next = updateLearningSettingsState(current, settings);
+      if (!saveState(next)) return false;
+      notify(next);
+      return true;
+    } catch {
+      return false;
+    }
   }, []);
+
+  const redeemReward = useCallback((_cost: number): boolean => false, []);
 
   // ========== 家长奖励 CRUD ==========
 
@@ -169,27 +192,8 @@ export function useGameState() {
   }, []);
 
   const redeemRewardWithPending = useCallback((reward: ParentReward): boolean => {
-    let success = false;
-    update((s) => {
-      if (s.stars < reward.cost) return s;
-      success = true;
-      return {
-        ...s,
-        stars: s.stars - reward.cost,
-        rewardRedemptions: [
-          ...s.rewardRedemptions,
-          {
-            id: `rr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-            rewardId: reward.id,
-            rewardName: reward.name,
-            starsSpent: reward.cost,
-            redeemedAt: new Date().toISOString(),
-            status: 'pending' as const,
-          },
-        ],
-      };
-    });
-    return success;
+    void reward;
+    return false;
   }, []);
 
   const confirmRedemption = useCallback((redemptionId: string) => {
@@ -203,14 +207,11 @@ export function useGameState() {
 
   const cancelRedemption = useCallback((redemptionId: string, refundStars: boolean) => {
     update((s) => {
-      const redemption = s.rewardRedemptions.find((r) => r.id === redemptionId);
+      void refundStars;
       const updated: typeof s.rewardRedemptions = s.rewardRedemptions.map((r) =>
         r.id === redemptionId ? { ...r, status: 'cancelled' as const } : r
       );
-      if (refundStars && redemption) {
-        return { ...s, stars: s.stars + redemption.starsSpent, rewardRedemptions: updated };
-      }
-      return { ...s, rewardRedemptions: updated };
+      return { ...s, stars: 0, rewardRedemptions: updated };
     });
   }, []);
 
@@ -298,8 +299,14 @@ export function useGameState() {
     });
   }, []);
 
-  const getState = useCallback((): GameState => {
-    return globalState ?? loadState();
+  const getState = useCallback((): GameState => latestState(), []);
+
+  const commitGameState = useCallback((next: GameState): boolean => {
+    if (getStorageRecoveryStatus()) return false;
+    const safeNext = ensurePointsState(next);
+    if (!saveState(safeNext)) return false;
+    notify(safeNext);
+    return true;
   }, []);
 
   /**
@@ -307,15 +314,7 @@ export function useGameState() {
    * grantDailyRewardOnce 返回的 updatedState 需要通过此路径保存，
    * 不能用 saveTodayLesson 代替（那只存 lesson，不存 GameState）
    */
-  const addStars = useCallback((amount: number) => {
-    update((s) => {
-      if (amount <= 0) return s;
-      const newStars = s.stars + amount;
-      const newLevel = calculateLevel(newStars);
-      const newBadges = checkBadges({ ...s, stars: newStars, level: newLevel });
-      return { ...s, stars: newStars, level: newLevel, badges: newBadges };
-    });
-  }, []);
+  const addStars = useCallback((_amount: number) => undefined, []);
 
   const toggleDecoration = useCallback((decorationId: string) => {
     update((s) => {
@@ -349,22 +348,101 @@ export function useGameState() {
     });
   }, []);
 
+  const persistPointsResult = useCallback((result: PointsResult): PointsResult => {
+    if (!result.ok) return result;
+    if (!commitGameState(result.state)) {
+      return { state: latestState(), ok: false, message: '保存失败，积分没有到账。请检查设备存储后重试。', pointsDelta: 0 };
+    }
+    return result;
+  }, [commitGameState]);
+
+  const claimDailyCheckin = useCallback((): PointsResult => {
+    const current = latestState();
+    if (getStorageRecoveryStatus()) return { state: current, ok: false, message: '当前设备数据不可写，签到未保存。', pointsDelta: 0 };
+    return persistPointsResult(claimCheckin(current));
+  }, [persistPointsResult]);
+
   const doCheckin = useCallback((): number | null => {
-    let bonus: number | null = null;
-    update((s) => {
-      const result = checkDailyCheckin(s);
-      if (!result) return s;
-      bonus = result.bonus;
-      return result.state;
+    const result = claimDailyCheckin();
+    return result.ok && result.pointsDelta > 0 ? result.pointsDelta : null;
+  }, [claimDailyCheckin]);
+
+  const addParentPoints = useCallback((input: ParentPointsInput): PointsResult => {
+    const current = latestState();
+    if (getStorageRecoveryStatus()) return { state: current, ok: false, message: '当前设备数据不可写，积分未保存。', pointsDelta: 0 };
+    return persistPointsResult(applyParentPoints(current, input));
+  }, [persistPointsResult]);
+
+  const requestReward = useCallback((input: RewardRequestInput): PointsResult => {
+    const current = latestState();
+    if (getStorageRecoveryStatus()) return { state: current, ok: false, message: '当前设备数据不可写，兑换申请未保存。', pointsDelta: 0 };
+    return persistPointsResult(applyRewardRequest(current, input));
+  }, [persistPointsResult]);
+
+  const resolvePointRedemption = useCallback((input: RedemptionResolutionInput): PointsResult => {
+    const current = latestState();
+    if (getStorageRecoveryStatus()) return { state: current, ok: false, message: '当前设备数据不可写，处理结果未保存。', pointsDelta: 0 };
+    return persistPointsResult(applyRedemptionResolution(current, input));
+  }, [persistPointsResult]);
+
+  const submitMistakeReview = useCallback((input: MistakeReviewInput): MistakeReviewResult => {
+    const current = latestState();
+    if (getStorageRecoveryStatus()) return { state: current, ok: false, correct: false, message: '当前设备数据不可写，订正未保存。', pointsDelta: 0 };
+    const result = applyMistakeReview(current, input);
+    if (!result.ok) return result;
+    if (!commitGameState(result.state)) {
+      return { state: latestState(), ok: false, correct: result.correct, message: '保存失败，订正结果没有记录。请检查设备存储后重试。', pointsDelta: 0 };
+    }
+    return result;
+  }, [commitGameState]);
+
+  /**
+   * v2.12.0: 保存一次口算练习会话记录。
+   */
+  const saveMentalMathSession = useCallback((session: MentalMathSession): boolean => {
+    const current = latestState();
+    const records = Array.isArray(current.mentalMathRecords) ? current.mentalMathRecords : [];
+    // A completed session is an immutable transaction. Retrying its save must not
+    // duplicate mistakes/events or notify subscribers again.
+    if (records.some((record) => record.id === session.id)) return true;
+
+    const generatedIdentity = createEventIdentity();
+    const identity = {
+      childProfileId: current.childProfileId || generatedIdentity.childProfileId,
+      deviceId: current.deviceId || generatedIdentity.deviceId,
+    };
+    const existingEvents = Array.isArray(current.learningEvents) ? current.learningEvents : [];
+    let learningEvents = existingEvents;
+    for (const event of buildMentalMathLearningEvents(session, identity)) {
+      const appended = appendUniqueEvent(learningEvents, event);
+      if (!appended.accepted && appended.reason !== 'duplicate') return false;
+      learningEvents = appended.events;
+    }
+
+    const existingMistakes = Array.isArray(current.mistakes) ? current.mistakes : [];
+    const knownMistakeInstances = new Set(existingMistakes.map((mistake) => mistake.instanceId).filter(Boolean));
+    const mistakes = buildMentalMathMistakes(session).filter((mistake) => {
+      if (!mistake.instanceId || knownMistakeInstances.has(mistake.instanceId)) return false;
+      knownMistakeInstances.add(mistake.instanceId);
+      return true;
     });
-    return bonus;
-  }, []);
+    return commitGameState({
+      ...current,
+      childProfileId: identity.childProfileId,
+      deviceId: identity.deviceId,
+      mentalMathRecords: [...records, session],
+      mistakes: [...existingMistakes, ...mistakes],
+      learningEvents,
+    });
+  }, [commitGameState]);
 
   return {
     state,
+    saveMentalMathSession,
     completeQuestion: handleCompleteQuestion,
     retryCorrect: handleRetryCorrect,
     setParentSettings,
+    saveParentSettings,
     redeemReward,
     addParentReward,
     updateParentReward,
@@ -380,7 +458,13 @@ export function useGameState() {
     restoreDefaultParentRewards,
     toggleDecoration,
     doCheckin,
+    claimDailyCheckin,
+    addParentPoints,
+    requestReward,
+    resolvePointRedemption,
+    submitMistakeReview,
     getState,
+    commitGameState,
     addStars,
     refresh,
   };

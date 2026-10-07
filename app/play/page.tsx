@@ -8,7 +8,7 @@ import { ArrowLeft, Check, X, ArrowUpRight, ArrowDownRight, ShieldCheck, Lightbu
 import LogicRankingGuide from '@/components/LogicRankingGuide';
 import SequencePatternGuide from '@/components/lesson/SequencePatternGuide';
 import { useGameState } from '@/hooks/useGameState';
-import { loadState, getAccuracyStats } from '@/lib/storage';
+import { loadState } from '@/lib/storage';
 import { getTodayLesson, normalizeLesson, safeNormalizeLesson, generateSafeFallbackLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson, validateStepQuestionCompatibility } from '@/lib/lessonPlanner';
 import { getQuestionById } from '@/data/questions';
 import { getStepNarrative } from '@/lib/storySystem';
@@ -21,8 +21,8 @@ import { needsAddSubtractPrompt, getKeywordTypeDescription, classifyKeyword } fr
 import { inferLessonType, extractNumbers, classifyNumberRole } from '@/lib/questionValidation';
 import { checkAnswer, resolveAnswerType } from '@/lib/answerChecker';
 import { textRevealsAnswer, hintRevealsAnswer, stringStepsRevealAnswer } from '@/lib/hintSafety';
-import { grantDailyRewardOnce, markDailyRewardShown } from '@/lib/rewardSystem';
-import { commitLessonTransaction, updateDebugState, assertCorrectAnswerAdvanced, assertRepairContinued, getDebugState, type LessonAction, type LearningState, type LessonActionPayload } from '@/lib/lessonTransaction';
+import { markDailyRewardShown } from '@/lib/rewardSystem';
+import { commitLessonTransaction, updateDebugState, assertCorrectAnswerAdvanced, assertRepairContinued, assertFeedbackWithoutCorrectAnswer, assertQuestionAdvancedWithoutAnswerGate, getDebugState, type LessonAction, type LearningState, type LessonActionPayload } from '@/lib/lessonTransaction';
 import HintSystem from '@/components/lesson/HintSystem';
 import AppButton from '@/components/ui/AppButton';
 import AppCard from '@/components/ui/AppCard';
@@ -35,9 +35,14 @@ import FeedbackOverlay from '@/components/FeedbackOverlay';
 import ProgressBar from '@/components/ProgressBar';
 import StarDisplay from '@/components/StarDisplay';
 import TomorrowPreviewCard from '@/components/TomorrowPreviewCard';
+import { getCognitiveSkillLabel } from '@/lib/learningLabels';
 import NumberLine from '@/components/NumberLine';
 import CountingBlocks from '@/components/CountingBlocks';
 import BalanceScale from '@/components/BalanceScale';
+import { AnswerInputRouter } from '@/components/lesson/AnswerInputRouter';
+import ConceptLab from '@/components/lesson/ConceptLab';
+import { inferAnswerSchema } from '@/lib/answerSchema';
+import { appendUniqueEvent, createEventIdentity } from '@/lib/learningEvents';
 
 declare global {
   interface Window {
@@ -48,6 +53,7 @@ declare global {
       submitAnswer: () => boolean;
       goNext: () => boolean;
       getValidationStatus: () => Record<string, unknown>;
+      setLesson: (lesson: Record<string, unknown>) => void;
     };
   }
 }
@@ -65,7 +71,8 @@ export default function PlayPage() {
 function PlayPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { state, completeQuestion, addStars } = useGameState();
+  const { state, completeQuestion, commitGameState } = useGameState();
+  const sessionIdRef = useRef(`session-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
   const [lesson, setLesson] = useState<TodayLesson | null>(null);
   const lessonRef = useRef<TodayLesson | null>(null);
@@ -74,6 +81,11 @@ function PlayPageContent() {
   const [isAdvancing, setIsAdvancing] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [feedback, setFeedback] = useState<{ show: boolean; type: 'success' | 'hint' | 'info'; message: string }>({ show: false, type: 'info', message: '' });
+  const [pendingStorageRetry, setPendingStorageRetry] = useState<
+    | { kind: 'action'; action: LessonAction; payload: LessonActionPayload; source: string }
+    | { kind: 'lesson'; lesson: TodayLesson }
+    | null
+  >(null);
 
   useEffect(() => {
     setMounted(true);
@@ -164,6 +176,91 @@ function PlayPageContent() {
     }
   }, []);
 
+  useEffect(() => {
+    const recordHint = (rawEvent: Event) => {
+      const detail = (rawEvent as CustomEvent<{ questionId?: string; level?: 'medium' | 'full' }>).detail;
+      const currentLesson = lessonRef.current;
+      const step = currentLesson && getCurrentStep(currentLesson);
+      const question = detail?.questionId ? getQuestionById(detail.questionId) : null;
+      if (!currentLesson || !step || !question || !detail?.level) return;
+      const persisted = loadState();
+      const generated = createEventIdentity();
+      const childProfileId = persisted.childProfileId || generated.childProfileId;
+      const deviceId = persisted.deviceId || generated.deviceId;
+      const actionId = `hint-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const snapshot = currentLesson.settingSnapshot || step.settingSnapshot || {};
+      const grade = typeof snapshot.grade === 'string' && /^G[1-6]$/.test(snapshot.grade)
+        ? snapshot.grade as 'G1' | 'G2' | 'G3' | 'G4' | 'G5' | 'G6'
+        : 'unknown' as const;
+      const semester = snapshot.semester === 'upper' || snapshot.semester === 'lower' ? snapshot.semester : 'unknown' as const;
+      const added = appendUniqueEvent(persisted.learningEvents || [], {
+        eventId: `${actionId}:hint_used`, childProfileId, deviceId,
+        sessionId: sessionIdRef.current, lessonId: currentLesson.lessonId || currentLesson.date,
+        questionInstanceId: step.questionInstanceId || `${currentLesson.lessonId || currentLesson.date}:${currentLesson.currentStepIndex}:${question.id}`,
+        questionId: question.id, questionVersion: String((question as any).questionVersion || (question as any).version || 'unknown'),
+        skillIds: step.skill ? [step.skill] : [], grade, semester, unitId: snapshot.unitId ?? null,
+        role: step.role || 'unknown', settingSignature: currentLesson.lessonSignature,
+        eventType: 'hint_used', actionId, attemptId: `attempt:${step.questionInstanceId || question.id}`,
+        timestamp: new Date().toISOString(), hintLevel: detail.level,
+        completionMode: detail.level === 'full' ? 'assisted' : 'independent',
+      });
+      if (added.accepted) {
+        const saved = commitGameState({
+          ...persisted, childProfileId, deviceId, learningEvents: added.events,
+          lastCommittedLesson: currentLesson,
+          lessonPersistenceRevision: (persisted.lessonPersistenceRevision || 0) + 1,
+        });
+        if (!saved) setFeedback({ show: true, type: 'info', message: '提示记录未能保存，请检查设备空间后重试。' });
+      }
+    };
+    window.addEventListener('md:learning-hint', recordHint);
+    return () => window.removeEventListener('md:learning-hint', recordHint);
+  }, [commitGameState]);
+
+  const recordLearningSupport = useCallback((supportId: string) => {
+    const currentLesson = lessonRef.current;
+    const step = currentLesson && getCurrentStep(currentLesson);
+    if (!currentLesson || !step || !supportId) return;
+    const persisted = loadState();
+    const question = getQuestionById(step.questionId);
+    if (!question) return;
+    const instanceId = step.questionInstanceId || `${currentLesson.lessonId || currentLesson.date}:${currentLesson.currentStepIndex}:${question.id}`;
+    const eventId = `${instanceId}:support:${supportId}`;
+    if ((persisted.learningEvents || []).some(event => event.eventId === eventId)) return;
+    const generated = createEventIdentity();
+    const snapshot = currentLesson.settingSnapshot || step.settingSnapshot || {};
+    const grade = typeof snapshot.grade === 'string' && /^G[1-6]$/.test(snapshot.grade)
+      ? snapshot.grade as 'G1' | 'G2' | 'G3' | 'G4' | 'G5' | 'G6'
+      : 'unknown' as const;
+    const semester = snapshot.semester === 'upper' || snapshot.semester === 'lower' ? snapshot.semester : 'unknown' as const;
+    const event = {
+      eventId, schemaVersion: 1 as const,
+      childProfileId: persisted.childProfileId || generated.childProfileId,
+      deviceId: persisted.deviceId || generated.deviceId,
+      sessionId: sessionIdRef.current,
+      lessonId: currentLesson.lessonId || currentLesson.date,
+      questionInstanceId: instanceId,
+      questionId: question.id,
+      questionVersion: String((question as any).questionVersion || (question as any).version || 'unknown'),
+      skillIds: step.skill ? [step.skill] : [],
+      grade, semester, unitId: snapshot.unitId ?? null,
+      role: (step.role || 'unknown') as NonNullable<import('@/lib/types').LearningEvent['role']>, settingSignature: currentLesson.lessonSignature,
+      eventType: 'support_used' as const, actionId: eventId, attemptId: `support:${instanceId}`,
+      timestamp: new Date().toISOString(), hintLevel: 'none' as const,
+      completionMode: 'legacy_unknown' as const,
+    };
+    const added = appendUniqueEvent(persisted.learningEvents || [], event);
+    if (added.accepted) {
+      const saved = commitGameState({
+        ...persisted,
+        childProfileId: persisted.childProfileId || generated.childProfileId,
+        deviceId: persisted.deviceId || generated.deviceId,
+        learningEvents: added.events,
+      });
+      if (!saved) setFeedback({ show: true, type: 'info', message: '这次操作方式还没有保存成功，请稍后再试。' });
+    }
+  }, [commitGameState]);
+
   // v2.6.4: 同步 lessonRef 保持与 React state 一致
   useEffect(() => {
     lessonRef.current = lesson;
@@ -208,24 +305,11 @@ function PlayPageContent() {
 
   // ========== v2.6.4 统一事务系统：runLessonAction ==========
 
-  // v2.10.1: Track submit counts per question for P0 assertion
-  const submitPerQuestion = useRef(new Map<string, number>());
-
   const runLessonAction = useCallback((
     action: LessonAction,
     payload: LessonActionPayload,
     source: string
   ) => {
-    // v2.11.0: Only block same-question double-submit, not all transitions
-    if (action === "submit_answer" && payload.questionId) {
-      const count = (submitPerQuestion.current.get(payload.questionId) || 0) + 1;
-      submitPerQuestion.current.set(payload.questionId, count);
-      if (count > 1) {
-        console.warn("[runLessonAction] duplicate submit blocked", { action, source, questionId: payload.questionId });
-        return;
-      }
-    }
-
     const currentLesson = lessonRef.current;
     if (!currentLesson) return;
 
@@ -240,40 +324,6 @@ function PlayPageContent() {
 
       // v2.7: submit_answer / information_check / identify_extra_info — 使用统一 checker
       const isAnswerAction = action === 'submit_answer' || action === 'information_check' || action === 'identify_extra_info';
-      // v2.10.1: Defer stats recording to after transaction
-      let pendingCorrectStats: null | { questionId: string } = null;
-
-      if (isAnswerAction && payload.questionId && payload.inputAnswer) {
-        const q = getQuestionForLesson(currentLesson);
-        if (q) {
-          const curStep = getCurrentStep(currentLesson);
-          const alreadyAwarded = curStep && curStep.awardedAt != null;
-
-          // v2.7: 使用统一答案检查器
-          const answerResult = checkAnswer(payload.inputAnswer, q);
-
-          // 答错只记录 stats，不推进 lesson
-          if (!answerResult.correct) {
-            if (!alreadyAwarded) {
-              completeQuestion(payload.questionId, false, {
-                questionId: q.id,
-                questionText: q.text,
-                myAnswer: typeof payload.inputAnswer === 'string' ? payload.inputAnswer : JSON.stringify(payload.inputAnswer),
-                correctAnswer: q.answer,
-                errorType: 'answer_wrong',
-                retriedCorrect: false,
-              });
-            }
-            return;
-          }
-
-          // Record correct stats AFTER transaction commits
-          if (!alreadyAwarded) {
-            pendingCorrectStats = { questionId: payload.questionId };
-          }
-        }
-      }
-
       const currentState: LearningState = {
         lesson: currentLesson,
         gameState: state, // snapshot from hook (用于 transaction 内部的 completeQuestion 计算)
@@ -291,6 +341,8 @@ function PlayPageContent() {
       // P0 断言
       assertCorrectAnswerAdvanced(result, action, source);
       assertRepairContinued(result, action, source);
+      assertFeedbackWithoutCorrectAnswer(result, action, source);
+      assertQuestionAdvancedWithoutAnswerGate(result, action, source);
 
       if (!result.changed) {
         console.warn('[runLessonAction] no state changed', {
@@ -298,17 +350,26 @@ function PlayPageContent() {
         });
       }
 
-      if (isAnswerAction && !result.advanced) {
+      if (isAnswerAction && !result.advanced && result.reason !== 'wrong answer') {
         console.error('[P0] answer action did not advance', { action, source, result });
       }
 
-      // 持久化 lesson
-      saveTodayLesson(result.nextLesson);
-
-      // v2.10.1: Record correct stats AFTER transaction commits successfully
-      if (pendingCorrectStats && result.advanced) {
-        completeQuestion(pendingCorrectStats.questionId, true);
+      const completedNow = result.changed && result.nextLesson.completed && !currentLesson.completed;
+      if (result.changed && (isAnswerAction || completedNow)) {
+        const committed = commitGameState({
+          ...result.nextState.gameState,
+          lastCommittedLesson: result.nextLesson,
+          lessonPersistenceRevision: (state.lessonPersistenceRevision || 0) + 1,
+        });
+        if (!committed) {
+          setPendingStorageRetry({ kind: 'action', action, payload, source });
+          setFeedback({ show: false, type: 'info', message: '' });
+          return;
+        }
+        setPendingStorageRetry(null);
       }
+      // 持久化 lesson
+      if (!saveTodayLesson(result.nextLesson)) setPendingStorageRetry({ kind: 'lesson', lesson: result.nextLesson });
 
       // 同步 ref 和 state
       lessonRef.current = result.nextLesson;
@@ -331,16 +392,6 @@ function PlayPageContent() {
           completedAt: result.nextLesson.completedAt || now,
         };
 
-        // v2.8.4 修复：grantDailyRewardOnce 返回 bonusStars，
-        // 通过 addStars() 走 update() 路径真正写入 localStorage，
-        // 而不是只更新 React state 的快照（之前的 stale closure bug）
-        const { lesson: rewardedLesson, bonusStars } = grantDailyRewardOnce(state, completedLesson);
-        completedLesson = rewardedLesson;
-        if (bonusStars > 0) {
-          addStars(bonusStars);
-          console.info(`[v2.8.4] Daily reward: +${bonusStars} stars written via addStars()`);
-        }
-
         const { lesson: shownLesson } = markDailyRewardShown(state, completedLesson);
         completedLesson = shownLesson;
 
@@ -352,7 +403,7 @@ function PlayPageContent() {
         setFeedback({
           show: true,
           type: 'success',
-          message: `🎉 今天的侦探任务完成！获得 ${bonusStars} 颗星！`,
+          message: '🎉 今天的侦探任务完成！',
         });
       } else if (result.nextLesson.currentStepIndex !== currentLesson.currentStepIndex) {
         const steps = result.nextLesson.steps;
@@ -371,7 +422,25 @@ function PlayPageContent() {
         setIsAdvancing(false);
       }, 300);
     }
-  }, [state, completeQuestion]);
+  }, [state, commitGameState]);
+
+  const retryStorageSave = useCallback(() => {
+    if (!pendingStorageRetry) return;
+    if (pendingStorageRetry.kind === 'action') {
+      // Refresh the storage health gate before retrying so a recovered browser
+      // permission/quota is recognized, while corrupt raw data remains protected.
+      loadState();
+      runLessonAction(pendingStorageRetry.action, pendingStorageRetry.payload, pendingStorageRetry.source);
+      return;
+    }
+    loadState();
+    if (saveTodayLesson(pendingStorageRetry.lesson)) {
+      setPendingStorageRetry(null);
+      lessonRef.current = pendingStorageRetry.lesson;
+      setLesson(pendingStorageRetry.lesson);
+      setFeedback({ show: true, type: 'success', message: '保存成功，可以继续练习了。' });
+    }
+  }, [pendingStorageRetry, runLessonAction]);
 
   // ========== 专用 action 处理器 ==========
 
@@ -382,7 +451,21 @@ function PlayPageContent() {
 
   // 正确答案提交（v2.6.4: 一次事务 — stats 在 runLessonAction 中通过 hook 记录）
   const handleSubmitAnswer = useCallback((inputAnswer: string, questionId: string) => {
-    runLessonAction('submit_answer', { inputAnswer, questionId }, 'AnswerSubmit');
+    const actionId = `submit-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const activeLesson = lessonRef.current;
+    const activeStep = activeLesson && getCurrentStep(activeLesson);
+    const instanceId = activeStep?.questionInstanceId
+      || (activeLesson && activeStep ? `${activeLesson.lessonId || activeLesson.date}:${activeLesson.currentStepIndex}:${activeStep.questionId}` : '');
+    const persistedHints = instanceId ? (loadState().learningEvents || [])
+      .filter(event => event.questionInstanceId === instanceId && event.eventType === 'hint_used')
+      .map(event => event.hintLevel) : [];
+    const hintLevel = persistedHints.includes('full') ? 'full'
+      : persistedHints.includes('medium') ? 'medium'
+      : persistedHints.includes('light') ? 'light' : 'none';
+    runLessonAction('submit_answer', {
+      inputAnswer, questionId, actionId, attemptId: actionId,
+      sessionId: sessionIdRef.current, timestamp: new Date().toISOString(), hintLevel,
+    }, 'AnswerSubmit');
   }, [runLessonAction]);
 
   // 答题完成后完成关卡（从 explain 按钮调用）
@@ -411,7 +494,7 @@ function PlayPageContent() {
   const visual = question ? getVisual(question.visualKey) : null;
 
   useEffect(() => {
-    const e2eEnabled = process.env.NODE_ENV !== 'production' && searchParams.get('e2e') === '1';
+    const e2eEnabled = searchParams.get('e2e') === '1';
     if (!e2eEnabled || typeof window === 'undefined') return;
 
     const testApi = {
@@ -466,6 +549,14 @@ function PlayPageContent() {
           hasQuestion: Boolean(q),
           compatibilityError: step && q ? validateStepQuestionCompatibility(step, q) : null,
         };
+      },
+      setLesson: (lessonData: Record<string, unknown>) => {
+        const normalized = safeNormalizeLesson(lessonData as unknown as TodayLesson);
+        if (normalized) {
+          saveTodayLesson(normalized);
+          lessonRef.current = normalized;
+          setLesson(normalized);
+        }
       },
     };
 
@@ -543,8 +634,19 @@ function PlayPageContent() {
   if (lesson.completed) {
     const profile = getLearningProfile();
     const tomorrowPreview = getTomorrowLessonPreview(profile, state);
-    const { overallAccuracy: todayAccuracy, todayCompleted } = getAccuracyStats(state);
-    const starsEarned = state.level >= 5 ? 15 : state.level >= 3 ? 10 : 5;
+    const seenQuestionInstances = new Set<string>();
+    const lessonAttempts = (state.learningEvents || [])
+      .filter(event => event.eventType === 'attempt_submitted' && event.lessonId === lesson.lessonId && event.result && event.firstAttemptKnown !== false)
+      .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
+      .filter((event) => {
+        if (seenQuestionInstances.has(event.questionInstanceId)) return false;
+        seenQuestionInstances.add(event.questionInstanceId);
+        return true;
+      });
+    const lessonFirstCorrect = lessonAttempts.filter(event => event.result === 'correct').length;
+    const todayAccuracy = lessonAttempts.length ? Math.round(lessonFirstCorrect / lessonAttempts.length * 100) : 0;
+    const perfectLessonEntry = (state.pointsWallet?.ledger || []).find(entry => entry.type === 'perfect_lesson' && entry.referenceId === lesson.lessonId);
+    const lessonPointsEarned = perfectLessonEntry ? perfectLessonEntry.unitsDelta / 2 : 0;
     const completeCaseStory = getCaseStoryForLesson(lesson);
 
     return (
@@ -561,10 +663,10 @@ function PlayPageContent() {
           <div className="text-center py-4">
             <div className="text-6xl mb-4">🏆</div>
             <h2 className="text-xl font-extrabold text-green-700">今天的侦探任务全部完成！</h2>
-            <p className="text-sm text-green-600 mt-2">
-              你通过了全部 {lesson.steps.length} 个关卡，获得了今日宝箱！
+            <p className="text-sm text-green-700 mt-2">
+              你完成了全部 {lesson.steps.length} 个关卡。{lessonPointsEarned > 0 ? '六题首答全对，获得 1 家庭积分。' : '本课没有六题首答全对奖励；继续订正也能留下真实学习进度。'}
             </p>
-            <StarDisplay count={starsEarned} size="lg" animate />
+            <StarDisplay count={lessonPointsEarned} size="lg" animate />
           </div>
         </AppCard>
 
@@ -588,7 +690,7 @@ function PlayPageContent() {
             </div>
             <div>
               <div className="text-2xl font-extrabold text-green-600">{todayAccuracy}%</div>
-              <div className="text-xs text-gray-500">总正确率</div>
+              <div className="text-xs text-gray-500">本课首答正确率（{lessonFirstCorrect}/{lessonAttempts.length}）</div>
             </div>
             <div>
               <div className="text-2xl font-extrabold text-amber-600">{state.streak}天</div>
@@ -597,7 +699,7 @@ function PlayPageContent() {
           </div>
           {profile.weakSkills.length > 0 && (
             <p className="text-xs text-blue-600 mt-3 text-center">
-              💡 还可以继续练习：{profile.weakSkills.slice(0, 2).map(s => s === 'remove_noise' ? '擦掉没用的信息' : s === 'find_numbers' ? '找数字线索' : s === 'find_keywords' ? '找动作词' : s).join('、')}
+              💡 还可以继续练习：{profile.weakSkills.slice(0, 2).map(getCognitiveSkillLabel).join('、')}
             </p>
           )}
         </AppCard>
@@ -685,6 +787,10 @@ function PlayPageContent() {
     const isSequence = question?.problemType === 'pattern'
       || question?.problemType === 'sequence_arithmetic';
     const displayCaseStoryTitle = caseStory?.title || '';
+    const snapshotGrade = lesson?.settingSnapshot?.grade;
+    const conceptGrade = typeof snapshotGrade === 'string' && /^G[1-6]$/.test(snapshotGrade)
+      ? snapshotGrade as 'G1' | 'G2' | 'G3' | 'G4' | 'G5' | 'G6'
+      : 'G1';
 
     // v2.6.11: step 描述从 step 对象获取（由 buildStepFromQuestion 生成）
     const displayStepDescription = currentStep.description || '';
@@ -737,7 +843,7 @@ function PlayPageContent() {
             {getStepLabel(currentStep, lesson)}
           </h1>
           <p className="text-xs text-amber-600 truncate">{displayStepDescription}</p>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="flex items-center gap-2 mt-1" data-testid="lesson-progress">
             <ProgressBar
               value={lesson.currentStepIndex}
               max={lesson.steps.length}
@@ -752,10 +858,41 @@ function PlayPageContent() {
         <DetectiveMascot mood="thinking" size="sm" message={displayStepInstruction} />
       </div>
 
-      {/* Phase-aware step content (v2.6 P0修复: 加 question.id 防状态残留) */}
+      <details className="rounded-2xl border border-amber-200 bg-white">
+        <summary className="min-h-11 cursor-pointer px-4 py-3 font-semibold text-amber-800" data-testid="concept-lab-toggle">
+          可选：打开概念小实验（示例数字，不是本题图解）
+        </summary>
+        <div className="p-3">
+          <ConceptLab
+            key={currentStep.questionInstanceId || `${lesson.lessonId || lesson.date}:${currentStep.id}`}
+            grade={conceptGrade}
+            unitId={lesson.settingSnapshot?.unitId ?? null}
+            onSupportUsed={recordLearningSupport}
+          />
+        </div>
+      </details>
+
+      {lesson.coreGapReasons && lesson.coreGapReasons.length > 0 && (
+        <div className="my-3 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="status" data-testid="lesson-content-gap">
+          <p className="font-bold">有一项练习暂时不可用</p>
+          <ul className="mt-1 list-inside list-disc">{lesson.coreGapReasons.map(reason => <li key={reason}>{reason}</li>)}</ul>
+        </div>
+      )}
+
+      {pendingStorageRetry && (
+        <div className="my-3 rounded-xl border border-rose-300 bg-rose-50 p-4" role="alert" data-testid="pending-save-error">
+          <p className="font-bold text-rose-800">这一步还没有可靠保存到本机。</p>
+          <p className="mt-1 text-sm text-rose-700">请先不要关闭页面；恢复本机存储空间后可重试，答题记录和积分不会被当成已保存。</p>
+          <AppButton data-testid="pending-save-retry" variant="primary" size="md" fullWidth onClick={retryStorageSave}>
+            重试保存
+          </AppButton>
+        </div>
+      )}
+
+      {/* Phase-aware step content (v2.11.1: lesson.date + step.id + question.id 防组件复用) */}
       <AnimatePresence mode="wait">
         <PhaseAwareStep
-          key={`${currentStep.id}-${question.id}-${currentStep.currentPhaseIndex}`}
+          key={`${lesson?.date ?? 'noles'}:${currentStep.id}:${question.id}:${currentStep.currentPhaseIndex}`}
           step={currentStep}
           phase={currentPhase}
           question={question}
@@ -891,6 +1028,12 @@ function PhaseAwareStep({
 }) {
   if (!phase) return null;
 
+  // New core lessons use one schema-driven answer surface regardless of legacy
+  // problem-specific routers (including multi-answer and sequence questions).
+  if (step.type === 'answer_only') {
+    return <FullSolvePhased phase={phase} question={question} visual={visual} simpleAnswerOnly coreTitle={step.title} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
+  }
+
   // v2.6.5: 逻辑排序题使用专用组件
   const isLogicQuestion = question.problemType === 'logic_ranking'
     || question.problemType === 'logic_truth'
@@ -982,7 +1125,17 @@ function getDisplayEquation(question: Question): string {
 
 // ========== Shared: Clue Summary ==========
 
-function ClueSummary({ question }: { question: Question }) {
+function ClueSummary({ question, compactCore = false }: { question: Question; compactCore?: boolean }) {
+  if (compactCore) {
+    const lightHint = question.structuredHints?.light;
+    const firstHint = Array.isArray(question.hints) ? question.hints[0] : undefined;
+    const safeHint = lightHint && !hintRevealsAnswer(lightHint, question)
+      ? lightHint
+      : firstHint && !hintRevealsAnswer(firstHint, question) ? firstHint : null;
+    return safeHint ? (
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">💡 想一想：{safeHint}</div>
+    ) : null;
+  }
   const hasAge = question.text.includes('岁') || question.text.includes('年龄');
   const hasBei = question.keywords.some(k => k.word === '倍');
   const hasInterval = question.text.includes('每隔') || question.text.includes('植树') || question.text.includes('种一棵');
@@ -1011,9 +1164,11 @@ function ClueSummary({ question }: { question: Question }) {
   } else if (isMultiStep) {
     opDesc = '这道题要分几步来想：先做什么，再做什么，最后算什么。一步一步来！';
   } else {
+    // v2.11.0: Domain-aware operation descriptions
+    const isMoney = question.domain === 'money';
     const map: Record<string, string> = {
-      addition: '数量合起来——变多了，用加法。',
-      subtraction: '数量减少——变少了，用减法。',
+      addition: isMoney ? '把花的钱合起来——总共有多少，用加法。' : '数量合起来——变多了，用加法。',
+      subtraction: isMoney ? '付了多少钱，找回多少钱——钱变少了，用减法。' : '数量减少——变少了，用减法。',
       multiplication: '几个一样多合起来——每份一样多，有几份。',
       division: '把总数分成一样多的几份——这就是除法。',
       comparison: '比一比：谁多？谁少？差多少？',
@@ -1198,57 +1353,130 @@ function generateSafeDefaultHint(question: Question): string {
   return '先仔细读题，找出所有数字和关键词，再想想用什么方法。';
 }
 
+// ========== Shared: Explain Phase (shown after correct answer) ==========
+
+function ExplainAnswerPhase({ question, onStepComplete }: {
+  question: Question;
+  onStepComplete: (correct: boolean) => void;
+}) {
+  const displayEq = isComplexEquation(question.equation) && question.gradeFriendlyEquation
+    ? (question.gradeFriendlyEquation.G1 || question.gradeFriendlyEquation.G2 || question.gradeFriendlyEquation.G3)
+    : question.equation.replace('?', String(question.answer));
+
+  return (
+    <div className="space-y-4">
+      <AppCard variant="green">
+        <div className="text-center py-4">
+          <div className="text-5xl mb-3">✅</div>
+          <h3 className="text-xl font-extrabold text-green-700">回答正确！</h3>
+          <div className="mt-3 p-3 bg-white rounded-xl text-lg font-extrabold text-amber-600 whitespace-pre-line">
+            {displayEq}
+          </div>
+          <p className="text-sm text-green-600 mt-2">{question.answerSentence}</p>
+          {question.explanation && (
+            <p className="text-sm text-gray-600 mt-3 p-3 bg-green-50 rounded-lg">{question.explanation}</p>
+          )}
+        </div>
+      </AppCard>
+      <BottomActionBar>
+        <AppButton variant="primary" size="lg" fullWidth onClick={() => onStepComplete(true)}>
+          完成，进入下一关 →
+        </AppButton>
+      </BottomActionBar>
+    </div>
+  );
+}
+
 // ========== Shared: Equation + Answer Phase ==========
 
-function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrongAnswer, onSubmitAnswer }: {
+function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrongAnswer, onSubmitAnswer, compactCore = false, coreTitle }: {
   question: Question;
   visual: ReturnType<typeof getVisual>;
   onCorrect: () => void;
   onPhaseBack?: () => void;
   onWrongAnswer: (input: string) => void;
   onSubmitAnswer?: (inputAnswer: string, questionId: string) => void;
+  compactCore?: boolean;
+  coreTitle?: string;
 }) {
-  const [userAnswer, setUserAnswer] = useState('');
+  const [userAnswer, setUserAnswer] = useState<string | Record<string, string>>('');
   const [shakeInput, setShakeInput] = useState(false);
   const [answered, setAnswered] = useState(false);
   const [wrongFeedback, setWrongFeedback] = useState<string | null>(null);
-  const [showClues, setShowClues] = useState(true);
+  const [showClues, setShowClues] = useState(!compactCore);
   const [wrongAttempts, setWrongAttempts] = useState(0);
   const [usedFullHint, setUsedFullHint] = useState(false);
   const mountedRef = useRef(true);
   useEffect(() => { return () => { mountedRef.current = false; }; }, []);
 
+  const answerSchema = question.answerSchema || inferAnswerSchema(question);
+
+  // v2.11.0: Synchronous ref to avoid stale React state on submit
+  const answerRef = useRef<string | Record<string, string>>('');
+
   function handleSubmit(e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent) {
     e?.preventDefault();
     e?.stopPropagation();
-    const input = userAnswer.trim();
-    if (!input) return;
+
+    // Read from FormData (form submit) or ref (Enter key via AnswerInputRouter)
+    let input: string | Record<string, string>;
+    if (e && 'currentTarget' in e && e.currentTarget instanceof HTMLFormElement) {
+      const formData = new FormData(e.currentTarget);
+      input = (formData.get('answer') as string || '').trim();
+      // Fallback to ref for MoneyInput, MultiFieldInput, etc. that don't use name="answer"
+      if (typeof input !== 'string' || !input) {
+        input = answerRef.current;
+      }
+    } else {
+      input = answerRef.current;
+    }
+
+  const hasInput = typeof input === 'string'
+      ? input.trim().length > 0
+      : Object.values(input).some(value => value.trim().length > 0);
+    if (!hasInput) return;
 
     // v2.7: 使用统一答案检查器
     const answerResult = checkAnswer(input, question);
+    const persistedInput = typeof input === 'string' ? input : JSON.stringify(input);
 
     if (answerResult.correct) {
-      // v2.10.2: One-click atomic submit — prevent double events
       setAnswered(true);
       setWrongFeedback(null);
       // v2.11.0: Atomic single-transaction submit
-      onSubmitAnswer?.(input, question.id);
+      onSubmitAnswer?.(persistedInput, question.id);
     } else {
       setShakeInput(true);
       setTimeout(() => { if (mountedRef.current) setShakeInput(false); }, 500);
       const newAttempts = wrongAttempts + 1;
       setWrongAttempts(newAttempts);
-      onWrongAnswer(input);
+      if (onSubmitAnswer) onSubmitAnswer(persistedInput, question.id);
+      else onWrongAnswer(persistedInput);
       setWrongFeedback(answerResult.feedback || '再想想哦～');
     }
   }
 
+  // v2.11.0: Handle AnswerInputRouter's structured value — sync both state and ref
+  function handleAnswerChange(value: string | Record<string, string>) {
+    answerRef.current = value;
+    setUserAnswer(value);
+  }
+
+  const hasUserAnswer = typeof userAnswer === 'string'
+    ? userAnswer.trim().length > 0
+    : Object.values(userAnswer).some(value => value.trim().length > 0);
+
   if (answered) {
-    const showNumLine = question.operation === 'addition' || question.operation === 'subtraction';
     const nA = question.numbers[0];
-    const nB = question.numbers[1] || 0;
+    const nB = question.numbers[1];
     const opT = question.operation === 'addition' ? 'add' : 'subtract' as const;
     const res = typeof question.answer === 'number' ? question.answer : undefined;
+    const showNumLine = (question.operation === 'addition' || question.operation === 'subtraction')
+      && question.numbers.length === 2
+      && Number.isInteger(nA) && Number.isInteger(nB)
+      && Math.abs(nA) <= 100 && Math.abs(nB) <= 100
+      && res !== undefined && Math.abs(res) <= 200
+      && (question.operation === 'addition' ? nA + nB : nA - nB) === res;
 
     const displayEq = isComplexEquation(question.equation) && question.gradeFriendlyEquation
       ? (question.gradeFriendlyEquation.G1 || question.gradeFriendlyEquation.G2 || question.gradeFriendlyEquation.G3)
@@ -1263,7 +1491,7 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
             {displayEq}
           </div>
           <p className="text-sm text-gray-600 mt-2">{question.answerSentence}</p>
-          {showNumLine && res !== undefined && (
+          {showNumLine && res !== undefined && nB !== undefined && (
             <div className="mt-4 pt-3 border-t border-green-200">
               <NumberLine
                 range={opT === 'add'
@@ -1279,7 +1507,7 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
       
         {/* v2.11.0: Continue button */}
         <div className="mt-4">
-          <AppButton variant="primary" size="lg" fullWidth onClick={onCorrect}>
+          <AppButton data-testid="continue-feedback" variant="primary" size="lg" fullWidth onClick={onCorrect}>
             完成，进入下一关
           </AppButton>
         </div>
@@ -1289,9 +1517,9 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {/* 线索摘要（默认展开） */}
-      {showClues && <ClueSummary question={question} />}
-      {!showClues && (
+      {/* Legacy lessons keep their original guidance order. */}
+      {!compactCore && showClues && <ClueSummary question={question} />}
+      {!compactCore && !showClues && (
         <button
           type="button"
           onClick={() => setShowClues(true)}
@@ -1301,8 +1529,50 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
         </button>
       )}
 
-      {/* v2.6.7: 统一分层提示系统 — 答题前只显示 light hint */}
-      <HintSystem
+      {compactCore && coreTitle && (
+        <h2 className="text-lg font-extrabold text-slate-800" data-testid="core-slot-title">{coreTitle}</h2>
+      )}
+
+      <AppCard variant="amber">
+        <div className="text-center">
+          {!compactCore && <Calculator size={32} className="mx-auto mb-2 text-amber-600" />}
+          {!compactCore && <h3 className="font-extrabold text-amber-800 text-lg mb-2">🧮 列算式，算答案！</h3>}
+          <p className="text-base leading-relaxed text-gray-700 mb-3" data-testid="lesson-question-prompt">
+            {question.text}
+          </p>
+          {!compactCore && <p className="text-sm text-gray-600 mb-3">根据上面的步骤，写出算式并算出答案</p>}
+          {!compactCore && <div className="text-lg font-extrabold text-gray-700 mb-4 p-3 bg-amber-50 rounded-xl whitespace-pre-line">{getDisplayEquation(question)}</div>}
+        </div>
+      </AppCard>
+
+      <AppCard>
+        <div className={`text-center ${shakeInput ? 'animate-shake' : ''}`}>
+          <label className="text-sm font-bold text-gray-500 mb-2 block">✏️ 输入你的答案：</label>
+          <AnswerInputRouter schema={answerSchema} value={userAnswer} onChange={handleAnswerChange} onSubmit={() => handleSubmit()} />
+        </div>
+      </AppCard>
+
+      {/* In the new core course, learners can answer before opening any guidance. */}
+      {compactCore ? (
+        <>
+          <HintSystem
+            question={question}
+            phase={answered ? 'explain' : 'answer'}
+            lightHint={getLightHint(question)}
+            mediumHint={getMediumHint(question)}
+            fullSteps={getFullStepsFromQuestion(question)}
+            allowFullHint={usedFullHint}
+            wrongAttempts={wrongAttempts}
+            onFullHintRequested={() => setUsedFullHint(true)}
+            onHintLevelUsed={(level) => window.dispatchEvent(new CustomEvent('md:learning-hint', { detail: { questionId: question.id, level } }))}
+          />
+          <details className="rounded-xl border border-blue-200 bg-white p-3">
+            <summary className="min-h-11 cursor-pointer font-bold text-blue-700">展开线索和解题提示</summary>
+            <ClueSummary question={question} compactCore />
+          </details>
+        </>
+      ) : (
+        <HintSystem
         question={question}
         phase={answered ? 'explain' : 'answer'}
         lightHint={getLightHint(question)}
@@ -1311,36 +1581,9 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
         allowFullHint={usedFullHint}
         wrongAttempts={wrongAttempts}
         onFullHintRequested={() => setUsedFullHint(true)}
-      />
-
-      <AppCard variant="amber">
-        <div className="text-center">
-          <Calculator size={32} className="mx-auto mb-2 text-amber-600" />
-          <h3 className="font-extrabold text-amber-800 text-lg mb-2">🧮 列算式，算答案！</h3>
-          <p className="text-sm text-gray-600 mb-3">
-            根据上面的步骤，写出算式并算出答案
-          </p>
-          <div className="text-lg font-extrabold text-gray-700 mb-4 p-3 bg-amber-50 rounded-xl whitespace-pre-line">
-            {getDisplayEquation(question)}
-          </div>
-        </div>
-      </AppCard>
-
-      <AppCard>
-        <div className={`text-center ${shakeInput ? 'animate-shake' : ''}`}>
-          <label className="text-sm font-bold text-gray-500 mb-2 block">✏️ 输入你的答案：</label>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={userAnswer}
-            onChange={(e) => setUserAnswer(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-            className="w-32 h-16 text-center text-2xl font-extrabold border-2 border-amber-300 rounded-xl focus:border-amber-500 focus:outline-none bg-amber-50"
-            placeholder="?"
-            autoFocus
-          />
-        </div>
-      </AppCard>
+        onHintLevelUsed={(level) => window.dispatchEvent(new CustomEvent('md:learning-hint', { detail: { questionId: question.id, level } }))}
+        />
+      )}
 
       {/* 错误反馈 */}
       {wrongFeedback && (
@@ -1358,7 +1601,7 @@ function EquationAnswerPhase({ question, visual, onCorrect, onPhaseBack, onWrong
           </AppButton>
         )}
         <div className="flex-1">
-          <AppButton variant="success" size="md" fullWidth disabled={!userAnswer.trim()} type="submit">
+          <AppButton data-testid="submit-answer" variant="success" size="md" fullWidth disabled={!hasUserAnswer} type="submit">
             提交答案
           </AppButton>
         </div>
@@ -1395,10 +1638,10 @@ function FindNumbersPhased({
           <p className="text-sm text-gray-600">仔细阅读题目，准备寻找数字线索！</p>
         </AppCard>
         <AppCard>
-          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+          <p className="text-base leading-relaxed text-gray-700" data-testid="lesson-question-prompt">{question.text}</p>
         </AppCard>
         <BottomActionBar>
-          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+          <AppButton data-testid="read-question-next" variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
             读完了，开始找数字 →
           </AppButton>
         </BottomActionBar>
@@ -1475,6 +1718,10 @@ function FindNumbersPhased({
     );
   }
 
+  if (phase === 'explain') {
+    return <ExplainAnswerPhase question={question} onStepComplete={onStepComplete} />;
+  }
+
   // phases after find_numbers → equation + answer
   return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }
@@ -1509,10 +1756,10 @@ function FindActionWordsPhased({
           <p className="text-sm text-gray-600">认真读题，注意里面的动作词（关键词）！</p>
         </AppCard>
         <AppCard>
-          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+          <p className="text-base leading-relaxed text-gray-700" data-testid="lesson-question-prompt">{question.text}</p>
         </AppCard>
         <BottomActionBar>
-          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+          <AppButton data-testid="read-question-next" variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
             读完了，开始找关键词 →
           </AppButton>
         </BottomActionBar>
@@ -1594,7 +1841,37 @@ function FindActionWordsPhased({
             ? [{ v:'share', l:'每份一样多（平均分）', i:'➗', m:['division'] }, { v:'add', l:'数量合起来', i:'📈', m:['addition'] }]
             : [{ v:'add', l:'数量变多，用加法', i:'📈', m:['addition'] }, { v:'subtract', l:'数量变少，用减法', i:'📉', m:['subtraction'] }];
 
-    const checkOk = (v:string) => optionList.find(o=>o.v===v)?.m.includes(question.operation) ?? false;
+    const checkOk = (v:string) => {
+      // v2.11.3 P0 FIX: Validate against keyword action direction, NOT solution operation.
+      // Reverse problems (e.g. "5+⭐=12" with keyword "加" and operation "subtraction")
+      // require the keyword direction to be distinguished from the solution operation.
+      // Priority: classifyKeyword category > keyword.type field > question.operation fallback
+      const kwCategories = question.keywords.map(k => classifyKeyword(k.word));
+      const allAdditionChange = kwCategories.every(c => c?.category === 'addition_change');
+      const allSubtractionChange = kwCategories.every(c => c?.category === 'subtraction_change');
+
+      let actionDirection: string;
+      if (allAdditionChange) {
+        actionDirection = 'addition';
+      } else if (allSubtractionChange) {
+        actionDirection = 'subtraction';
+      } else {
+        // Fallback: use keyword.type field (more reliable for direction than question.operation)
+        const kwTypes = question.keywords.map(k => k.type);
+        const allAdd = kwTypes.every(t => t === 'add');
+        const allSubtract = kwTypes.every(t => t === 'subtract');
+        if (allAdd) {
+          actionDirection = 'addition';
+        } else if (allSubtract) {
+          actionDirection = 'subtraction';
+        } else {
+          // Ultimate fallback: question.operation (for mixed/non-binary keywords)
+          actionDirection = question.operation;
+        }
+      }
+
+      return optionList.find(o=>o.v===v)?.m.includes(actionDirection) ?? false;
+    };
 
     return (
       <div className="space-y-4">
@@ -1640,6 +1917,10 @@ function FindActionWordsPhased({
     );
   }
 
+  if (phase === 'explain') {
+    return <ExplainAnswerPhase question={question} onStepComplete={onStepComplete} />;
+  }
+
   // Final phase: equation + answer
   return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }
@@ -1673,10 +1954,10 @@ function SimulationPhased({
           <p className="text-sm text-gray-600">读题，想想{visual.itemName}发生了什么变化</p>
         </AppCard>
         <AppCard>
-          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+          <p className="text-base leading-relaxed text-gray-700" data-testid="lesson-question-prompt">{question.text}</p>
         </AppCard>
         <BottomActionBar>
-          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+          <AppButton data-testid="read-question-next" variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
             读完了，看动画 →
           </AppButton>
         </BottomActionBar>
@@ -1797,6 +2078,10 @@ function SimulationPhased({
     );
   }
 
+  if (phase === 'explain') {
+    return <ExplainAnswerPhase question={question} onStepComplete={onStepComplete} />;
+  }
+
   // answer phase
   return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }
@@ -1910,6 +2195,10 @@ function RemoveNoisePhased({
     );
   }
 
+  if (phase === 'explain') {
+    return <ExplainAnswerPhase question={question} onStepComplete={onStepComplete} />;
+  }
+
   // Final phases: build_equation → answer
   return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }
@@ -1933,14 +2222,14 @@ function getOperationLabel(operation: string): string {
 }
 
 function FullSolvePhased({
-  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer,
-}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void }) {
+  phase, question, visual, onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer, onSubmitAnswer, simpleAnswerOnly = false, coreTitle,
+}: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; simpleAnswerOnly?: boolean; coreTitle?: string }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
 
   // v2.10.0 Sub-project B: Route three-question flow phases to ThreeQuestionFlow
   const threeQuestionPhases = ['known_facts', 'target', 'plan', 'check', 'answer', 'explain'];
-  if (threeQuestionPhases.includes(phase)) {
+  if (threeQuestionPhases.includes(phase) && !simpleAnswerOnly) {
     const rf = (question as any).reasoningFrame;
     const tqfPhase = phase as 'known_facts' | 'target' | 'plan' | 'check';
 
@@ -1982,7 +2271,7 @@ function FullSolvePhased({
   }
 
   // v2.6.6: P0 运行时防御 — 逻辑题不应进入 FullSolvePhased
-  if (question.problemType === 'logic_ranking' || question.problemType === 'logic_truth' || question.problemType === 'logic_ordering') {
+  if (!simpleAnswerOnly && (question.problemType === 'logic_ranking' || question.problemType === 'logic_truth' || question.problemType === 'logic_ordering')) {
     console.error('[P0] Logic question reached FullSolvePhased — should be routed to LogicRankingGuide', {
       questionId: question.id, text: question.text.slice(0, 50), phase,
     });
@@ -1998,13 +2287,13 @@ function FullSolvePhased({
       <div className="space-y-4">
         <AppCard variant="purple">
           <h3 className="font-extrabold text-purple-800 mb-2">📖 仔细读题</h3>
-          <p className="text-sm text-gray-600">完整破解一道题，按步骤来！</p>
+          <p className="text-sm text-gray-600">{simpleAnswerOnly && coreTitle ? coreTitle : '完整破解一道题，按步骤来！'}</p>
         </AppCard>
         <AppCard>
-          <p className="text-base leading-relaxed text-gray-700">{question.text}</p>
+          <p className="text-base leading-relaxed text-gray-700" data-testid="lesson-question-prompt">{question.text}</p>
         </AppCard>
         <BottomActionBar>
-          <AppButton variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
+          <AppButton data-testid={simpleAnswerOnly ? 'read-question-next' : undefined} variant="primary" size="lg" fullWidth onClick={onPhaseAdvance}>
             读完了，开始破案 →
           </AppButton>
         </BottomActionBar>
@@ -2139,7 +2428,7 @@ function FullSolvePhased({
   }
 
   if (phase === 'answer') {
-    return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
+    return <EquationAnswerPhase question={question} visual={visual} compactCore={simpleAnswerOnly} coreTitle={coreTitle} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
   }
 
   // explain phase
@@ -2235,6 +2524,10 @@ function CompareNumbersPhased({
     );
   }
 
+  if (phase === 'explain') {
+    return <ExplainAnswerPhase question={question} onStepComplete={onStepComplete} />;
+  }
+
   return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
 }
 
@@ -2320,6 +2613,10 @@ function SpotExtraInfoPhased({
         </BottomActionBar>
       </div>
     );
+  }
+
+  if (phase === 'explain') {
+    return <ExplainAnswerPhase question={question} onStepComplete={onStepComplete} />;
   }
 
   return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
@@ -2418,6 +2715,10 @@ function SpotMissingInfoPhased({
         </div>
       </AppCard>
     );
+  }
+
+  if (phase === 'explain') {
+    return <ExplainAnswerPhase question={question} onStepComplete={onStepComplete} />;
   }
 
   return <EquationAnswerPhase question={question} visual={visual} onCorrect={() => onStepComplete(true)} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;

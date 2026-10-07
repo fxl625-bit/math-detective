@@ -25,6 +25,14 @@ export interface KeywordClassification {
 
 export const KEYWORD_CLASSIFICATIONS: Record<string, KeywordClassification> = {
   // ── 加法变化 ──
+  // v2.11.3: 补充缺失的核心单字/双字关键词
+  '加':       { keyword:'加',       category:'addition_change', operationHint:'addition' },
+  '买了':     { keyword:'买了',     category:'addition_change', operationHint:'addition' },
+  '买来':     { keyword:'买来',     category:'addition_change', operationHint:'addition' },
+  '飞来':     { keyword:'飞来',     category:'addition_change', operationHint:'addition' },
+  '上了':     { keyword:'上了',     category:'addition_change', operationHint:'addition' },
+  '放进':     { keyword:'放进',     category:'addition_change', operationHint:'addition' },
+  '进货':     { keyword:'进货',     category:'addition_change', operationHint:'addition' },
   '又来了':   { keyword:'又来了',   category:'addition_change', operationHint:'addition' },
   '又跑来':   { keyword:'又跑来',   category:'addition_change', operationHint:'addition' },
   '又飞来':   { keyword:'又飞来',   category:'addition_change', operationHint:'addition' },
@@ -39,6 +47,23 @@ export const KEYWORD_CLASSIFICATIONS: Record<string, KeywordClassification> = {
   '总共':     { keyword:'总共',     category:'addition_change', operationHint:'addition' },
   '合起来':   { keyword:'合起来',   category:'addition_change', operationHint:'addition' },
   // ── 减法变化 ──
+  // v2.11.3: 补充缺失的核心单字/双字关键词
+  '减':       { keyword:'减',       category:'subtraction_change', operationHint:'subtraction' },
+  '吃了':     { keyword:'吃了',     category:'subtraction_change', operationHint:'subtraction' },
+  '吃掉':     { keyword:'吃掉',     category:'subtraction_change', operationHint:'subtraction' },
+  '送给':     { keyword:'送给',     category:'subtraction_change', operationHint:'subtraction' },
+  '送给了':   { keyword:'送给了',   category:'subtraction_change', operationHint:'subtraction' },
+  '飞走':     { keyword:'飞走',     category:'subtraction_change', operationHint:'subtraction' },
+  '开走':     { keyword:'开走',     category:'subtraction_change', operationHint:'subtraction' },
+  '卖出':     { keyword:'卖出',     category:'subtraction_change', operationHint:'subtraction' },
+  '卖出去':   { keyword:'卖出去',   category:'subtraction_change', operationHint:'subtraction' },
+  '卖掉':     { keyword:'卖掉',     category:'subtraction_change', operationHint:'subtraction' },
+  '卖了':     { keyword:'卖了',     category:'subtraction_change', operationHint:'subtraction' },
+  '花了':     { keyword:'花了',     category:'subtraction_change', operationHint:'subtraction' },
+  '找到':     { keyword:'找到',     category:'subtraction_change', operationHint:'subtraction' },
+  '找回':     { keyword:'找回',     category:'subtraction_change', operationHint:'subtraction' },
+  '拿走':     { keyword:'拿走',     category:'subtraction_change', operationHint:'subtraction' },
+  '拿出':     { keyword:'拿出',     category:'subtraction_change', operationHint:'subtraction' },
   '飞走了':   { keyword:'飞走了',   category:'subtraction_change', operationHint:'subtraction' },
   '吃掉了':   { keyword:'吃掉了',   category:'subtraction_change', operationHint:'subtraction' },
   '用掉了':   { keyword:'用掉了',   category:'subtraction_change', operationHint:'subtraction' },

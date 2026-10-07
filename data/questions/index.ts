@@ -16,6 +16,7 @@ import { g3MultiplicationQuestions } from './g3-multiplication';
 import { extraInfoQuestions } from './extra-info';
 import { missingInfoQuestions } from './missing-info';
 import { allG1Annotations } from './annotations';
+import { progressionQuestions } from './progression';
 
 // ========== v2.9.0: Annotation merge ==========
 
@@ -50,18 +51,50 @@ export const allQuestions: Question[] = applyAnnotations([
   ...extraInfoQuestions,
   ...missingInfoQuestions,
   ...olympiadIntroQuestions,
+  ...progressionQuestions,
 ], allG1Annotations);
+
+const legacyTextAnswerIds = new Set(['g1t_15', 'g2_07', 'g3o_20', 'g4o_10', 'g4o_26']);
+const legacyTypedAnswerKinds: Record<string, 'fraction' | 'ratio' | 'percent'> = {
+  g3_06: 'fraction', g5o_08: 'ratio', g5o_14: 'percent', g6_06: 'percent',
+};
+for (let index = 0; index < allQuestions.length; index += 1) {
+  const question = allQuestions[index];
+  if (legacyTextAnswerIds.has(question.id)) {
+    allQuestions[index] = {
+      ...question,
+      answerType: 'text',
+      answerSchema: { kind: 'text', acceptedAnswers: [String(question.answer)] },
+    };
+  } else if (legacyTypedAnswerKinds[question.id]) {
+    allQuestions[index] = {
+      ...question,
+      answerType: 'number',
+      answerSchema: { kind: legacyTypedAnswerKinds[question.id] },
+    };
+  }
+}
+
+// Unsafe legacy items remain addressable by ID for history, but are excluded
+// from every new-course/recommendation pool until their content is reviewed.
+export const unsafeQuestionIds = new Set([
+  'g1ll_65', 'g1ll_67', 'g2_24', 'g5o_13',
+]);
+export function isQuestionSafeForNewLesson(question: Question): boolean {
+  return question.qualityStatus !== 'fail' && question.qualityStatus !== 'unsafe' && !unsafeQuestionIds.has(question.id);
+}
+export const safeQuestions = allQuestions.filter(isQuestionSafeForNewLesson);
 
 // ========== 按年级分组（使用标注后的 allQuestions） ==========
 
 export const questionsByGrade: Record<GradeBand, Question[]> = {
-  'G1': allQuestions.filter(q => q.gradeBand === 'G1'),
-  'G2': allQuestions.filter(q => q.gradeBand === 'G2'),
-  'G3': allQuestions.filter(q => q.gradeBand === 'G3'),
-  'G4': allQuestions.filter(q => q.gradeBand === 'G4'),
-  'G5': allQuestions.filter(q => q.gradeBand === 'G5'),
-  'G6': allQuestions.filter(q => q.gradeBand === 'G6'),
-  'OlympiadIntro': allQuestions.filter(q => q.gradeBand === 'OlympiadIntro' || (q as any).isExtendedThinking).map(q => ({ ...q, isExtendedThinking: true })),
+  'G1': safeQuestions.filter(q => q.gradeBand === 'G1'),
+  'G2': safeQuestions.filter(q => q.gradeBand === 'G2'),
+  'G3': safeQuestions.filter(q => q.gradeBand === 'G3'),
+  'G4': safeQuestions.filter(q => q.gradeBand === 'G4'),
+  'G5': safeQuestions.filter(q => q.gradeBand === 'G5'),
+  'G6': safeQuestions.filter(q => q.gradeBand === 'G6'),
+  'OlympiadIntro': safeQuestions.filter(q => q.gradeBand === 'OlympiadIntro' || (q as any).isExtendedThinking).map(q => ({ ...q, isExtendedThinking: true })),
 };
 
 // ========== 按年级和领域筛选 ==========
@@ -74,7 +107,7 @@ export function getQuestionsByFilter(options: {
   excludeIds?: string[];
   maxDifficulty?: number;
 }): Question[] {
-  let pool = allQuestions;
+  let pool = safeQuestions;
 
   if (options.grade) {
     pool = pool.filter(q => q.gradeBand === options.grade);

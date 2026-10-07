@@ -16,6 +16,7 @@ import { Lightbulb, CheckCircle, HelpCircle } from 'lucide-react';
 import AppCard from '@/components/ui/AppCard';
 import AppButton from '@/components/ui/AppButton';
 import BottomActionBar from '@/components/layout/BottomActionBar';
+import { IntegerInput } from '@/components/lesson/IntegerInput';
 import type { Question } from '@/lib/types';
 import type { ReasoningFrame } from '@/lib/curriculum/types';
 import { checkAnswer } from '@/lib/answerChecker';
@@ -235,47 +236,47 @@ export default function ThreeQuestionFlow({
 
     // ===== Phase 4: answer =====
     case 'answer': {
+      const handleSubmitAnswer = (e?: React.FormEvent) => {
+        e?.preventDefault();
+        const inputAnswer = e
+          ? (new FormData(e.currentTarget as HTMLFormElement).get('answer') as string || '').trim()
+          : userAnswer.trim();
+        if (!inputAnswer) return;
+        const ans = checkAnswer(inputAnswer, question);
+        onCorrect(ans.correct);
+      };
+
       return (
-        <div className="space-y-4">
-          <AppCard variant="purple">
-            <h3 className="font-extrabold text-purple-800 mb-2">④ 计算答案</h3>
-            <p className="text-sm text-gray-600 mb-3">{question.text}</p>
-            <div className="text-center py-4">
-              <p className="text-gray-500 mb-2">{question.operation === 'addition' ? '加法' : '减法'}</p>
-              <p className="text-2xl font-extrabold text-amber-600 mb-4">
-                {question.equation.replace('?', '___')}
-              </p>
-              <input
-                type="number"
-                value={userAnswer}
-                onChange={(e) => setUserAnswer(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    const ans = checkAnswer(userAnswer, question);
-                    onCorrect(ans.correct);
-                  }
-                }}
-                placeholder="输入答案"
-                className="w-32 h-16 text-center text-2xl font-extrabold border-2 border-amber-300 rounded-xl focus:border-amber-500 focus:outline-none bg-amber-50"
-                autoFocus
-              />
-            </div>
-          </AppCard>
-          <BottomActionBar>
-            <AppButton
-              variant="success"
-              size="lg"
-              fullWidth
-              disabled={!userAnswer.trim()}
-              onClick={() => {
-                const ans = checkAnswer(userAnswer, question);
-                onCorrect(ans.correct);
-              }}
-            >
-              提交答案
-            </AppButton>
-          </BottomActionBar>
-        </div>
+        <form onSubmit={handleSubmitAnswer}>
+          <div className="space-y-4">
+            <AppCard variant="purple">
+              <h3 className="font-extrabold text-purple-800 mb-2">④ 计算答案</h3>
+              <p className="text-sm text-gray-600 mb-3">{question.text}</p>
+              <div className="text-center py-4">
+                <p className="text-gray-500 mb-2">{question.operation === 'addition' ? '加法' : '减法'}</p>
+                <p className="text-2xl font-extrabold text-amber-600 mb-4">
+                  {question.equation.replace('?', '___')}
+                </p>
+                <IntegerInput
+                  value={userAnswer}
+                  onChange={setUserAnswer}
+                  onSubmit={() => handleSubmitAnswer()}
+                />
+              </div>
+            </AppCard>
+            <BottomActionBar>
+              <AppButton
+                variant="success"
+                size="lg"
+                fullWidth
+                disabled={!userAnswer.trim()}
+                type="submit"
+              >
+                提交答案
+              </AppButton>
+            </BottomActionBar>
+          </div>
+        </form>
       );
     }
 

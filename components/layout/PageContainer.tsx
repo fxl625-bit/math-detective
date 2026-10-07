@@ -15,9 +15,9 @@ export default function PageContainer({
   return (
     <div
       className={`
-        w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl mx-auto
-        px-4 py-4 space-y-4
-        ${bottomPadding ? 'pb-28' : 'pb-4'}
+        mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8
+        space-y-4
+        ${bottomPadding ? 'pb-28 sm:pb-32' : 'pb-4'}
         ${className}
       `.trim()}
     >

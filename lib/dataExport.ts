@@ -32,6 +32,8 @@ export interface ExportData {
 }
 
 export interface ExportPayload {
+  /** Current backup schema. Omitted only by legacy v1 exports. */
+  schemaVersion?: number;
   appName: string;
   appVersion: string;
   exportedAt: string;
@@ -66,7 +68,7 @@ const LS_KEYS = {
 
 // ========== 简单 checksum ==========
 
-function simpleChecksum(str: string): string {
+export function simpleChecksum(str: string): string {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
@@ -97,7 +99,7 @@ function safeReadLocalStorage(key: string): unknown | null {
     if (!raw) return null;
     return deepClone(JSON.parse(raw));
   } catch {
-    return null;
+    throw new Error(`无法读取本机数据（${key}），备份已中止`);
   }
 }
 
@@ -106,7 +108,7 @@ function safeReadLocalStorageRaw(key: string): string | null {
   try {
     return localStorage.getItem(key);
   } catch {
-    return null;
+    throw new Error(`无法读取本机数据（${key}），备份已中止`);
   }
 }
 
@@ -185,6 +187,9 @@ export function createDataSnapshot(): ExportPayload {
 
   // 读取各数据块（只读）
   const learningState = safeReadLocalStorage(LS_KEYS.state) as Record<string, unknown> | null;
+  if (!learningState || typeof learningState !== 'object' || Array.isArray(learningState)) {
+    throw new Error('未找到有效的本机学习数据，未生成备份文件');
+  }
   const todayLesson = safeReadLocalStorage(LS_KEYS.todayLesson) as Record<string, unknown> | null;
   const stateVersionRaw = safeReadLocalStorageRaw(LS_KEYS.stateVersion) || '';
   const appVersionInStorage = safeReadLocalStorageRaw(LS_KEYS.appVersion) || '';
@@ -230,6 +235,7 @@ export function createDataSnapshot(): ExportPayload {
 
   // 构建核心 payload（不含 checksum，用于计算 checksum）
   const corePayload = {
+    schemaVersion: 1,
     appName: 'Math Detective',
     appVersion: APP_VERSION,
     exportedAt,
@@ -311,7 +317,7 @@ export function estimateLocalStorageSize(): number {
       if (val) total += new Blob([key, val]).size;
     }
   } catch {
-    // ignore
+    throw new Error('无法读取本机数据大小');
   }
   return total;
 }

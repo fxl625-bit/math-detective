@@ -15,6 +15,7 @@
  */
 
 import type { Question, AnswerType, SubAnswer, RankingAnswer, RankingOption } from './types';
+import { inferAnswerSchema, parseMoneyToJiao, isMoneyEquivalent } from './answerSchema';
 
 // ========== 结果类型 ==========
 
@@ -72,6 +73,8 @@ export function checkAnswer(
       return checkNumberAnswer(input as string, question);
     case 'text':
       return checkTextAnswer(input as string, question);
+    case 'money':
+      return checkMoneyAnswer(input as string, question);
     case 'ranking':
       return checkRankingAnswer(input as string, question);
     case 'choice':
@@ -90,10 +93,12 @@ export function checkAnswer(
  */
 export function resolveAnswerType(q: Question): AnswerType {
   if (q.answerType) return q.answerType;
+  if (q.answerSchema?.kind === 'money') return 'money';
   if (q.correctRanking || q.rankingOptions?.length) return 'ranking';
   if (q.subAnswers?.length) return 'multi_answer';
   if (q.isInsufficient) return 'not_enough_information';
   if (q.problemType?.startsWith('logic')) return 'ranking';
+  if (q.domain === 'money') return 'money';
   if (typeof q.answer === 'number') return 'number';
   return 'number';
 }
@@ -109,16 +114,28 @@ function checkNumberAnswer(input: string, question: Question): AnswerCheckResult
   // 全角数字转半角
   const normalized = normalizeDigits(trimmed);
   const correctStr = String(question.answer);
+  const schemaKind = question.answerSchema?.kind || inferAnswerSchema(question).kind;
+
+  if (schemaKind === 'ratio') {
+    return { correct: compareRatios(normalized, correctStr), feedback: '再检查一下各项的比值～' };
+  }
+  if (schemaKind === 'percent') {
+    const actual = parsePercentOrFraction(normalized);
+    const expected = parsePercentOrFraction(correctStr);
+    if (actual && expected && equalRational(actual, expected)) return { correct: true };
+    return { correct: false, feedback: '再想想哦～' };
+  }
 
   // 精确匹配
   if (normalized === correctStr) {
     return { correct: true };
   }
 
-  // 数值比较（支持小数容差）
-  const inputNum = parseFloat(normalized);
-  const answerNum = typeof question.answer === 'number' ? question.answer : parseFloat(correctStr);
-  if (!isNaN(inputNum) && !isNaN(answerNum) && Math.abs(inputNum - answerNum) < 0.001) {
+  // Parse the entire input. Fractions remain exact; malformed numeric prefixes
+  // such as "12abc" must never be accepted as 12.
+  const inputValue = parseStrictRational(normalized);
+  const answerValue = parseStrictRational(correctStr);
+  if (inputValue && answerValue && equalRational(inputValue, answerValue)) {
     return { correct: true };
   }
 
@@ -132,15 +149,16 @@ function checkNumberAnswer(input: string, question: Question): AnswerCheckResult
 
 function checkTextAnswer(input: string, question: Question): AnswerCheckResult {
   const normalized = normalizeText(input);
-  const correct = normalizeText(String(question.answer));
+  const accepted = [String(question.answer), ...(question.answerSchema?.kind === 'text' ? question.answerSchema.acceptedAnswers : [])]
+    .map(normalizeText);
 
-  if (normalized === correct) {
+  if (accepted.includes(normalized)) {
     return { correct: true };
   }
 
   // 兼容 "小华-小红-小明" vs "小华、小红、小明"
   const inputParts = splitNames(normalized);
-  const correctParts = splitNames(correct);
+  const correctParts = splitNames(accepted[0] || '');
   if (inputParts.length > 1 && inputParts.length === correctParts.length) {
     const match = inputParts.every((p, i) => p === correctParts[i]);
     if (match) return { correct: true };
@@ -213,7 +231,18 @@ export function checkMultiAnswer(
       continue;
     }
 
-    const isCorrect = compareValues(userVal, sub.answer);
+    const resolvedSchema = question.answerSchema || inferAnswerSchema(question);
+    const fieldSchema = resolvedSchema.kind === 'multi_field'
+      ? resolvedSchema.fields.find(field => field.id === sub.id)
+      : undefined;
+    const isCorrect = fieldSchema?.kind === 'text'
+      ? normalizeText(userVal) === normalizeText(String(sub.answer))
+      : fieldSchema?.kind === 'ratio'
+        ? compareRatios(userVal, String(sub.answer))
+        : fieldSchema?.kind === 'percent'
+          ? Boolean(parsePercentOrFraction(userVal) && parsePercentOrFraction(String(sub.answer))
+            && equalRational(parsePercentOrFraction(userVal)!, parsePercentOrFraction(String(sub.answer))!))
+          : compareValues(userVal, sub.answer);
     fieldResults[sub.id] = {
       correct: isCorrect,
       expected: sub.answer,
@@ -302,6 +331,19 @@ function checkChoiceAnswer(input: string, question: Question): AnswerCheckResult
   const trimmed = input.trim();
   const correctStr = String(question.answer);
 
+  const schema = question.answerSchema;
+  if (schema?.kind === 'choice') {
+    const selected = schema.multiple ? trimmed.split(',').map(value => value.trim()).filter(Boolean) : [trimmed];
+    const canonical = selected.map(value => String(schema.options.find(option => option.id === value)?.value ?? value));
+    const expected = schema.multiple
+      ? correctStr.split(/[,，;；]+/).map(value => value.trim()).filter(Boolean)
+      : [correctStr];
+    if (canonical.length === expected.length
+      && canonical.slice().sort().every((value, index) => value === expected.slice().sort()[index])) {
+      return { correct: true };
+    }
+  }
+
   // 直接匹配
   if (trimmed === correctStr) {
     return { correct: true };
@@ -363,6 +405,36 @@ function checkNotEnoughInfo(input: string, question: Question): AnswerCheckResul
   return { correct: false, feedback: '再想想信息够不够～' };
 }
 
+// ========== Money Checker (v2.11.0) ==========
+
+function checkMoneyAnswer(input: string, question: Question): AnswerCheckResult {
+  const trimmed = input.trim();
+  if (!trimmed) {
+    return { correct: false, feedback: '请输入答案。' };
+  }
+
+  const inputJiao = parseMoneyToJiao(trimmed);
+  const correctStr = String(question.answer);
+  const correctJiao = parseMoneyToJiao(correctStr);
+
+  if (inputJiao === null || correctJiao === null) {
+    // Fall back to text comparison
+    if (normalizeText(trimmed) === normalizeText(correctStr)) {
+      return { correct: true };
+    }
+    return { correct: false, feedback: '再想想哦～' };
+  }
+
+  if (isMoneyEquivalent(inputJiao, correctJiao)) {
+    return { correct: true };
+  }
+
+  return {
+    correct: false,
+    feedback: '金额不对哦，再算一算～',
+  };
+}
+
 // ========== 工具函数 ==========
 
 /** 全角数字转半角 */
@@ -393,14 +465,64 @@ function compareValues(input: string, expected: number | string): boolean {
   // 精确字符串匹配
   if (normalized === String(expected)) return true;
 
-  // 数值比较
-  const inputNum = parseFloat(normalized);
-  const expectedNum = typeof expected === 'number' ? expected : parseFloat(String(expected));
-  if (!isNaN(inputNum) && !isNaN(expectedNum) && Math.abs(inputNum - expectedNum) < 0.001) {
-    return true;
-  }
+  const inputRatio = parseStrictRational(normalized);
+  const expectedRatio = parseStrictRational(String(expected));
+  if (inputRatio && expectedRatio && inputRatio.numerator * expectedRatio.denominator === expectedRatio.numerator * inputRatio.denominator) return true;
 
   return false;
+}
+
+function parseStrictRational(raw: string): { numerator: bigint; denominator: bigint } | null {
+  const value = normalizeDigits(raw.trim());
+  const fraction = value.match(/^([+-]?\d+)\s*\/\s*([+-]?\d+)$/);
+  if (fraction) {
+    const numerator = BigInt(fraction[1]);
+    const denominator = BigInt(fraction[2]);
+    if (denominator === BigInt(0)) return null;
+    return { numerator, denominator };
+  }
+  if (!/^[+-]?(?:\d+\.?\d*|\.\d+)$/.test(value)) return null;
+  const negative = value.startsWith('-');
+  const unsigned = value.replace(/^[+-]/, '');
+  const [whole = '0', fractional = ''] = unsigned.split('.');
+  // Avoid `**` with BigInt: SWC's production transform can rewrite this as
+  // Math.pow(BigInt, BigInt), which throws in browsers.
+  let denominator = BigInt(1);
+  for (let index = 0; index < fractional.length; index += 1) denominator *= BigInt(10);
+  const numerator = BigInt(`${whole || '0'}${fractional}` || '0') * (negative ? BigInt(-1) : BigInt(1));
+  return { numerator, denominator };
+}
+
+function equalRational(left: { numerator: bigint; denominator: bigint }, right: { numerator: bigint; denominator: bigint }): boolean {
+  return left.numerator * right.denominator === right.numerator * left.denominator;
+}
+
+function parsePercentOrFraction(raw: string) {
+  const value = normalizeDigits(raw.trim());
+  if (value.endsWith('%')) {
+    const number = parseStrictRational(value.slice(0, -1));
+    return number ? { numerator: number.numerator, denominator: number.denominator * BigInt(100) } : null;
+  }
+  // In a percent schema, an explicit fraction is an unambiguous equivalent
+  // (1/4 = 25%). A bare decimal such as 0.25 is not silently reinterpreted.
+  if (/^[+-]?\d+\s*\/\s*[+-]?\d+$/.test(value)) return parseStrictRational(value);
+  return null;
+}
+
+function compareRatios(actual: string, expected: string): boolean {
+  const parse = (raw: string) => {
+    const parts = normalizeDigits(raw.trim()).split(':');
+    if (parts.length < 2) return null;
+    const values = parts.map(parseStrictRational);
+    return values.some(value => value === null) ? null : values as Array<{ numerator: bigint; denominator: bigint }>;
+  };
+  const left = parse(actual);
+  const right = parse(expected);
+  if (!left || !right || left.length !== right.length || left[0].numerator === BigInt(0) || right[0].numerator === BigInt(0)) return false;
+  return left.slice(1).every((value, index) => equalRational(
+    { numerator: value.numerator * left[0].denominator, denominator: value.denominator * left[0].numerator },
+    { numerator: right[index + 1].numerator * right[0].denominator, denominator: right[index + 1].denominator * right[0].numerator },
+  ));
 }
 
 /** 从 RankingAnswer 提取排序数组 */

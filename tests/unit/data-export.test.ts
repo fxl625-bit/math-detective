@@ -154,14 +154,12 @@ run('7. 文件名格式：math-detective-backup-YYYYMMDD-HHmm.json', () => {
   assert.match(filename, pattern, `filename format incorrect: ${filename}`);
 });
 
-// 8. 空数据也能导出
-run('8. localStorage 为空时也能正常导出', () => {
+// 8. 空数据必须明确失败，不能生成看起来有效的伪空备份
+run('8. localStorage 为空时明确报错且不写入任何 key', () => {
   (globalThis as any).localStorage.clear();
-  // 不应 throw
-  const payload = createDataSnapshot();
-  assert.ok(payload, 'payload should be created even with empty storage');
-  assert.equal(payload.data.learningState, null);
-  assert.equal(payload.summary.stars, 0);
+  const before = snapshotStorage();
+  assert.throws(() => createDataSnapshot(), /未找到有效的本机学习数据/);
+  assert.deepEqual(snapshotStorage(), before, 'failed export must not modify storage');
 });
 
 // 9. 大数据也能导出（1000条 mistakes）

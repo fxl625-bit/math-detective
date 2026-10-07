@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Check, X, Star } from 'lucide-react';
+import { ArrowLeft, Check, X } from 'lucide-react';
 import Link from 'next/link';
 import { questions } from '@/data/questions';
 import { useGameState } from '@/hooks/useGameState';
@@ -346,7 +346,7 @@ export default function FindCluesPage() {
               {q.explanation}
             </div>
             <div className="text-xl font-extrabold text-amber-600 mt-2">
-              ⭐ +1 星星
+              已完成本题
             </div>
           </div>
           <div className="flex gap-3 justify-center">

@@ -1,8 +1,8 @@
 /**
  * 每日奖励系统 (v2.6.3 新增)
  *
- * 确保每日奖励幂等：
- * 1. 同一天同一个 todayLesson 只发一次星星/经验
+ * 兼容旧奖励标记，但不再发放星星：
+ * 1. 旧课程标记只迁移一次，避免旧弹窗/星星重复发放
  * 2. 同一天同一个 todayLesson 只弹一次奖励弹窗
  * 3. 返回首页、刷新、重进都不再重复弹
  */
@@ -33,7 +33,7 @@ export function grantDailyRewardOnce(
   }
 
   const now = new Date().toISOString();
-  const bonusStars = calculatedDailyStars(lesson);
+  const bonusStars = 0;
 
   const updatedLesson: TodayLesson = {
     ...lesson,
@@ -41,22 +41,9 @@ export function grantDailyRewardOnce(
     rewardClaimedAt: now,
   };
 
-  // v2.8.4 修复：只更新 lesson 的 rewardClaimed 标志
-  // stars 实际写入由调用方通过 addStars(bonusStars) 完成，
-  // 不在此处修改 state.stars（避免 stale closure 问题）
-  console.info(
-    `[Reward] Granting daily reward: ${bonusStars} stars, date=${lesson.date}`
-  );
+  // Legacy reward flags remain for compatibility; all value now comes from the points ledger.
 
   return { state, lesson: updatedLesson, bonusStars };
-}
-
-function calculatedDailyStars(lesson: TodayLesson): number {
-  // 基础：完成今日任务 = 3 颗星
-  let stars = 3;
-  // 全部关卡完成额外 +2
-  if (lesson.completed) stars += 2;
-  return stars;
 }
 
 // ========== 标记已展示 ==========

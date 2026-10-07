@@ -1,5 +1,5 @@
 import { MistakeRecord, Question } from './types';
-import { allQuestions } from '@/data/questions';
+import { allQuestions, isQuestionSafeForNewLesson } from '@/data/questions';
 
 export interface ReinforceChallenge {
   questions: Question[];
@@ -24,15 +24,19 @@ export function generateReinforceChallenge(
   let candidates = allQuestions.filter(q =>
     q.id !== mistake.questionId &&
     !completedSet.has(q.id) &&
+    q.gradeBand === originalQuestion.gradeBand &&
+    isQuestionSafeForNewLesson(q) &&
     q.domain === domain &&
     q.cognitiveSkills.some(s => cognitiveSkills.includes(s))
   );
 
-  // 如果同领域不够，放宽到任意题目
+  // If the same-domain pool is small, broaden only within the same grade.
   if (candidates.length < 3) {
     candidates = allQuestions.filter(q =>
       q.id !== mistake.questionId &&
-      !completedSet.has(q.id)
+      !completedSet.has(q.id) &&
+      q.gradeBand === originalQuestion.gradeBand &&
+      isQuestionSafeForNewLesson(q)
     );
   }
 

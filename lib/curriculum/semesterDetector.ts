@@ -29,6 +29,21 @@ export function detectSemesterFromDate(date?: Date): Semester {
 }
 
 /**
+ * Resolve the semester used by profile creation, lesson generation, and cache checks.
+ * Legacy `parentSettings.semester` is intentionally not accepted as a manual choice;
+ * only the explicit override is authoritative.
+ */
+export function resolveEffectiveSemester(params: {
+  semesterOverride?: Semester;
+  date?: Date;
+} = {}): { semester: Semester; source: 'override' | 'date' } {
+  if (params.semesterOverride === 'upper' || params.semesterOverride === 'lower') {
+    return { semester: params.semesterOverride, source: 'override' };
+  }
+  return { semester: detectSemesterFromDate(params.date), source: 'date' };
+}
+
+/**
  * v2.9.1: Detect progress within the current semester based on month.
  *
  * Lower semester (Feb-Jul):
@@ -47,9 +62,10 @@ export function detectSemesterFromDate(date?: Date): Semester {
  *
  * Jul-Aug → summer_bridge (暑假衔接)
  */
-export function detectSemesterProgress(date?: Date): SemesterProgress {
+export function detectSemesterProgress(date?: Date, effectiveSemester?: Semester): SemesterProgress {
   const d = date || new Date();
   const month = d.getMonth() + 1; // 1-12
+  if (effectiveSemester && effectiveSemester !== detectSemesterFromDate(d)) return 'early';
 
   // Summer bridge
   if (month === 7 || month === 8) return 'summer_bridge';
@@ -78,6 +94,7 @@ export function buildCurriculumProfile(params: {
   textbookEdition?: string;
   grade: number;
   semesterOverride?: Semester;
+  date?: Date;
 }): {
   country: string;
   textbookEdition: string;
@@ -87,14 +104,14 @@ export function buildCurriculumProfile(params: {
   detectedAt: string;
   semesterProgress?: SemesterProgress;
 } {
-  const detectedSemester = detectSemesterFromDate();
-  const semesterProgress = detectSemesterProgress();
+  const resolution = resolveEffectiveSemester({ semesterOverride: params.semesterOverride, date: params.date });
+  const semesterProgress = detectSemesterProgress(params.date, resolution.semester);
 
   return {
     country: params.country || 'CN',
     textbookEdition: params.textbookEdition || 'PEP',
     grade: params.grade,
-    semester: params.semesterOverride || detectedSemester,
+    semester: resolution.semester,
     semesterOverride: params.semesterOverride,
     detectedAt: new Date().toISOString(),
     semesterProgress,

@@ -1,18 +1,116 @@
 import { GameState, DEFAULT_GAME_STATE, MistakeRecord } from './types';
 import { initCurriculumProfile, buildLearnerProfile, detectUsageStage } from './learnerProfile';
-import { detectSemesterProgress } from './curriculum/semesterDetector';
+import { detectSemesterProgress, resolveEffectiveSemester } from './curriculum/semesterDetector';
 import type { Semester } from './curriculum/types';
 import type { SkillMastery } from './curriculum/types';
+import { normalizeLearningSettingsFromParent } from './learningSettings';
+import { ensurePointsState, isValidPointsWallet } from './familyPoints';
+import { getLegacyQualifiedItems } from '@/data/avatarItems';
 
 const STORAGE_KEY = 'math-detective-state';
+export type StorageRecoveryStatus = 'corrupt' | 'unavailable' | null;
+let storageRecoveryStatus: StorageRecoveryStatus = null;
+
+export function getStorageRecoveryStatus(): StorageRecoveryStatus {
+  return storageRecoveryStatus;
+}
+
+function stableSerialize(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableSerialize).join(',')}]`;
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record).filter(key => record[key] !== undefined).sort()
+      .map(key => `${JSON.stringify(key)}:${stableSerialize(record[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value) ?? 'null';
+}
+
+function isValidMistakeReviewAttempts(value: unknown): boolean {
+  if (!Array.isArray(value)) return false;
+  return value.every((item) => !!item && typeof item === 'object' && !Array.isArray(item)
+    && typeof item.id === 'string' && item.id.length > 0
+    && typeof item.recordId === 'string' && item.recordId.length > 0
+    && typeof item.questionId === 'string' && item.questionId.length > 0
+    && typeof item.actionId === 'string' && item.actionId.length > 0
+    && (typeof item.answer === 'string' || (!!item.answer && typeof item.answer === 'object' && !Array.isArray(item.answer)
+      && Object.values(item.answer).every(value => typeof value === 'string')))
+    && typeof item.correct === 'boolean'
+    && Number.isFinite(Date.parse(item.submittedAt))
+    && Number.isSafeInteger(item.pointsDeltaUnits) && item.pointsDeltaUnits >= 0);
+}
 
 export function loadState(): GameState {
   if (typeof window === 'undefined') return { ...DEFAULT_GAME_STATE };
+  let raw: string | null = null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...DEFAULT_GAME_STATE };
-    const parsed = JSON.parse(raw);
-    const state: GameState = { ...DEFAULT_GAME_STATE, ...parsed };
+    raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) { storageRecoveryStatus = null; return ensurePointsState({ ...DEFAULT_GAME_STATE }); }
+    let parsed: unknown;
+    try { parsed = JSON.parse(raw); }
+    catch { storageRecoveryStatus = 'corrupt'; return { ...DEFAULT_GAME_STATE }; }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      storageRecoveryStatus = 'corrupt';
+      return { ...DEFAULT_GAME_STATE };
+    }
+    storageRecoveryStatus = null;
+    const parsedRecord = parsed as Record<string, unknown>;
+    const parsedSettings = parsedRecord.parentSettings && typeof parsedRecord.parentSettings === 'object' && !Array.isArray(parsedRecord.parentSettings)
+      ? parsedRecord.parentSettings
+      : {};
+    const mergedSettings = { ...DEFAULT_GAME_STATE.parentSettings, ...parsedSettings };
+    if (typeof mergedSettings.gradeBand !== 'string' || !/^G[1-6]$/.test(mergedSettings.gradeBand)) {
+      mergedSettings.gradeBand = DEFAULT_GAME_STATE.parentSettings.gradeBand;
+    }
+    if (mergedSettings.semesterOverride !== 'upper' && mergedSettings.semesterOverride !== 'lower') {
+      mergedSettings.semesterOverride = undefined;
+    }
+    const priorLearningSettings = (mergedSettings.learningSettings && typeof mergedSettings.learningSettings === 'object'
+      ? mergedSettings.learningSettings
+      : {}) as Record<string, unknown>;
+    mergedSettings.learningSettings = normalizeLearningSettingsFromParent(mergedSettings as GameState['parentSettings'], {
+      unitId: priorLearningSettings.unitId,
+      learnedTableRange: priorLearningSettings.learnedTableRange,
+      challengePreference: priorLearningSettings.challengePreference,
+    });
+    const state: GameState = {
+      ...DEFAULT_GAME_STATE,
+      ...parsedRecord,
+      parentSettings: mergedSettings,
+    };
+    if (parsedRecord.pointsWallet !== undefined && !isValidPointsWallet(parsedRecord.pointsWallet)) {
+      throw new Error('points wallet is corrupt');
+    }
+    if (parsedRecord.mistakeReviewAttempts !== undefined && !isValidMistakeReviewAttempts(parsedRecord.mistakeReviewAttempts)) {
+      throw new Error('mistake review history is corrupt');
+    }
+    if (parsedRecord.unlockedAvatarItemIds !== undefined && (!Array.isArray(parsedRecord.unlockedAvatarItemIds)
+      || parsedRecord.unlockedAvatarItemIds.some(id => typeof id !== 'string'))) {
+      throw new Error('unlocked avatar item list is corrupt');
+    }
+    const previouslyUnlocked = Array.isArray(state.unlockedAvatarItemIds) ? state.unlockedAvatarItemIds : [];
+    const legacyUnlocked = parsedRecord.pointsWallet === undefined
+      ? getLegacyQualifiedItems(state).map(item => item.id)
+      : [];
+    Object.assign(state, ensurePointsState(state));
+    state.unlockedAvatarItemIds = [...new Set([...previouslyUnlocked, ...legacyUnlocked])];
+    if (!state.curriculumProfile || typeof state.curriculumProfile !== 'object' || Array.isArray(state.curriculumProfile)) {
+      state.curriculumProfile = undefined;
+    }
+    if (!state.learnerProfile || typeof state.learnerProfile !== 'object' || Array.isArray(state.learnerProfile)) {
+      state.learnerProfile = undefined;
+    }
+
+    const semesterResolution = resolveEffectiveSemester({
+      semesterOverride: state.parentSettings.learningSettings?.semesterSource === 'manual'
+        ? state.parentSettings.learningSettings.semester
+        : undefined,
+    });
+    state.parentSettings.gradeBand = state.parentSettings.learningSettings!.grade;
+    state.parentSettings.semesterOverride = state.parentSettings.learningSettings?.semesterSource === 'manual'
+      ? state.parentSettings.learningSettings.semester
+      : undefined;
+    state.parentSettings.textbookEdition = state.parentSettings.learningSettings?.textbookEdition;
+    state.parentSettings.dailyGoal = state.parentSettings.learningSettings!.dailyGoal;
 
     // v2.9.0: Auto-migrate — initialize curriculumProfile if missing
     if (!state.curriculumProfile) {
@@ -25,8 +123,22 @@ export function loadState(): GameState {
       });
     }
 
+    // Keep the persisted profile aligned with the same effective value used by lesson generation.
+    const settingsGrade = Number(state.parentSettings.learningSettings?.grade.slice(1) || 1);
+    const settingsEdition = state.parentSettings.learningSettings?.textbookEdition || 'generic_cn';
+    const profileMatchesSettings = state.curriculumProfile.grade === settingsGrade
+      && state.curriculumProfile.textbookEdition === settingsEdition
+      && state.curriculumProfile.semester === semesterResolution.semester;
+    state.curriculumProfile.grade = settingsGrade;
+    state.curriculumProfile.textbookEdition = settingsEdition;
+    state.curriculumProfile.semester = semesterResolution.semester;
+    state.curriculumProfile.semesterOverride = semesterResolution.source === 'override'
+      ? semesterResolution.semester
+      : undefined;
+    if (!profileMatchesSettings) state.curriculumProfile.detectedAt = new Date().toISOString();
+
     // v2.9.1: Always refresh semesterProgress (month may have changed)
-    state.curriculumProfile.semesterProgress = detectSemesterProgress();
+    state.curriculumProfile.semesterProgress = detectSemesterProgress(new Date(), semesterResolution.semester);
 
     // v2.9.1: Ensure trainingMode + schoolHarder defaults
     if (!state.trainingMode) state.trainingMode = 'adaptive';
@@ -40,9 +152,17 @@ export function loadState(): GameState {
     ).length;
     const masteredSkillRatio = allSkillIds.length > 0 ? masteredCount / allSkillIds.length : 0;
 
+    // v2.11.0: Compute daysSinceStart from actual startedAt date
+    const startedAt = state.learnerProfile?.startedAt;
+    const startedAtTimestamp = startedAt ? Date.parse(startedAt) : NaN;
+    const hasValidStartedAt = Number.isFinite(startedAtTimestamp);
+    const daysSinceStart = hasValidStartedAt
+      ? Math.max(1, Math.floor((Date.now() - startedAtTimestamp) / (1000 * 60 * 60 * 24)))
+      : Math.max(1, Math.ceil((state.totalCompleted || 0) / 6));
+
     // v2.9.1: Detect usage stage with extended params
     const stageInfo = detectUsageStage(
-      Math.max(1, Math.ceil((state.totalCompleted || 0) / 6)),
+      daysSinceStart,
       state.totalCompleted || 0,
       {
         recentAccuracy: state.learnerProfile?.recentAccuracy,
@@ -67,27 +187,41 @@ export function loadState(): GameState {
         curriculumProfile: state.curriculumProfile as any,
         attemptRecords: state.attemptRecords || [],
         totalCompleted: state.totalCompleted || 0,
+        startedAt: state.learnerProfile.startedAt,
         consecutiveCheckInDays: state.streak || 0,
+        preserveDifficulty: true,
       });
     }
 
-    // Persist migrated state
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch { /* storage full, ignore */ }
+    // Persist only a real migration/change. Reading state is otherwise idempotent.
+    if (stableSerialize(state) !== stableSerialize(parsedRecord)) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch { storageRecoveryStatus = 'unavailable'; }
+    }
 
     return state;
   } catch {
+    storageRecoveryStatus = raw === null ? 'unavailable' : 'corrupt';
     return { ...DEFAULT_GAME_STATE };
   }
 }
 
-export function saveState(state: GameState): void {
-  if (typeof window === 'undefined') return;
+export function saveState(state: GameState): boolean {
+  if (typeof window === 'undefined') return false;
+  if (storageRecoveryStatus) return false;
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if ((state.pointsWallet !== undefined && !isValidPointsWallet(state.pointsWallet))
+      || (state.mistakeReviewAttempts !== undefined && !isValidMistakeReviewAttempts(state.mistakeReviewAttempts))) {
+      storageRecoveryStatus = 'corrupt';
+      return false;
+    }
+    const safeState = ensurePointsState(state);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(safeState));
+    return true;
   } catch {
-    // storage full, ignore
+    storageRecoveryStatus = 'unavailable';
+    return false;
   }
 }
 
@@ -241,14 +375,15 @@ export function completeQuestion(
     attemptType: 'final_answer',
   };
   const existingRecords = state.attemptRecords || [];
-  // 按题目去重：保留最近一次提交，旧记录替换（每道题只保留最新状态）
-  const filtered = existingRecords.filter(r => r.questionId !== questionId);
-  const attemptRecords = [...filtered, newRecord].slice(-200); // 最多 200 条
+  // Keep the historical submission stream append-only. This legacy row does
+  // not prove which lesson instance was answered first; learningEvents does.
+  const attemptRecords = [...existingRecords, newRecord].slice(-200);
 
   // 答错：只记录 attempt 和复习日期，不改变 totalCompleted 和 correctCount
   if (!correct) {
     return {
       ...state,
+      stars: 0,
       answerAttempts: newAttempts,
       questionReviewDates: reviewDates,
       questionReviewCounts: reviewCounts,
@@ -260,14 +395,13 @@ export function completeQuestion(
   if (alreadyDone) {
     return {
       ...state,
+      stars: 0,
       answerAttempts: newAttempts,
       questionReviewDates: reviewDates,
       questionReviewCounts: reviewCounts,
       attemptRecords,
     };
   }
-
-  const newStars = getStarReward(state.level);
 
   let newSkillLevel = state.skillLevel || 1;
   if (state.correctCount % 5 === 0 && newSkillLevel < 10) {
@@ -284,19 +418,13 @@ export function completeQuestion(
     totalCompleted: state.totalCompleted + 1,
     correctCount: state.correctCount + 1,
     answerAttempts: newAttempts,
-    stars: state.stars + newStars,
+    stars: 0,
     skillLevel: newSkillLevel,
     weeklySnapshots: newSnapshots,
     questionReviewDates: reviewDates,
     questionReviewCounts: reviewCounts,
     attemptRecords,
   };
-}
-
-function getStarReward(level: number): number {
-  if (level >= 5) return 3;
-  if (level >= 3) return 2;
-  return 1;
 }
 
 // ========== 每周快照 ==========
@@ -351,14 +479,10 @@ export function getStreakMood(streak: number): string {
 // ========== 每日签到 ==========
 
 export function checkDailyCheckin(state: GameState): { state: GameState; bonus: number } | null {
-  const today = getDateString();
-  if (state.lastCheckinDate === today) return null; // 今天已签到
-
-  const bonus = Math.floor(Math.random() * 5) + 1; // 1-5 颗随机星星
-  return {
-    state: { ...state, stars: state.stars + bonus, lastCheckinDate: today },
-    bonus,
-  };
+  // Kept as a compatibility shim. New check-ins must use claimCheckin(),
+  // which writes an idempotent half-point ledger entry.
+  void state;
+  return null;
 }
 
 // ========== 最近7天打卡状态 ==========
@@ -401,9 +525,9 @@ export function calculateAccuracy(state: { correctCount: number; answerAttempts:
  * v2.6.8: 统一正确率统计函数
  *
  * 口径说明:
- * - 总体正确率 = 所有 attemptRecords 中正确数 / 总数（按题目去重：每道题只取最近一次提交）
- * - 7日正确率 = 最近7天内的 attemptRecords 中正确数 / 总数（同上口径）
- * - 今日完成 = 今日 attemptRecords 中首次答对的去重题目数
+ * - 正确率只统计每个 questionInstanceId 的首个真实提交，来源为 learningEvents
+ * - 无首答证据的旧 attemptRecords 只计入 unknownLegacyCount，不伪造正确率
+ * - 今日完成按 question_completed 事件的课程实例去重
  * - 未作答题目不计入分母，未完成关卡不计入错误
  * - 如果 totalAttempts = 0，正确率返回 0
  */
@@ -412,46 +536,48 @@ export function getAccuracyStats(state: GameState): import('./types').AccuracySt
   const now = new Date();
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const todayStr = getDateString();
+  const orderedAttempts = (state.learningEvents || []).map((event, index) => ({ event, index }))
+    .filter(({ event }) => event.eventType === 'attempt_submitted')
+    .sort((left, right) => left.event.timestamp.localeCompare(right.event.timestamp) || left.index - right.index)
+    .map(({ event }) => event);
+  const firstByInstance = new Map<string, NonNullable<GameState['learningEvents']>[number]>();
+  for (const event of orderedAttempts) if (!firstByInstance.has(event.questionInstanceId)) firstByInstance.set(event.questionInstanceId, event);
+  const knownFirstAnswers = [...firstByInstance.values()].filter(event => event.firstAttemptKnown === true);
+  const firstQuestionIds = new Set(knownFirstAnswers.map(event => event.questionId));
+  const unknownQuestionIds = new Set([...firstByInstance.values()]
+    .filter(event => event.firstAttemptKnown !== true)
+    .map(event => event.questionId));
+  for (const record of records) if (!firstQuestionIds.has(record.questionId)) unknownQuestionIds.add(record.questionId);
+  const unknownLegacyCount = unknownQuestionIds.size;
 
-  // 按题目去重：每道题只保留最近一次提交记录
-  const latestMap = new Map<string, import('./types').AttemptRecord>();
-  for (const r of records) {
-    const existing = latestMap.get(r.questionId);
-    if (!existing || new Date(r.submittedAt) > new Date(existing.submittedAt)) {
-      latestMap.set(r.questionId, r);
-    }
-  }
-  const latestRecords = Array.from(latestMap.values());
-
-  // 总体统计：所有 latestRecords
-  const totalAttempts = latestRecords.length;
-  const correctAttempts = latestRecords.filter(r => r.isCorrect).length;
+  const totalAttempts = knownFirstAnswers.length;
+  const correctAttempts = knownFirstAnswers.filter(event => event.result === 'correct').length;
   const overallAccuracy = totalAttempts > 0
     ? Math.round((correctAttempts / totalAttempts) * 100)
     : 0;
 
-  // 7日统计：过滤最近7天的记录
-  const last7DaysRecords = latestRecords.filter(r => {
-    const d = new Date(r.submittedAt);
+  const last7DaysRecords = knownFirstAnswers.filter(event => {
+    const d = new Date(event.timestamp);
     return d >= sevenDaysAgo && d <= now;
   });
   const last7DaysTotalAttempts = last7DaysRecords.length;
-  const last7DaysCorrectAttempts = last7DaysRecords.filter(r => r.isCorrect).length;
+  const last7DaysCorrectAttempts = last7DaysRecords.filter(event => event.result === 'correct').length;
   const last7DaysAccuracy = last7DaysTotalAttempts > 0
     ? Math.round((last7DaysCorrectAttempts / last7DaysTotalAttempts) * 100)
     : 0;
-
-  // 今日完成：今日首次答对的题目数（从 attemptRecords 统计）
-  const todayCompleted = records.filter(r => {
-    const d = new Date(r.submittedAt);
-    const recordDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    return recordDate === todayStr && r.isCorrect;
-  }).length;
+  const todayCompleted = new Set((state.learningEvents || []).filter(event => {
+    if (event.eventType !== 'question_completed' || !event.questionInstanceId) return false;
+    const date = new Date(event.timestamp);
+    return Number.isFinite(date.getTime()) && getDateString(date) === todayStr;
+  }).map(event => event.questionInstanceId)).size;
 
   return {
-    todayCompleted: Math.max(state.completedToday, todayCompleted), // 兼容旧数据
+    todayCompleted,
     overallAccuracy,
+    isKnown: totalAttempts > 0,
+    unknownLegacyCount,
     last7DaysAccuracy,
+    last7DaysIsKnown: last7DaysTotalAttempts > 0,
     totalAttempts,
     correctAttempts,
     last7DaysTotalAttempts,
@@ -477,7 +603,10 @@ export function formatAccuracy(accuracy: number): string {
 
 export function getWeekStreakStatus(state: GameState): boolean[] {
   const today = getDateString();
-  const playedToday = state.lastPlayDate === today;
+  const playedToday = (state.learningEvents || []).some(event => event.eventType === 'attempt_submitted' && event.timestamp.slice(0, 10) === today)
+    || (state.attemptRecords || []).some(record => record.submittedAt.slice(0, 10) === today)
+    || (state.mentalMathRecords || []).some(session => session.date === today && session.totalQuestions > 0)
+    || (state.lastPlayDate === today && state.completedToday > 0);
   const result: boolean[] = [];
   for (let i = 6; i >= 0; i--) {
     if (i === 0) {

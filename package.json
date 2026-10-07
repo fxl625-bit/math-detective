@@ -1,6 +1,6 @@
 {
   "name": "math-detective",
-  "version": "2.8.4",
+  "version": "2.13.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -51,6 +51,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "process": "^0.11.10",
     "tailwindcss": "^4",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4",

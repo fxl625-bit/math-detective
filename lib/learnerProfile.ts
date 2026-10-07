@@ -221,8 +221,9 @@ export function buildLearnerProfile(params: {
   totalCompleted: number;
   startedAt?: string;
   consecutiveCheckInDays?: number;
+  preserveDifficulty?: boolean;
 }): LearnerProfile {
-  const { existingProfile, curriculumProfile, attemptRecords, totalCompleted, startedAt, consecutiveCheckInDays } = params;
+  const { existingProfile, curriculumProfile, attemptRecords, totalCompleted, startedAt, consecutiveCheckInDays, preserveDifficulty = false } = params;
 
   // Compute recent accuracy (last 30 attempts)
   const recentRecords = attemptRecords.slice(-30);
@@ -245,32 +246,43 @@ export function buildLearnerProfile(params: {
   // v2.9.1: Difficulty calibration based on stage and semester progress
   let currentDifficultyLevel = existingProfile?.currentDifficultyLevel || 1;
 
+  // v2.11.0: Compute daysSinceStart from actual startedAt date, not question count
+  const startedAtTimestamp = startedAt ? Date.parse(startedAt) : NaN;
+  const hasValidStartedAt = Number.isFinite(startedAtTimestamp);
+  const daysSinceStart = hasValidStartedAt
+    ? Math.max(1, Math.floor((Date.now() - startedAtTimestamp) / (1000 * 60 * 60 * 24)))
+    : (totalCompleted > 0 ? Math.max(1, Math.ceil(totalCompleted / 5)) : 0);
+
   // Stage 3+ users start at minimum difficulty 3
   // Stage 4 users start at minimum difficulty 4
   const stageInfo = detectUsageStage(
-    totalCompleted > 0 ? Math.max(1, Math.ceil(totalCompleted / 5)) : 0,
+    daysSinceStart,
     totalCompleted,
     { recentAccuracy, fullHintRate: 0, masteredSkillRatio: 0 },
   );
 
-  if (stageInfo.stage >= 4 && currentDifficultyLevel < 4) {
-    currentDifficultyLevel = 4;
-  } else if (stageInfo.stage >= 3 && currentDifficultyLevel < 3) {
-    currentDifficultyLevel = 3;
+  if (!preserveDifficulty) {
+    if (stageInfo.stage >= 4 && currentDifficultyLevel < 4) {
+      currentDifficultyLevel = 4;
+    } else if (stageInfo.stage >= 3 && currentDifficultyLevel < 3) {
+      currentDifficultyLevel = 3;
+    }
+
+    // Auto-upgrade: if accuracy >= 85% over 20+ recent questions
+    const autoUpgrade = recentTotal >= 20 && recentAccuracy >= 85 && currentDifficultyLevel < 5;
+    const autoDowngrade = recentTotal >= 15 && recentAccuracy < 50 && currentDifficultyLevel > 1;
+
+    if (autoUpgrade) currentDifficultyLevel += 1;
+    if (autoDowngrade) currentDifficultyLevel -= 1;
   }
-
-  // Auto-upgrade: if accuracy >= 85% over 20+ recent questions
-  const autoUpgrade = recentTotal >= 20 && recentAccuracy >= 85 && currentDifficultyLevel < 5;
-  const autoDowngrade = recentTotal >= 15 && recentAccuracy < 50 && currentDifficultyLevel > 1;
-
-  if (autoUpgrade) currentDifficultyLevel += 1;
-  if (autoDowngrade) currentDifficultyLevel -= 1;
 
   return {
     curriculumProfile,
     skillMastery: existingProfile?.skillMastery || {},
     currentDifficultyLevel,
-    startedAt: startedAt || new Date().toISOString(),
+    startedAt: (startedAt && Number.isFinite(Date.parse(startedAt)) ? startedAt : undefined) ||
+      (existingProfile?.startedAt && Number.isFinite(Date.parse(existingProfile.startedAt)) ? existingProfile.startedAt : undefined) ||
+      new Date().toISOString(),
     totalCompleted,
     recentAccuracy,
     recentFirstTryAccuracy,

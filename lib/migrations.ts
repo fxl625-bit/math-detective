@@ -1,7 +1,8 @@
 import { GameState, DEFAULT_GAME_STATE, TodayLesson, LessonStepType } from './types';
 import { normalizeLesson, normalizeStep, getDefaultPhasesForStepType } from './lessonPlanner';
+import { ensurePointsState } from './familyPoints';
 
-export const LEARNING_STATE_VERSION = 9;
+export const LEARNING_STATE_VERSION = 10;
 
 // ========== 扩展状态类型（带 version） ==========
 
@@ -13,7 +14,7 @@ export interface VersionedState extends GameState {
 
 export function migrateGameState(raw: unknown): VersionedState {
   if (!raw || typeof raw !== 'object') {
-    return { ...DEFAULT_GAME_STATE, version: LEARNING_STATE_VERSION };
+    return { ...ensurePointsState(DEFAULT_GAME_STATE), version: LEARNING_STATE_VERSION };
   }
 
   const obj = raw as Record<string, unknown>;
@@ -23,7 +24,7 @@ export function migrateGameState(raw: unknown): VersionedState {
   if (existingVersion === LEARNING_STATE_VERSION) {
     const base = { ...DEFAULT_GAME_STATE, ...obj, version: LEARNING_STATE_VERSION } as VersionedState;
     ensureArrays(base);
-    return base;
+    return { ...ensurePointsState(base), version: LEARNING_STATE_VERSION };
   }
 
   // 合并默认值
@@ -52,6 +53,9 @@ export function migrateGameState(raw: unknown): VersionedState {
   if (!Array.isArray(base.decorations)) {
     base.decorations = [];
   }
+  if (base.unlockedAvatarItemIds !== undefined && !Array.isArray(base.unlockedAvatarItemIds)) {
+    base.unlockedAvatarItemIds = [];
+  }
   if (!Array.isArray(base.collectibleCards)) {
     base.collectibleCards = [];
   }
@@ -71,7 +75,7 @@ export function migrateGameState(raw: unknown): VersionedState {
 
   ensureArrays(base);
 
-  return base;
+  return { ...ensurePointsState(base), version: LEARNING_STATE_VERSION };
 }
 
 function migrateParentSettingsV5(base: VersionedState): void {
@@ -111,6 +115,12 @@ function ensureArrays(base: VersionedState): void {
   if (!Array.isArray(base.decorations)) {
     base.decorations = [];
   }
+  if (base.unlockedAvatarItemIds !== undefined && !Array.isArray(base.unlockedAvatarItemIds)) {
+    base.unlockedAvatarItemIds = [];
+  }
+  if (!Array.isArray(base.mistakeReviewAttempts)) {
+    base.mistakeReviewAttempts = [];
+  }
   if (!Array.isArray(base.collectibleCards)) {
     base.collectibleCards = [];
   }
@@ -129,6 +139,9 @@ function ensureArrays(base: VersionedState): void {
   }
   if (typeof base.skillLevel !== 'number' || base.skillLevel < 1) {
     base.skillLevel = 1;
+  }
+  if (!Array.isArray(base.mentalMathRecords)) {
+    base.mentalMathRecords = [];
   }
 }
 

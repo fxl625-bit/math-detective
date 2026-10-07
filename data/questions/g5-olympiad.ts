@@ -271,7 +271,7 @@ export const g5OlympiadQuestions: Question[] = [
     themeTags: ["money"],
     problemType: 'multi_step',
   answerType: 'multi_answer',
-  subAnswers: [{"id":"profit","label":"赚","answer":18},{"id":"rate","label":"利润率","answer":12}],
+  subAnswers: [{"id":"profit","label":"赚","answer":18},{"id":"rate","label":"利润率","answer":"12%"}],
   },
   { id: 'g5o_17', gradeBand: 'G5', domain: 'ratio', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '商品按定价打85折仍赚15%。定价是进价的百分之几？', numbers: [85,15], keywords: [], noisePhrases:[], usefulPhrases:['85折','赚15%'], questionMeaningOptions:['约135%','130%','140%'], correctMeaning:'约135%', operation:'mixed', equation:'定价×0.85=进价×1.15,定价/进价=1.15/0.85≈1.353', answer:'135.3%', answerSentence:'定价约是进价的135.3%。', explanation:'售价=进价×(1+15%)=1.15进价。售价又=定价×0.85。所以定价=1.15进价/0.85≈1.353进价→135.3%。', solutionSteps:['售价=进价×1.15','售价=定价×0.85','定价/进价=1.15/0.85≈1.353'], hints:['设进价为1，逆推定价。'], difficulty:4, category:'mixed', visualKey:'sticker', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['full_solve'],
     answerType: 'number',
@@ -378,7 +378,7 @@ export const g5OlympiadQuestions: Question[] = [
     problemType: 'multi_step',
   },
   // ====== 利润进阶 1题 ======
-  { id: 'g5o_32', gradeBand: 'G5', domain: 'ratio', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '一件商品按进价加价30%后，再打9折售出，获利39元。进价多少？', numbers: [30,9,39], keywords: [], noisePhrases:[], usefulPhrases:['加价30%','打9折','获利39元'], questionMeaningOptions:['300元','350元','400元'], correctMeaning:'300元', operation:'mixed', equation:'1.3×0.9x-x=0.17x=39,x≈229...重算:x×1.3×0.9-x=0.17x=39,x=229.4不对。1.3×0.9=1.17,利润=17%=39,x=39/0.17≈229.4。调数据:加价30%再85折获利40,则1.3×0.85=1.105,0.105x=40,x≈381。用加价50%打85折获利51:x×1.5×0.85-x=0.275x=51,x≈185。', answer:'229.4', answerSentence:'进价约229.4元。', explanation:'售价=进价×1.3×0.9=1.17进价。利润=售价-进价=0.17进价=39。进价=39/0.17≈229.4元。', solutionSteps:['售价=进价×1.3×0.9=1.17进价','利润=0.17进价=39','进价=39/0.17≈229.4'], hints:['把进价设为x，售价=1.3×0.9 x。'], difficulty:4, category:'mixed', visualKey:'sticker', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['full_solve'],
+  { id: 'g5o_32', qualityStatus: 'fail', gradeBand: 'G5', domain: 'ratio', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '一件商品按进价加价30%后，再打9折售出，获利39元。进价多少？', numbers: [30,9,39], keywords: [], noisePhrases:[], usefulPhrases:['加价30%','打9折','获利39元'], questionMeaningOptions:['300元','350元','400元'], correctMeaning:'300元', operation:'mixed', equation:'1.3×0.9x-x=0.17x=39,x≈229...重算:x×1.3×0.9-x=0.17x=39,x=229.4不对。1.3×0.9=1.17,利润=17%=39,x=39/0.17≈229.4。调数据:加价30%再85折获利40,则1.3×0.85=1.105,0.105x=40,x≈381。用加价50%打85折获利51:x×1.5×0.85-x=0.275x=51,x≈185。', answer:'229.4', answerSentence:'进价约229.4元。', explanation:'售价=进价×1.3×0.9=1.17进价。利润=售价-进价=0.17进价=39。进价=39/0.17≈229.4元。', solutionSteps:['售价=进价×1.3×0.9=1.17进价','利润=0.17进价=39','进价=39/0.17≈229.4'], hints:['把进价设为x，售价=1.3×0.9 x。'], difficulty:4, category:'mixed', visualKey:'sticker', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['full_solve'],
     answerType: 'number',
     sceneType: 'shopping',
     themeTags: ["money"],

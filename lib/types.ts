@@ -67,6 +67,7 @@ export interface SolutionStepDetailed {
 export type AnswerType =
   | 'number'                    // 数字答案：11, 79
   | 'text'                      // 文本答案："小华"
+  | 'money'                     // v2.11.0: 金额答案（人民币等）
   | 'ranking'                   // 排序答案：完整排序选择
   | 'multi_answer'              // 多答案：两个或多个输入框
   | 'choice'                    // 选择题：点击选项
@@ -238,6 +239,43 @@ export interface QuestionVisual {
   scene: string;
 }
 
+// ========== v2.11.0: Answer Schema System ==========
+
+/** 答案选项 */
+export interface AnswerOption {
+  id: string;
+  label: string;
+  value: string | number;
+}
+
+/** 多字段答案的单个字段 */
+export interface AnswerField {
+  id: string;
+  label: string;
+  kind: 'integer' | 'decimal' | 'fraction' | 'ratio' | 'percent' | 'text';
+  unit?: string;
+  min?: number;
+  max?: number;
+}
+
+/**
+ * 统一答案模式 — 控制答案输入控件的渲染和校验。
+ * stepType 控制学习流程，answerSchema 控制答案界面。两者不得混用。
+ */
+export type AnswerSchema =
+  | { kind: 'integer'; min?: number; max?: number; allowNegative?: boolean }
+  | { kind: 'decimal'; decimalPlaces?: number; unit?: string; min?: number; max?: number }
+  | { kind: 'fraction' | 'ratio' | 'percent' }
+  | { kind: 'fraction' | 'ratio' | 'percent' }
+  | { kind: 'money'; currency: 'CNY'; inputMode: 'yuan_jiao' | 'decimal_yuan'; allowEquivalentFormats: boolean }
+  | { kind: 'choice'; options: AnswerOption[]; multiple: boolean }
+  | { kind: 'multi_field'; fields: AnswerField[] }
+  | { kind: 'comparison_symbol'; options: ('>' | '<' | '=')[] }
+  | { kind: 'expression' }
+  | { kind: 'text'; acceptedAnswers: string[] }
+  | { kind: 'not_enough_information' }
+  | { kind: 'ordering'; itemIds: string[] };
+
 // ========== 题目 ==========
 
 export interface KeywordItem {
@@ -302,6 +340,8 @@ export interface Question {
   requiresEquation?: boolean;
   /** v2.6.5: 答案类型 */
   answerType?: AnswerType;
+  /** v2.11.0: 统一答案模式 — 控制交互控件与校验 */
+  answerSchema?: AnswerSchema;
   /** v2.6.5: 场景类型 */
   sceneType?: string;
   /** v2.6.5: 主题标签 */
@@ -442,6 +482,12 @@ export interface LessonStep {
   /** v2.8.4: 幂等积分标记 — 若已发奖励则不重复加分 */
   awardedStars?: number;
   awardedAt?: string;
+  role?: 'due_review' | 'current_concept' | 'same_skill_variant' | 'application' | 'stretch' | 'olympiad';
+  skill?: string;
+  method?: string;
+  tier?: 'tier1' | 'tier2' | 'tier3';
+  questionInstanceId?: string;
+  settingSnapshot?: Partial<LearningSettings>;
 }
 
 export interface TodayLesson {
@@ -450,6 +496,17 @@ export interface TodayLesson {
   currentStepIndex: number;
   completed: boolean;
   caseStoryId?: string;
+  lessonId?: string;
+  lessonSignature?: string;
+  contentVersion?: string;
+  persistenceRevision?: number;
+  settingSnapshot?: LearningSettings;
+  /** New curriculum planner's honest six-slot completion accounting. */
+  requestedCore?: number;
+  actualCore?: number;
+  coreGapReasons?: string[];
+  coreSelectionNotes?: string[];
+  unitSource?: 'manual' | 'default_for_grade' | 'unknown';
   /** v2.6.3: 完成时间 */
   completedAt?: string;
   /** v2.6.3: 奖励是否已发放（防重复加星） */
@@ -509,6 +566,64 @@ export interface MistakeRecord {
   errorType: string;
   date: string;
   retriedCorrect: boolean;
+  /** Stable source question instance, when the mistake came from a lesson event. */
+  instanceId?: string;
+  reviewStatus?: 'open' | 'corrected';
+  correctedAt?: string;
+  questionSnapshot?: {
+    id: string;
+    gradeBand?: Exclude<GradeBand, 'OlympiadIntro'>;
+    text: string;
+    answer: number | string;
+    answerType: 'number';
+    answerSchema?: AnswerSchema;
+    answerSentence?: string;
+    explanation?: string;
+  };
+}
+
+export type PointCategory = 'chores' | 'school' | 'homework' | 'other';
+export type PointEntryType = 'checkin' | 'perfect_lesson' | 'parent_grant' | 'mistake_review' | 'redemption' | 'redemption_refund';
+
+/** Integer half-point accounting: 2 units equal 1 user-visible point. */
+export interface PointEntry {
+  id: string;
+  actionId: string;
+  type: PointEntryType;
+  unitsDelta: number;
+  createdAt: string;
+  category?: PointCategory;
+  note?: string;
+  referenceId?: string;
+  rewardName?: string;
+}
+
+export interface PointRedemption {
+  id: string;
+  actionId: string;
+  rewardName: string;
+  unitsCost: 30;
+  requestedAt: string;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  resolvedAt?: string;
+}
+
+export interface PointsWallet {
+  schemaVersion: 1;
+  initializedAt: string;
+  ledger: PointEntry[];
+  redemptions: PointRedemption[];
+}
+
+export interface MistakeReviewAttempt {
+  id: string;
+  recordId: string;
+  questionId: string;
+  actionId: string;
+  answer: string | Record<string, string>;
+  correct: boolean;
+  submittedAt: string;
+  pointsDeltaUnits: number;
 }
 
 // ========== 徽章 ==========
@@ -622,10 +737,25 @@ export interface ParentSettings {
   textbookEdition?: 'PEP' | 'BNUP' | 'XISHi' | 'generic_cn';
   semester?: 'upper' | 'lower';
   semesterOverride?: 'upper' | 'lower';
+  learningSettings?: LearningSettings;
   difficultyBias?: number;
   // v2.9.1: Training mode and school difficulty settings
   trainingMode?: 'basic_consolidation' | 'school_sync' | 'test_adaptation' | 'thinking_challenge' | 'adaptive';
   schoolHarder?: boolean;
+}
+
+/** Canonical learning choices shared by profile, lesson generation, and cache signatures. */
+export interface LearningSettings {
+  schemaVersion: 1;
+  grade: Exclude<GradeBand, 'OlympiadIntro'>;
+  semester: 'upper' | 'lower';
+  semesterSource: 'auto' | 'manual';
+  textbookEdition: 'PEP' | 'BNUP' | 'XISHi' | 'generic_cn';
+  unitId: string | null;
+  /** null means unknown; [] means the parent explicitly marks no learned rows. */
+  learnedTableRange: number[] | null;
+  dailyGoal: number;
+  challengePreference: 'guided' | 'balanced' | 'stretch';
 }
 
 // ========== 学习画像 ==========
@@ -656,13 +786,46 @@ export interface AttemptRecord {
   attemptType: 'final_answer' | 'step_answer';
 }
 
+export type LearningEventType = 'attempt_submitted' | 'hint_used' | 'support_used' | 'mistake_review_submitted' | 'question_completed' | 'lesson_completed' | 'legacy_snapshot';
+export type LearningCompletionMode = 'independent' | 'assisted' | 'legacy_unknown';
+
+export interface LearningEvent {
+  eventId: string;
+  schemaVersion: 1;
+  childProfileId: string;
+  deviceId: string;
+  sessionId: string;
+  lessonId: string;
+  questionInstanceId: string;
+  questionId: string;
+  questionVersion: string;
+  skillIds: string[];
+  grade?: Exclude<GradeBand, 'OlympiadIntro'> | 'unknown';
+  semester?: 'upper' | 'lower' | 'unknown';
+  unitId?: string | null;
+  role?: LessonStep['role'] | 'unknown';
+  settingSignature?: string;
+  eventType: LearningEventType;
+  actionId: string;
+  attemptId: string;
+  timestamp: string;
+  hintLevel: 'none' | 'light' | 'medium' | 'full';
+  completionMode: LearningCompletionMode;
+  result?: 'correct' | 'incorrect' | 'completed';
+  durationMs?: number;
+  firstAttemptKnown?: boolean;
+}
+
 // ========== 正确率统计结果 ==========
 
 /** 统一统计口径的输出 */
 export interface AccuracyStats {
   todayCompleted: number;
   overallAccuracy: number;           // 0-100，基于所有已作答记录
+  isKnown: boolean;
+  unknownLegacyCount: number;
   last7DaysAccuracy: number;         // 0-100，基于最近7天记录
+  last7DaysIsKnown: boolean;
   totalAttempts: number;
   correctAttempts: number;
   last7DaysTotalAttempts: number;
@@ -685,6 +848,7 @@ export interface GameState {
   badges: string[];
   completedQuestions: string[];
   mistakes: MistakeRecord[];
+  mistakeReviewAttempts?: MistakeReviewAttempt[];
   resumeCards: number;
   parentSettings: ParentSettings;
   lastStreakCheckDate: string;
@@ -695,11 +859,30 @@ export interface GameState {
   weeklySnapshots: WeeklySnapshot[];
   skillLevel: number;
   decorations: string[];
+  /** Previously earned cosmetics; retained independently from currently equipped decorations. */
+  unlockedAvatarItemIds?: string[];
   collectibleCards: string[];
   questionReviewDates: Record<string, string>;
   questionReviewCounts: Record<string, number>;
   /** v2.6.8: 每次提交答案的详细记录（用于精准正确率统计），最多保留200条 */
   attemptRecords: AttemptRecord[];
+  pointsWallet?: PointsWallet;
+  learningEvents?: LearningEvent[];
+  /** Consumed evidence windows and earned tier, scoped to grade/unit/role/skill. */
+  learningDifficultyProgress?: Record<string, {
+    grade: string;
+    unitId: string | null;
+    role: string;
+    skillId: string;
+    difficulty: 1 | 2 | 3 | 4 | 5;
+    consumedEventIds: string[];
+    consumedWindowIds: string[];
+  }>;
+  childProfileId?: string;
+  deviceId?: string;
+  /** Recoverable same-snapshot course state if the separate lesson key fails to persist. */
+  lastCommittedLesson?: TodayLesson;
+  lessonPersistenceRevision?: number;
   // v2.9.0: Curriculum-aware fields
   curriculumProfile?: {
     country: string;
@@ -737,6 +920,8 @@ export interface GameState {
   // v2.9.1: Training mode cache
   trainingMode?: 'basic_consolidation' | 'school_sync' | 'test_adaptation' | 'thinking_challenge' | 'adaptive';
   schoolHarder?: boolean;
+  // v2.12.0: 口算练习记录
+  mentalMathRecords?: import('./mentalMath').MentalMathSession[];
 }
 
 export const DEFAULT_GAME_STATE: GameState = {
@@ -771,4 +956,7 @@ export const DEFAULT_GAME_STATE: GameState = {
   questionReviewDates: {},
   questionReviewCounts: {},
   attemptRecords: [],
+  learningEvents: [],
+  learningDifficultyProgress: {},
+  mentalMathRecords: [],
 };

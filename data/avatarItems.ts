@@ -1,3 +1,6 @@
+import type { GameState } from '@/lib/types';
+import { getAchievementProgress, getDetectiveLevel, type MistakeReviewEvidence } from '@/lib/achievements';
+
 // ========== 装扮槽位与锚点系统 ==========
 
 export type AvatarSlot = 'hat' | 'face' | 'coat' | 'handheld' | 'badge' | 'background' | 'aura' | 'pet' | 'sticker';
@@ -7,6 +10,9 @@ export type AvatarAnchor =
   | 'left_hand' | 'right_hand' | 'background_back'
   | 'top_left' | 'top_right' | 'bottom_left' | 'bottom_right'
   | 'aura_left' | 'aura_right' | 'aura_top';
+
+export type FoxThemeId = 'classic' | 'space' | 'ocean' | 'forest' | 'workshop' | 'aurora';
+export type AvatarArtKey = 'hat' | 'coat' | 'tool' | 'badge' | 'pet' | 'aura' | 'background' | 'glasses' | 'scarf';
 
 export interface AvatarItem {
   id: string;
@@ -21,9 +27,13 @@ export interface AvatarItem {
   /** Framer Motion animate props */
   animateProps?: Record<string, any>;
   unlockCondition: {
-    type: 'default' | 'stars' | 'streak' | 'level' | 'questions_completed' | 'perfect_questions' | 'reward_redemptions' | 'all_step_types';
+    type: 'default' | 'stars' | 'streak' | 'level' | 'questions_completed' | 'perfect_questions' | 'reward_redemptions' | 'all_step_types' | 'achievement';
     value?: number;
+    achievementId?: string;
   };
+  /** Rendered as fitted vector layers inside DetectiveMascot's shared SVG viewBox. */
+  artKey?: AvatarArtKey;
+  themeId?: FoxThemeId;
   defaultUnlocked?: boolean;
   defaultEquipped?: boolean;
   canStack?: boolean;
@@ -120,7 +130,7 @@ export const allAvatarItems: AvatarItem[] = [
   {
     id: 'dec_medal',
     name: '准确之星',
-    description: '保持30题以上零错误的精准',
+    description: '独立首答30道题的精准，也保留原有合格记录',
     emoji: '🎖️',
     slot: 'badge',
     anchor: 'chest',
@@ -244,10 +254,85 @@ export const allAvatarItems: AvatarItem[] = [
     anchor: 'top_right',
     zIndex: 50,
     positionClass: 'absolute -top-1 -right-1',
-    unlockCondition: { type: 'stars', value: 100 },
+    unlockCondition: { type: 'questions_completed', value: 20 },
     canStack: true,
   },
 ];
+
+const themePackMeta: Record<Exclude<FoxThemeId, 'classic'>, { name: string; achievementFamily: string; themeLabel: string }> = {
+  space: { name: '星际', achievementFamily: 'thinking', themeLabel: '思维挑战' },
+  ocean: { name: '海洋', achievementFamily: 'persistence', themeLabel: '坚持练习' },
+  forest: { name: '森林', achievementFamily: 'exploration', themeLabel: '线索探索' },
+  workshop: { name: '工坊', achievementFamily: 'recovery', themeLabel: '错题重破' },
+  aurora: { name: '极光', achievementFamily: 'breadth', themeLabel: '知识地图' },
+};
+
+const artSlots: Array<{ artKey: AvatarArtKey; slot: AvatarSlot; anchor: AvatarAnchor; itemName: string; emoji: string }> = [
+  { artKey: 'hat', slot: 'hat', anchor: 'head_top', itemName: '主题帽', emoji: '✦' },
+  { artKey: 'coat', slot: 'coat', anchor: 'background_back', itemName: '主题外套', emoji: '◆' },
+  { artKey: 'tool', slot: 'handheld', anchor: 'right_hand', itemName: '主题工具', emoji: '⌕' },
+  { artKey: 'badge', slot: 'badge', anchor: 'chest', itemName: '主题徽章', emoji: '✧' },
+  { artKey: 'pet', slot: 'pet', anchor: 'bottom_right', itemName: '主题伙伴', emoji: '●' },
+  { artKey: 'aura', slot: 'aura', anchor: 'aura_top', itemName: '主题光环', emoji: '✧' },
+];
+
+function achievementItem(
+  id: string,
+  name: string,
+  description: string,
+  slot: AvatarSlot,
+  artKey: AvatarArtKey,
+  themeId: FoxThemeId,
+  achievementId?: string,
+  defaultUnlocked = false,
+): AvatarItem {
+  const anchorBySlot: Record<AvatarSlot, AvatarAnchor> = {
+    hat: 'head_top', face: 'eyes', coat: 'background_back', handheld: 'right_hand', badge: 'chest',
+    background: 'background_back', aura: 'aura_top', pet: 'bottom_right', sticker: 'top_right',
+  };
+  return {
+    id, name, description, emoji: artSlots.find((part) => part.artKey === artKey)?.emoji || '✦', slot,
+    anchor: anchorBySlot[slot], zIndex: slot === 'background' ? 2 : slot === 'coat' ? 24 : slot === 'hat' ? 35 : slot === 'badge' ? 38 : slot === 'handheld' ? 42 : 46,
+    positionClass: 'absolute inset-0 pointer-events-none', artKey, themeId,
+    unlockCondition: achievementId ? { type: 'achievement', achievementId } : { type: 'default' },
+    defaultUnlocked,
+  };
+}
+
+// Six-piece vector sets: every shape is drawn to the fox silhouette by the SVG renderer.
+for (const themeId of ['classic', 'space', 'ocean', 'forest', 'workshop', 'aurora'] as const) {
+  const meta = themeId === 'classic' ? null : themePackMeta[themeId];
+  artSlots.forEach((part, index) => {
+    const achievementId = meta ? `${meta.achievementFamily}_${['bronze', 'silver', 'gold', 'legendary'][index % 4]}` : undefined;
+    allAvatarItems.push(achievementItem(
+      `fox_${themeId}_${part.artKey}`,
+      `${meta?.name || '经典'}${part.itemName}`,
+      `${meta ? `通过“${meta.themeLabel}”成就解锁。` : '经典侦探造型的矢量配件。'}${part.artKey === 'pet' ? '伙伴会站在小狐身旁。' : ''}`,
+      part.slot, part.artKey, themeId, achievementId, themeId === 'classic',
+    ));
+  });
+}
+
+// Classic gold accents are earned through explicit, known independent first answers.
+['bronze', 'silver', 'gold', 'legendary'].forEach((tier, index) => {
+  const artKey = (['badge', 'glasses', 'scarf', 'aura'] as const)[index];
+  const slot = (['badge', 'face', 'coat', 'aura'] as const)[index];
+  allAvatarItems.push(achievementItem(
+    `fox_classic_first_try_${tier}`, `首答纪念${['铜', '银', '金', '星'][index]}配件`,
+    '由独立首答成就解锁，不消耗家庭积分。', slot, artKey, 'classic', `first_try_${tier}`,
+  ));
+});
+
+// One scenic background per collection; SVG artwork uses the same theme palette.
+for (const themeId of ['classic', 'space', 'ocean', 'forest', 'workshop', 'aurora'] as const) {
+  const meta = themeId === 'classic' ? null : themePackMeta[themeId];
+  allAvatarItems.push(achievementItem(
+    `fox_${themeId}_background`, `${meta?.name || '经典'}场景`, '为小狐侦探更换原创矢量场景。',
+    'background', 'background', themeId,
+    meta ? `${meta.achievementFamily}_silver` : undefined,
+    themeId === 'classic',
+  ));
+}
 
 // ========== 辅助函数 ==========
 
@@ -255,18 +340,66 @@ export function getAvatarItemById(id: string): AvatarItem | undefined {
   return allAvatarItems.find(i => i.id === id);
 }
 
-export function getUnlockedItems(state: { stars: number; streak: number; level: number; totalCompleted: number; correctCount: number; wrongCount: number; rewardRedemptions: any[] }): AvatarItem[] {
+export function getUnlockedItems(state: {
+  stars?: number; streak?: number; level?: number; totalCompleted?: number; correctCount?: number; wrongCount?: number;
+  rewardRedemptions?: readonly unknown[]; decorations?: readonly string[]; unlockedAvatarItemIds?: readonly string[];
+  learningEvents?: GameState['learningEvents']; attemptRecords?: GameState['attemptRecords'];
+  mistakes?: GameState['mistakes']; completedQuestions?: GameState['completedQuestions'];
+  mistakeReviewAttempts?: readonly MistakeReviewEvidence[];
+}): AvatarItem[] {
+  const availableIds = new Set([...(state.decorations || []), ...(state.unlockedAvatarItemIds || [])]);
+  const achievementProgress = new Map(getAchievementProgress({
+    learningEvents: state.learningEvents,
+    attemptRecords: state.attemptRecords,
+    mistakes: state.mistakes,
+    completedQuestions: state.completedQuestions,
+    mistakeReviewAttempts: state.mistakeReviewAttempts,
+  }).map((progress) => [progress.id, progress]));
+  const questionCount = achievementProgress.get('exploration_legendary')?.current || 0;
+  const firstTryCount = achievementProgress.get('first_try_legendary')?.current || 0;
+  const detectiveLevel = getDetectiveLevel({
+    level: state.level,
+    learningEvents: state.learningEvents,
+    completedQuestions: state.completedQuestions,
+  });
   return allAvatarItems.filter(item => {
-    if (item.defaultUnlocked) return true;
+    if (item.defaultUnlocked || availableIds.has(item.id)) return true;
     const c = item.unlockCondition;
     switch (c.type) {
-      case 'stars': return state.stars >= (c.value || 0);
-      case 'streak': return state.streak >= (c.value || 0);
-      case 'level': return state.level >= (c.value || 0);
-      case 'questions_completed': return state.totalCompleted >= (c.value || 0);
-      case 'perfect_questions': return state.correctCount >= (c.value || 0) && state.wrongCount === 0;
-      case 'reward_redemptions': return state.rewardRedemptions.length >= (c.value || 0);
-      case 'all_step_types': return state.totalCompleted >= 8;
+      // Legacy star locks now have a learning route, even though stars no longer grow.
+      case 'stars': return (state.stars || 0) >= (c.value || 0) || questionCount >= Math.max(20, Math.ceil((c.value || 100) / 5));
+      case 'streak': return (state.streak || 0) >= (c.value || 0);
+      case 'level': return detectiveLevel >= (c.value || 0);
+      case 'questions_completed': return questionCount >= (c.value || 0);
+      case 'perfect_questions': return firstTryCount >= (c.value || 0)
+        || ((state.correctCount || 0) >= (c.value || 0) && (state.wrongCount || 0) === 0);
+      case 'reward_redemptions': return (state.rewardRedemptions || []).length >= (c.value || 0);
+      case 'all_step_types': return (state.totalCompleted || 0) >= 8;
+      case 'achievement': return achievementProgress.get(c.achievementId || '')?.unlocked || false;
+      default: return false;
+    }
+  });
+}
+
+/** One-time compatibility snapshot for saves created before point-wallet migration. */
+export function getLegacyQualifiedItems(state: {
+  stars?: number; streak?: number; level?: number; totalCompleted?: number; correctCount?: number; wrongCount?: number;
+  rewardRedemptions?: readonly unknown[];
+}): AvatarItem[] {
+  return allAvatarItems.filter((item) => {
+    if (item.defaultUnlocked || item.artKey) return false;
+    // This id used to require 100 stars. Its live rule now has a learning route,
+    // so migration must consult the original threshold rather than the new one.
+    if (item.id === 'sticker_star_corner') return (state.stars || 0) >= 100;
+    const condition = item.unlockCondition;
+    switch (condition.type) {
+      case 'stars': return (state.stars || 0) >= (condition.value || 0);
+      case 'streak': return (state.streak || 0) >= (condition.value || 0);
+      case 'level': return (state.level || 0) >= (condition.value || 0);
+      case 'questions_completed': return (state.totalCompleted || 0) >= (condition.value || 0);
+      case 'perfect_questions': return (state.correctCount || 0) >= (condition.value || 0) && (state.wrongCount || 0) === 0;
+      case 'reward_redemptions': return (state.rewardRedemptions || []).length >= (condition.value || 0);
+      case 'all_step_types': return (state.totalCompleted || 0) >= 8;
       default: return false;
     }
   });

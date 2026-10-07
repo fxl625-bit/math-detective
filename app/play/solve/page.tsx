@@ -13,6 +13,7 @@ import DetectiveMascot from '@/components/DetectiveMascot';
 import StarDisplay from '@/components/StarDisplay';
 import ProgressBar from '@/components/ProgressBar';
 import { getRandomEncouragement, getRandomHint } from '@/data/levels';
+import { getPointsBalance } from '@/lib/familyPoints';
 
 type SolveStep = 'numbers' | 'keywords' | 'noise' | 'meaning' | 'operation' | 'answer' | 'done';
 
@@ -50,7 +51,6 @@ export default function FullSolvePage() {
   const [shakeInput, setShakeInput] = useState(false);
   const mountedRef = useRef(true);
   useEffect(() => { return () => { mountedRef.current = false; }; }, []);
-  const [starsEarned, setStarsEarned] = useState(0);
 
   // Blocks for noise erasing
   const noiseBlocks = useMemo(() => {
@@ -81,8 +81,6 @@ export default function FullSolvePage() {
       return;
     }
     if (num === q.answer) {
-      const stars = q.difficulty === 2 ? 3 : 2;
-      setStarsEarned(stars);
       setFeedback({
         show: true,
         type: 'success',
@@ -478,9 +476,10 @@ export default function FullSolvePage() {
                 算式：{q.equation.replace('?', String(q.answer))}
               </div>
             </div>
-            <div className="mt-3">
-              <StarDisplay count={starsEarned} size="lg" animate />
-              <span className="text-sm text-amber-600 ml-1">星星奖励</span>
+            <div className="mt-3 rounded-xl bg-amber-50 p-3">
+              <p className="text-sm text-slate-700">这是一道专项练习，不会发放日课积分。</p>
+              <div className="mt-1 flex justify-center"><StarDisplay count={getPointsBalance(state)} size="md" /></div>
+              <span className="text-xs text-slate-600">当前家庭积分</span>
             </div>
             <div className="flex gap-3 justify-center mt-4">
               <button

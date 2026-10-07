@@ -6,13 +6,13 @@
  */
 
 export const APP_VERSION =
-  process.env.NEXT_PUBLIC_APP_VERSION || '2.11.0';
+  process.env.NEXT_PUBLIC_APP_VERSION || '2.13.2';
 
 export const APP_BUILD_TIME =
   process.env.NEXT_PUBLIC_BUILD_TIME || '';
 
 export const APP_COMMIT_SHA =
-  process.env.NEXT_PUBLIC_COMMIT_SHA || '5002500';
+  process.env.NEXT_PUBLIC_COMMIT_SHA || 'unknown';
 
 /** localStorage 中记录上一次运行版本的键 */
 export const LAST_VERSION_KEY = 'math-detective-app-version';
@@ -58,16 +58,9 @@ export async function clearOldCachesSafely() {
   if ('caches' in window) {
     try {
       const keys = await caches.keys();
-      await Promise.all(
-        keys
-          .filter(
-            (key) =>
-              key.includes('math-detective') ||
-              key.includes('workbox') ||
-              key.includes('next')
-          )
-          .map((key) => caches.delete(key))
-      );
+      await Promise.all(keys
+        .filter((key) => key.startsWith('math-detective-shell-') && key !== 'math-detective-shell-v1')
+        .map((key) => caches.delete(key)));
     } catch (e) {
       console.warn('[Math Detective] Cache clear failed:', e);
     }

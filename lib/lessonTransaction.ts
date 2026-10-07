@@ -13,8 +13,12 @@
 import type { GameState, TodayLesson, LessonStep, StepPhase, LessonStepType, Question } from './types';
 import { normalizeLesson, normalizeStep, advancePhase, completeCurrentStep, saveTodayLesson, getCurrentStep, getCurrentPhase, getDefaultPhasesForStepType, buildStepFromQuestion, selectQuestionForStep, validateStepQuestionCompatibility, clearTodayLesson, generateSafeFallbackLesson } from './lessonPlanner';
 import { getQuestionById } from '@/data/questions';
-import { loadState } from './storage';
+import { addMistake, checkBadges, checkDailyReset, checkWeeklyCard, completeQuestion, loadState, updateStreak } from './storage';
 import { checkAnswer } from './answerChecker';
+import { APP_VERSION } from './appVersion';
+import { appendUniqueEvent, createEventIdentity } from './learningEvents';
+import { decideDifficultyIncrease } from './learningMetrics';
+import { grantPerfectLessonPoints } from './familyPoints';
 
 // ========== v2.6.6: Ranking 答案校验 ==========
 
@@ -131,7 +135,7 @@ let debugState: LessonDebugState = {
   lastReason: '',
   isTransitioning: false,
   stateVersion: 0,
-  appVersion: '2.6.4',
+  appVersion: APP_VERSION,
 };
 
 export function getDebugState(): LessonDebugState {
@@ -162,31 +166,89 @@ export function commitLessonTransaction(params: {
     return noChange(state, 'no current step', action, source);
   }
 
+  let transaction: LessonTransactionResult;
   switch (action) {
     case 'submit_answer':
     case 'information_check':
     case 'identify_extra_info':
       // 三者统一走 submit_answer 逻辑：检查正确性 → 正确则推进 phase
-      return handleSubmitAnswer(normalized, gameState, currentStep, payload, source);
+      transaction = handleSubmitAnswer(normalized, gameState, currentStep, payload, source);
+      break;
     case 'complete_step':
-      return handleCompleteStep(normalized, gameState, currentStep, payload, source);
+      transaction = handleCompleteStep(normalized, gameState, currentStep, payload, source);
+      break;
     case 'complete_phase':
-      return handleCompletePhase(normalized, gameState, currentStep, payload, source);
+      transaction = handleCompletePhase(normalized, gameState, currentStep, payload, source);
+      break;
     case 'continue_after_repair':
-      return handleContinueAfterRepair(normalized, gameState, currentStep, payload, source);
+      transaction = handleContinueAfterRepair(normalized, gameState, currentStep, payload, source);
+      break;
     case 'repair_current_step':
-      return handleRepairCurrentStep(normalized, gameState, currentStep, payload, source);
+      transaction = handleRepairCurrentStep(normalized, gameState, currentStep, payload, source);
+      break;
     case 'repair_step_question':
-      return handleRepairStepQuestion(normalized, gameState, currentStep, payload, source);
+      transaction = handleRepairStepQuestion(normalized, gameState, currentStep, payload, source);
+      break;
     case 'go_next':
-      return handleGoNext(normalized, gameState, currentStep, payload, source);
+      transaction = handleGoNext(normalized, gameState, currentStep, payload, source);
+      break;
     case 'go_back':
-      return handleGoBack(normalized, gameState, currentStep, payload, source);
+      transaction = handleGoBack(normalized, gameState, currentStep, payload, source);
+      break;
     case 'go_prev_level':
-      return handleGoPrevLevel(normalized, gameState, currentStep, payload, source);
+      transaction = handleGoPrevLevel(normalized, gameState, currentStep, payload, source);
+      break;
     default:
       return noChange(state, `unknown action: ${action}`, action, source);
   }
+
+  return finalizeLessonCompletion(transaction, normalized, gameState);
+}
+
+function finalizeLessonCompletion(
+  transaction: LessonTransactionResult,
+  priorLesson: TodayLesson,
+  priorState: GameState,
+): LessonTransactionResult {
+  if (!transaction.changed || priorLesson.completed || !transaction.nextLesson.completed) return transaction;
+  const lesson = transaction.nextLesson;
+  const state = transaction.nextState.gameState;
+  const identity = state.childProfileId && state.deviceId
+    ? { childProfileId: state.childProfileId, deviceId: state.deviceId }
+    : createEventIdentity();
+  const at = new Date().toISOString();
+  const actionId = `lesson-completed:${lesson.lessonId || lesson.date}`;
+  const lastStep = lesson.steps[lesson.steps.length - 1];
+  const completed = appendUniqueEvent(state.learningEvents || [], {
+    childProfileId: identity.childProfileId,
+    deviceId: identity.deviceId,
+    sessionId: `session:${lesson.lessonId || lesson.date}`,
+    lessonId: lesson.lessonId || lesson.date,
+    questionInstanceId: `lesson:${lesson.lessonId || lesson.date}:completion`,
+    questionId: lastStep?.questionId || 'lesson-complete',
+    questionVersion: 'unknown',
+    skillIds: [],
+    grade: lesson.settingSnapshot?.grade || 'unknown',
+    semester: lesson.settingSnapshot?.semester || 'unknown',
+    unitId: lesson.settingSnapshot?.unitId ?? null,
+    role: 'unknown',
+    settingSignature: lesson.lessonSignature,
+    eventType: 'lesson_completed',
+    actionId,
+    attemptId: actionId,
+    timestamp: at,
+    hintLevel: 'none',
+    completionMode: 'independent',
+    result: 'completed',
+  });
+  const nextState = completed.accepted
+    ? { ...state, childProfileId: identity.childProfileId, deviceId: identity.deviceId, learningEvents: completed.events }
+    : state;
+  const reward = grantPerfectLessonPoints(nextState, lesson);
+  return {
+    ...transaction,
+    nextState: { ...transaction.nextState, gameState: reward.state },
+  };
 }
 
 // ========== 动作处理器 ==========
@@ -211,12 +273,116 @@ function handleSubmitAnswer(
   const answerResult = checkAnswer(inputAnswer, question);
   const isCorrect = answerResult.correct;
 
-  // v2.6.4: stats 已由 runLessonAction 通过 hook 的 completeQuestion 记录
-  // 此处只负责 lesson 状态推进，不重复记录 stats
+  const actionId = String(payload.actionId || `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  const priorAction = (gameState.learningEvents || []).find(event => event.actionId === actionId && event.eventType === 'attempt_submitted');
+  if (priorAction) return noChangeResult(lesson, gameState, 'duplicate action ignored', source);
+  const generatedIdentity = createEventIdentity();
+  const childProfileId = gameState.childProfileId || generatedIdentity.childProfileId;
+  const deviceId = gameState.deviceId || generatedIdentity.deviceId;
+  const snapshot = lesson.settingSnapshot || currentStep.settingSnapshot || {};
+  const snapshotGrade = snapshot.grade;
+  const validGrade = typeof snapshotGrade === 'string' && /^G[1-6]$/.test(snapshotGrade)
+    ? snapshotGrade as 'G1' | 'G2' | 'G3' | 'G4' | 'G5' | 'G6'
+    : 'unknown' as const;
+  const resolvedSemester: 'upper' | 'lower' | 'unknown' = snapshot.semester === 'upper' || snapshot.semester === 'lower'
+    ? snapshot.semester
+    : 'unknown';
+  const resolvedRole: NonNullable<import('./types').LearningEvent['role']> = currentStep.role || 'unknown';
+  const attemptId = String(payload.attemptId || actionId);
+  const eventBase = {
+    childProfileId, deviceId,
+    sessionId: String(payload.sessionId || `session:${lesson.lessonId || lesson.date}`),
+    lessonId: lesson.lessonId || lesson.date,
+    questionInstanceId: currentStep.questionInstanceId || `${lesson.lessonId || lesson.date}:${lesson.currentStepIndex}:${questionId}`,
+    questionId,
+    questionVersion: String((question as any).questionVersion || (question as any).version || 'unknown'),
+    skillIds: [...new Set(currentStep.skill
+      ? [currentStep.skill]
+      : (question.curriculumSkillIds || question.skillIds || []))],
+    grade: validGrade,
+    semester: resolvedSemester,
+    unitId: snapshot.unitId ?? null,
+    role: resolvedRole, settingSignature: lesson.lessonSignature,
+    actionId, attemptId, timestamp: String(payload.timestamp || new Date().toISOString()),
+    hintLevel: (['light', 'medium', 'full'].includes(String(payload.hintLevel)) ? payload.hintLevel : 'none') as 'none' | 'light' | 'medium' | 'full',
+    completionMode: payload.hintLevel === 'full'
+      || (gameState.learningEvents || []).some(event => event.eventType === 'support_used' && event.questionInstanceId === (currentStep.questionInstanceId || `${lesson.lessonId || lesson.date}:${lesson.currentStepIndex}:${questionId}`))
+      ? 'assisted' as const : 'independent' as const,
+    firstAttemptKnown: true,
+  };
+  const submitted = appendUniqueEvent(gameState.learningEvents || [], {
+    ...eventBase, eventId: `${actionId}:attempt_submitted`, eventType: 'attempt_submitted',
+    result: isCorrect ? 'correct' : 'incorrect',
+    durationMs: typeof payload.durationMs === 'number' ? payload.durationMs : undefined,
+  });
+  if (!submitted.accepted) return noChangeResult(lesson, gameState, submitted.reason, source);
+  let nextGameState = checkDailyReset(gameState);
+  nextGameState = updateStreak(nextGameState);
+  nextGameState = checkWeeklyCard(nextGameState);
+  nextGameState = completeQuestion(nextGameState, questionId, isCorrect);
+  if (!isCorrect) {
+    nextGameState = addMistake(nextGameState, {
+      questionId,
+      questionText: question.text,
+      myAnswer: inputAnswer,
+      correctAnswer: question.answer,
+      errorType: 'answer_wrong',
+      date: new Date().toISOString(),
+      retriedCorrect: false,
+      instanceId: currentStep.questionInstanceId,
+    });
+  }
+  nextGameState = {
+    ...nextGameState,
+    stars: 0,
+    badges: checkBadges(nextGameState),
+    childProfileId, deviceId, learningEvents: submitted.events,
+  };
+  if (isCorrect) {
+    const completed = appendUniqueEvent(nextGameState.learningEvents || [], {
+      ...eventBase, eventId: `${actionId}:question_completed`, eventType: 'question_completed', result: 'completed',
+    });
+    if (completed.accepted) nextGameState = { ...nextGameState, learningEvents: completed.events };
+  }
+  const progressionSkill = currentStep.skill;
+  const progressionGrade = validGrade === 'unknown' ? undefined : validGrade;
+  const progressionUnitId = snapshot.unitId ?? null;
+  if (progressionSkill && progressionGrade && currentStep.role && progressionUnitId) {
+    const progressKey = `${progressionGrade}:${progressionUnitId}:${progressionSkill}`;
+    const priorProgress = nextGameState.learningDifficultyProgress?.[progressKey];
+    const decision = decideDifficultyIncrease({
+      events: nextGameState.learningEvents || [],
+      skillId: progressionSkill,
+      currentDifficulty: priorProgress?.difficulty || 1,
+      consumedWindowIds: priorProgress?.consumedWindowIds,
+      consumedEventIds: priorProgress?.consumedEventIds,
+      prerequisitesReady: true,
+      grade: progressionGrade,
+      unitId: progressionUnitId,
+    });
+    if (decision) {
+      nextGameState = {
+        ...nextGameState,
+        learningDifficultyProgress: {
+          ...(nextGameState.learningDifficultyProgress || {}),
+          [progressKey]: {
+            grade: progressionGrade,
+            unitId: progressionUnitId,
+            role: currentStep.role,
+            skillId: progressionSkill,
+            difficulty: decision.to as 1 | 2 | 3 | 4 | 5,
+            consumedEventIds: [...new Set([...(priorProgress?.consumedEventIds || []), ...decision.consumedEventIds])],
+            consumedWindowIds: [...new Set([...(priorProgress?.consumedWindowIds || []), decision.evidenceWindowId])],
+          },
+        },
+      };
+    }
+  }
 
   if (!isCorrect) {
-    // 错误答案：不推进（dead code — runLessonAction 在错误答案时提前 return）
-    const result = buildResult(lesson, gameState, lesson, false, source);
+    // 错误答案记录在同一游戏状态快照中，不推进课程。
+    const result = buildResult(lesson, gameState, lesson, false, source, nextGameState);
+    result.changed = true;
     result.reason = 'wrong answer';
     return result;
   }
@@ -254,7 +420,7 @@ function handleSubmitAnswer(
     );
 
     return {
-      nextState: { lesson: nextLesson, gameState },
+      nextState: { lesson: nextLesson, gameState: nextGameState },
       nextLesson: nextLesson,
       changed: true,
       advanced: true,
@@ -276,7 +442,7 @@ function handleSubmitAnswer(
   );
 
   return {
-    nextState: { lesson: afterStep, gameState },
+    nextState: { lesson: afterStep, gameState: nextGameState },
     nextLesson: afterStep,
     changed: true,
     advanced: true,
@@ -298,6 +464,17 @@ function handleCompleteStep(
   source: string
 ): LessonTransactionResult {
   const question = getQuestionById(currentStep.questionId);
+
+  // v2.11.0: Answer gate — step must have answer submitted before completing
+  if (currentStep.requiresAnswer !== false && !currentStep.awardedAt) {
+    console.error('[P0_ANSWER_GATE] handleCompleteStep blocked: no answer awarded', {
+      stepId: currentStep.id,
+      questionId: currentStep.questionId,
+      stepIndex: lesson.currentStepIndex,
+      source,
+    });
+    return noChangeResult(lesson, gameState, 'answer gate blocked: no answer awarded', source);
+  }
 
   // v2.6.4: stats 已由 runLessonAction 在 submit_answer 时记录
   // complete_step 仅推进 lesson 状态，不重复记录
@@ -896,7 +1073,7 @@ export function updateDebugState(result: LessonTransactionResult, action: Lesson
     lastReason: result.reason || '',
     isTransitioning: false,
     stateVersion: debugState.stateVersion + 1,
-    appVersion: '2.6.4',
+    appVersion: APP_VERSION,
   };
 }
 
@@ -947,5 +1124,46 @@ export function assertNotDuplicateSubmit(
       toPhase: result.toPhase,
       reason: result.reason,
     });
+  }
+}
+
+// v2.11.2 P0 断言: feedback/explain 阶段必须经过正确答案
+export function assertFeedbackWithoutCorrectAnswer(
+  result: LessonTransactionResult,
+  action: LessonAction,
+  source: string
+) {
+  const nextPhase = result.toPhase;
+  const nextStep = result.nextLesson.steps[result.toStepIndex];
+  if (nextPhase === 'explain' && !nextStep?.awardedAt) {
+    console.error('[P0_FEEDBACK_WITHOUT_CORRECT_ANSWER] explain phase entered without awardedAt', {
+      action,
+      source,
+      stepId: nextStep?.id,
+      questionId: nextStep?.questionId,
+      fromPhase: result.fromPhase,
+      toPhase: result.toPhase,
+    });
+  }
+}
+
+// v2.11.2 P0 断言: 题目推进必须经过 AnswerGate
+export function assertQuestionAdvancedWithoutAnswerGate(
+  result: LessonTransactionResult,
+  action: LessonAction,
+  source: string
+) {
+  if (result.toStepIndex > result.fromStepIndex && result.fromStepIndex >= 0) {
+    const fromStep = result.nextLesson.steps[result.fromStepIndex];
+    if (fromStep && fromStep.requiresAnswer !== false && !fromStep.awardedAt) {
+      console.error('[P0_QUESTION_ADVANCED_WITHOUT_ANSWER_GATE] step advanced without answer', {
+        action,
+        source,
+        fromStepIndex: result.fromStepIndex,
+        toStepIndex: result.toStepIndex,
+        stepId: fromStep.id,
+        questionId: fromStep.questionId,
+      });
+    }
   }
 }

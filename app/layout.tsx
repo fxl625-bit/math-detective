@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import BottomNav from "@/components/BottomNav";
 import { PolyfillScript } from "@/components/PolyfillScript";
+import OfflineSupport from "@/components/OfflineSupport";
+import { APP_VERSION } from "@/lib/appVersion";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "傅星扬的数学侦探",
-  description: "小学低年级数学应用题阅读理解小游戏 - 帮助孩子读懂数学应用题",
+  description: "面向小学一至六年级的数学学习与应用题理解练习，按年级提供适龄课程，并在本机保存学习进度。",
 };
 
 export const viewport: Viewport = {
@@ -31,7 +33,7 @@ export default function RootLayout({
 }>) {
   // v2.10.2: Inject build info for runtime proof
   const buildInfoJson = JSON.stringify({
-    appVersion: process.env.NEXT_PUBLIC_APP_VERSION || '2.10.2',
+    appVersion: APP_VERSION,
     commitHash: process.env.NEXT_PUBLIC_COMMIT_SHA || 'unknown',
     buildTime: new Date().toISOString(),
   });
@@ -56,7 +58,8 @@ export default function RootLayout({
         {/* Must be the FIRST child: polyfills execute synchronously during body parsing.
             This is the only reliable way to ensure they run before any async JS bundle. */}
         <PolyfillScript />
-        <main className="flex-1 pb-20">
+        <OfflineSupport compact />
+        <main className="flex-1 pb-[calc(5rem+env(safe-area-inset-bottom))]">
           {children}
         </main>
         <BottomNav />

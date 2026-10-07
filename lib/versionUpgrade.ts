@@ -115,7 +115,12 @@ export function handleAppVersionUpgrade(
     return { state, wasUpgraded: false, needsLessonRebuild: false };
   }
 
-  const lastVersion = localStorage.getItem(LAST_VERSION_KEY);
+  let lastVersion: string | null;
+  try { lastVersion = localStorage.getItem(LAST_VERSION_KEY); }
+  catch (error) {
+    console.warn('[Upgrade] Browser storage unavailable; migration deferred', error);
+    return { state, wasUpgraded: false, needsLessonRebuild: false };
+  }
   const isSameVersion = lastVersion === APP_VERSION;
 
   if (isSameVersion) {
@@ -140,7 +145,8 @@ export function handleAppVersionUpgrade(
       if (wasRepaired) {
         console.info('[Upgrade] Invalid todayLesson detected, needs rebuild');
         needsLessonRebuild = true;
-        localStorage.removeItem(lessonKey);
+        // Keep the original lesson and its answered history. safeNormalizeLesson
+        // repairs only the current unfinished step when a same-unit candidate exists.
       } else {
         // v2.6.3: 奖励幂等迁移 — 修复旧 completed lesson 的 rewardClaimed/rewardShown
         const migrated = migrateRewardFlags(lesson);
@@ -155,7 +161,8 @@ export function handleAppVersionUpgrade(
   }
 
   // 3. 写入新版本号
-  localStorage.setItem(LAST_VERSION_KEY, APP_VERSION);
+  try { localStorage.setItem(LAST_VERSION_KEY, APP_VERSION); }
+  catch (error) { console.warn('[Upgrade] Could not persist app version; migration state remains available in memory', error); }
 
   // 4. 清理旧缓存（异步，不阻塞）
   import('./appVersion').then(({ clearOldCachesSafely }) => {

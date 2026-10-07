@@ -10,7 +10,6 @@ import { useGameState } from '@/hooks/useGameState';
 import Confetti from '@/components/Confetti';
 import FeedbackOverlay from '@/components/FeedbackOverlay';
 import DetectiveMascot from '@/components/DetectiveMascot';
-import StarDisplay from '@/components/StarDisplay';
 import ProgressBar from '@/components/ProgressBar';
 import { getRandomEncouragement, getRandomHint } from '@/data/levels';
 
@@ -97,7 +96,7 @@ export default function ActionWordsPage() {
           <p className="text-gray-600 mt-2">
             你答对了 {correctCount} / {ROUNDS_PER_GAME} 题
           </p>
-          <StarDisplay count={correctCount} size="lg" animate />
+          <p className="mt-3 text-sm font-bold text-slate-700" data-testid="action-words-correct-count">本轮答对 {correctCount} / {ROUNDS_PER_GAME} 题</p>
           <div className="text-sm text-amber-600 mt-1">
             {correctCount === ROUNDS_PER_GAME
               ? '动作词大师！你已经完全掌握了！'

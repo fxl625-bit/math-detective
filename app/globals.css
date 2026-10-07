@@ -12,6 +12,11 @@
   box-sizing: border-box;
 }
 
+:focus-visible {
+  outline: 3px solid #b45309;
+  outline-offset: 3px;
+}
+
 body {
   background: #fffdf7;
   color: #3d2c0a;
@@ -111,5 +116,14 @@ body {
 @media (max-width: 640px) {
   input, button {
     font-size: 16px; /* Prevents iOS zoom on input focus */
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

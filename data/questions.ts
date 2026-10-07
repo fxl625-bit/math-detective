@@ -2,6 +2,9 @@
 // All questions, filtering functions, and utilities are in data/questions/index.ts
 export {
   allQuestions,
+  safeQuestions,
+  unsafeQuestionIds,
+  isQuestionSafeForNewLesson,
   allQuestions as questions,
   questionsByGrade,
   getQuestionsByFilter,

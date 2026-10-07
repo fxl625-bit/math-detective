@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Play, Gift, BookOpen, BarChart3 } from 'lucide-react';
 
@@ -14,22 +13,24 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  if (pathname === '/play' || pathname?.startsWith('/play/') || pathname === '/mental-math' || pathname?.startsWith('/mental-math/')) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-amber-200 z-30 safe-area-bottom">
-      <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
+      <div className="mx-auto flex min-h-16 max-w-lg items-center justify-around">
         {navItems.map((item) => {
           const isActive = pathname === item.href ||
             (item.href !== '/' && pathname.startsWith(item.href));
           const Icon = item.icon;
 
           return (
-            <Link
+            <a
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1 rounded-xl transition-all min-w-0 ${
+              aria-current={isActive ? 'page' : undefined}
+              className={`flex min-h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl px-3 py-1 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700 ${
                 isActive
-                  ? 'text-amber-600 bg-amber-50 scale-110'
+                  ? 'bg-amber-50 text-amber-700'
                   : 'text-gray-400 hover:text-amber-500'
               }`}
             >
@@ -38,10 +39,10 @@ export default function BottomNav() {
                 fill={isActive ? 'currentColor' : 'none'}
                 strokeWidth={isActive ? 2.5 : 2}
               />
-              <span className="text-xs font-medium whitespace-nowrap">
+              <span className="whitespace-nowrap text-xs font-semibold">
                 {item.label}
               </span>
-            </Link>
+            </a>
           );
         })}
       </div>

@@ -150,7 +150,8 @@ export const g2Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'number_extract',
   stepCompatibility: ['simulation', 'full_solve'],
-    answerType: 'number',
+    answerType: 'text',
+    answerSchema: { kind: 'text', acceptedAnswers: ['7:45', '7时45分'] },
     sceneType: 'shopping',
     themeTags: ["money"],
     problemType: 'basic_arithmetic',
@@ -515,6 +516,8 @@ export const g2Questions: Question[] = [
   },
   {
     id: 'g2_24', gradeBand: 'G2', domain: 'time',
+    // Content batch Q01 isolation: “from class start to dismissal” asks for lesson duration (40m); the equation adds the recess interval despite it not occurring within that wording.
+    qualityStatus: 'fail',
     cognitiveSkills: ['find_numbers', 'remove_noise', 'choose_operation'],
     text: '今天是星期三，阳光明媚。一节课40分钟，课间休息10分钟，从上课到下课一共需要多少分钟？',
     numbers: [40, 10],

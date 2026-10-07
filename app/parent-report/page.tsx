@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, Target, TrendingUp, Lightbulb, Settings, Check, Brain, GraduationCap, Bug, Download, Copy, FileText, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { BarChart3, Target, TrendingUp, Lightbulb, Settings, Brain, GraduationCap, Bug, Download, Copy, FileText, AlertCircle, CheckCircle2, Calculator } from 'lucide-react';
 import { useGameState } from '@/hooks/useGameState';
-import type { GradeBand, CognitiveSkill, TodayLesson } from '@/lib/types';
+import type { GradeBand, TodayLesson } from '@/lib/types';
+import { getCognitiveSkillLabel } from '@/lib/learningLabels';
+import { getKnowledgePointsForGrade } from '@/lib/curriculum/curriculumMap';
 import StarDisplay from '@/components/StarDisplay';
 import StreakDisplay from '@/components/StreakDisplay';
 import LevelBadge from '@/components/LevelBadge';
@@ -12,15 +14,23 @@ import ProgressBar from '@/components/ProgressBar';
 import AppCard from '@/components/ui/AppCard';
 import AppButton from '@/components/ui/AppButton';
 import PageContainer from '@/components/layout/PageContainer';
-import { getLevelInfo, getAccuracyStats } from '@/lib/storage';
-import { getTodayLesson } from '@/lib/lessonPlanner';
+import { getLevelInfo } from '@/lib/storage';
+import { getStoredTodayLesson } from '@/lib/lessonPlanner';
 import { getQuestionById, questionsByGrade } from '@/data/questions';
 import { validateStepQuestionMatch } from '@/lib/questionValidation';
 import { getRepairAttemptsSnapshot, getRepairRecordsSnapshot } from '@/lib/lessonTransaction';
 import { classifyKeyword } from '@/data/keywordRules';
 import { createDataSnapshot, downloadExportFile, copyExportToClipboard, estimateLocalStorageSize, formatBytes, type ExportPayload } from '@/lib/dataExport';
 import { detectUsageStage, buildLearnerProfile, initCurriculumProfile } from '@/lib/learnerProfile';
-import type { Semester, TextbookEdition, SkillId } from '@/lib/curriculum/types';
+import type { TextbookEdition, SkillId } from '@/lib/curriculum/types';
+import { buildWeeklyReport, OPERATION_LABELS } from '@/lib/mentalMath';
+import DataTransferPanel from '@/components/DataTransferPanel';
+import OfflineSupport from '@/components/OfflineSupport';
+import LearningSettingsPanel from '@/components/LearningSettingsPanel';
+import { normalizeLearningSettingsFromParent } from '@/lib/learningSettings';
+import { learningUnits } from '@/lib/curriculum/learningPath';
+import { reduceLearningMetrics, type SkillLearningMetric } from '@/lib/learningMetrics';
+import { getPointsBalance } from '@/lib/familyPoints';
 
 const GRADE_OPTIONS: { value: GradeBand; label: string }[] = [
   { value: 'G1', label: '一年级' },
@@ -31,11 +41,6 @@ const GRADE_OPTIONS: { value: GradeBand; label: string }[] = [
   { value: 'G6', label: '六年级' },
 ];
 
-const SEMESTER_OPTIONS: { value: Semester; label: string }[] = [
-  { value: 'lower', label: '下学期' },
-  { value: 'upper', label: '上学期' },
-];
-
 const TEXTBOOK_OPTIONS: { value: TextbookEdition; label: string }[] = [
   { value: 'PEP', label: '人教版 (PEP)' },
   { value: 'BNUP', label: '北师大版' },
@@ -43,23 +48,34 @@ const TEXTBOOK_OPTIONS: { value: TextbookEdition; label: string }[] = [
   { value: 'generic_cn', label: '通用版' },
 ];
 
-const SKILL_LABELS: Record<CognitiveSkill, string> = {
-  find_numbers: '找数字',
-  find_keywords: '找关键词',
-  remove_noise: '排除干扰',
-  understand_question: '理解题意',
-  choose_operation: '选择运算',
-  find_compare_numbers: '比较关系',
-  spot_extra_info: '识别多余信息',
-  spot_missing_info: '判断信息缺失',
-  build_model: '建立模型',
-  multi_step_reasoning: '多步推理',
-  estimate: '估算',
-  explain_reasoning: '解释推理',
+function getHistoricalSkillLabel(skillId: string): string {
+  for (let grade = 1; grade <= 6; grade += 1) {
+    for (const semester of ['lower', 'upper'] as const) {
+      const match = getKnowledgePointsForGrade(grade, semester).find((point) => point.id === skillId);
+      if (match) return match.name;
+    }
+  }
+  return '历史知识点（名称待补全）';
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  foundation: '基础', application: '应用', advanced: '提高', olympiad: '奥数', unknown: '角色未知',
+  due_review: '回顾', current_concept: '方法学习', same_skill_variant: '同技能变式', stretch: '提高挑战',
 };
 
+function groupLearningMetrics(metrics: SkillLearningMetric[]) {
+  const groups = new Map<string, { grade: string; semester: string; unitId: string | null; metrics: SkillLearningMetric[] }>();
+  for (const metric of metrics) {
+    const key = `${metric.grade}:${metric.semester}:${metric.unitId ?? 'unknown'}`;
+    const group = groups.get(key) ?? { grade: metric.grade, semester: metric.semester, unitId: metric.unitId, metrics: [] };
+    group.metrics.push(metric);
+    groups.set(key, group);
+  }
+  return [...groups.values()].sort((a, b) => a.grade.localeCompare(b.grade) || (a.unitId ?? '').localeCompare(b.unitId ?? '') || a.semester.localeCompare(b.semester));
+}
+
 export default function ParentReportPage() {
-  const { state, setParentSettings } = useGameState();
+  const { state, saveParentSettings } = useGameState();
   const [mounted, setMounted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showDebug, setShowDebug] = useState(false);
@@ -70,15 +86,6 @@ export default function ParentReportPage() {
   const [exportStatus, setExportStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [exportMessage, setExportMessage] = useState('');
 
-  // Settings form state
-  const [formDailyGoal, setFormDailyGoal] = useState(state.parentSettings.dailyGoal);
-  const [formGrade, setFormGrade] = useState<GradeBand>(state.parentSettings.gradeBand);
-  const [formSemester, setFormSemester] = useState<Semester>(
-    (state.parentSettings.semesterOverride || state.parentSettings.semester || 'lower') as Semester
-  );
-  const [formTextbook, setFormTextbook] = useState<TextbookEdition>(
-    (state.parentSettings.textbookEdition || 'PEP') as TextbookEdition
-  );
   const [showSkillProgress, setShowSkillProgress] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -87,13 +94,49 @@ export default function ParentReportPage() {
 
   const levelInfo = getLevelInfo(state.level);
 
-  // v2.6.8: 使用统一统计函数 getAccuracyStats()
-  // 统计口径：
-  //   - 总体正确率 = 每道题最新提交的正确数 / 总提交题数（未作答不计入分母）
-  //   - 7日正确率 = 最近7天内的正确数 / 7天内提交题数
-  //   - 今日完成 = 今日首次答对的题目数
-  const accuracyStats = getAccuracyStats(state);
-  const { todayCompleted, overallAccuracy, last7DaysAccuracy, totalAttempts, correctAttempts, last7DaysTotalAttempts, last7DaysCorrectAttempts } = accuracyStats;
+  // Only the first actual submission for each question instance counts. Old
+  // attemptRecords may retain a retry while losing the original first answer.
+  const uniqueEvents = [...new Map((state.learningEvents || []).map(event => [event.eventId, event])).values()]
+    .filter(event => event.eventType === 'attempt_submitted' && event.result && event.firstAttemptKnown !== false)
+    .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  const firstByInstance = new Map<string, (typeof uniqueEvents)[number]>();
+  uniqueEvents.forEach(event => { if (!firstByInstance.has(event.questionInstanceId)) firstByInstance.set(event.questionInstanceId, event); });
+  const firstAttempts = [...firstByInstance.values()];
+  const totalAttempts = firstAttempts.length;
+  const correctAttempts = firstAttempts.filter(event => event.result === 'correct').length;
+  const overallAccuracy = totalAttempts ? Math.round(correctAttempts / totalAttempts * 100) : 0;
+  const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const last7Days = firstAttempts.filter(event => new Date(event.timestamp).getTime() >= sevenDaysAgo);
+  const last7DaysTotalAttempts = last7Days.length;
+  const last7DaysCorrectAttempts = last7Days.filter(event => event.result === 'correct').length;
+  const last7DaysAccuracy = last7DaysTotalAttempts ? Math.round(last7DaysCorrectAttempts / last7DaysTotalAttempts * 100) : 0;
+  const reportLesson = getStoredTodayLesson();
+  const settings = normalizeLearningSettingsFromParent(state.parentSettings);
+  const activeUnit = learningUnits.find(unit => unit.id === settings.unitId);
+  const lessonDone = Boolean(reportLesson?.completed || (reportLesson?.steps.length && reportLesson.steps.every(step => step.status === 'completed')));
+  const lessonStarted = Boolean(reportLesson && (reportLesson.currentStepIndex > 0 || reportLesson.steps.some((step, index) =>
+    step.status === 'completed' || step.awardedAt != null || (index === reportLesson.currentStepIndex && step.currentPhaseIndex > 0))));
+  const courseStatus = lessonDone ? 'completed' : lessonStarted ? 'in-progress' : 'not-started';
+  const legacySnapshot = (reportLesson as TodayLesson & { curriculumSnapshot?: { grade?: number; semester?: string; unitId?: string } } | null)?.curriculumSnapshot;
+  const lessonGrade = reportLesson?.settingSnapshot?.grade ?? (legacySnapshot?.grade ? `G${legacySnapshot.grade}` : null);
+  const lessonSemester = reportLesson?.settingSnapshot?.semester ?? legacySnapshot?.semester ?? null;
+  const lessonUnitId = reportLesson?.settingSnapshot?.unitId ?? legacySnapshot?.unitId ?? null;
+  const lessonUnit = learningUnits.find(unit => unit.id === lessonUnitId);
+  const legacyScopeUnknown = Boolean(reportLesson && !reportLesson.settingSnapshot);
+  const scopeChanged = Boolean(reportLesson && (legacyScopeUnknown || lessonGrade === null || lessonGrade !== settings.grade || lessonSemester !== settings.semester
+    || lessonUnitId !== settings.unitId || (reportLesson.settingSnapshot && (
+      reportLesson.settingSnapshot.challengePreference !== settings.challengePreference
+      || reportLesson.settingSnapshot.dailyGoal !== settings.dailyGoal
+      || JSON.stringify(reportLesson.settingSnapshot.learnedTableRange) !== JSON.stringify(settings.learnedTableRange)))));
+  const eventMetrics = Object.values(reduceLearningMetrics(state.learningEvents || []));
+  const metricGroups = groupLearningMetrics(eventMetrics);
+  const lessonEvents = (state.learningEvents || []).filter(event => event.lessonId === reportLesson?.lessonId);
+  const completedInstances = new Set(lessonEvents.filter(event => event.eventType === 'question_completed').map(event => event.questionInstanceId));
+  const lessonCompletedTasks = reportLesson?.steps.filter(step => step.status === 'completed' || Boolean(step.awardedAt)
+    || Boolean(step.questionInstanceId && completedInstances.has(step.questionInstanceId))).length || 0;
+  const firstAnswerSamples = new Set(lessonEvents.filter(event => event.eventType === 'attempt_submitted' && event.firstAttemptKnown !== false)
+    .map(event => event.questionInstanceId)).size;
+  const lessonTaskTarget = reportLesson ? Math.max(6, reportLesson.steps.length) : 6;
   const errorTypes = state.mistakes.reduce<Record<string, number>>((acc, m) => {
     acc[m.errorType] = (acc[m.errorType] || 0) + 1;
     return acc;
@@ -111,123 +154,34 @@ export default function ParentReportPage() {
   if (Object.keys(skillMistakes).length > 0) {
     const topWeak = Object.entries(skillMistakes).sort((a, b) => b[1] - a[1])[0];
     if (topWeak && topWeak[1] >= 3) {
-      suggestions.push(`弱项技能"${SKILL_LABELS[topWeak[0] as CognitiveSkill] || topWeak[0]}"需重点练习，已累计${topWeak[1]}次错误。`);
+      suggestions.push(`弱项技能"${getCognitiveSkillLabel(topWeak[0])}"需重点练习，已累计${topWeak[1]}次错误。`);
     }
   }
   if (suggestions.length === 0 && state.totalCompleted >= 5) suggestions.push('孩子表现不错！继续保持每天练习的习惯。');
   if (state.totalCompleted < 5) suggestions.push('刚开始使用，数据积累中。坚持一周后查看详细分析。');
 
-  function handleSaveSettings() {
-    setParentSettings({
-      dailyGoal: formDailyGoal,
-      gradeBand: formGrade,
-      semester: formSemester,
-      semesterOverride: formSemester,
-      textbookEdition: formTextbook,
-    });
-    setShowSettings(false);
-  }
-
   return (
     <PageContainer>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-extrabold text-green-800">📊 家长报告</h1>
-        <button className="p-2 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
+        <button type="button" aria-label="学习设置" aria-expanded={showSettings} className="grid min-h-11 min-w-11 place-items-center rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
           onClick={() => setShowSettings(!showSettings)}>
           <Settings size={20} className="text-gray-600" />
         </button>
       </div>
 
-      {/* Settings Panel */}
-      {showSettings && (
-        <motion.div className="card-detective p-4 space-y-4" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-          <h3 className="font-bold text-gray-700 flex items-center gap-2">
-            <Settings size={18} /> 学习设置
-          </h3>
-
-          {/* Grade selection */}
-          <div>
-            <label className="text-sm font-bold text-gray-600 mb-2 block">📚 年级选择</label>
-            <div className="flex flex-wrap gap-2">
-              {GRADE_OPTIONS.map((g) => (
-                <button key={g.value}
-                  className={`px-3 py-2 rounded-xl font-bold text-sm transition-all ${
-                    formGrade === g.value ? 'bg-green-400 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                  onClick={() => setFormGrade(g.value)}
-                >
-                  {g.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* v2.9.0: Semester selection */}
-          <div>
-            <label className="text-sm font-bold text-gray-600 mb-2 block">📅 学期选择</label>
-            <div className="flex gap-2">
-              {SEMESTER_OPTIONS.map((s) => (
-                <button key={s.value}
-                  className={`px-4 py-2 rounded-xl font-bold text-sm transition-all ${
-                    formSemester === s.value ? 'bg-blue-400 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                  onClick={() => setFormSemester(s.value)}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* v2.9.0: Textbook edition */}
-          <div>
-            <label className="text-sm font-bold text-gray-600 mb-2 block">📖 教材版本</label>
-            <div className="flex flex-wrap gap-2">
-              {TEXTBOOK_OPTIONS.map((t) => (
-                <button key={t.value}
-                  className={`px-3 py-2 rounded-xl font-bold text-sm transition-all ${
-                    formTextbook === t.value ? 'bg-purple-400 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                  onClick={() => setFormTextbook(t.value)}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Daily goal */}
-          <div>
-            <label className="text-sm font-bold text-gray-600 mb-2 block">🎯 每日目标关数</label>
-            <div className="flex gap-2">
-              {[3, 5, 8, 10].map((n) => (
-                <button key={n}
-                  className={`px-4 py-2 rounded-xl font-bold text-sm ${
-                    formDailyGoal === n ? 'bg-green-400 text-white' : 'bg-gray-100 text-gray-600'
-                  }`}
-                  onClick={() => setFormDailyGoal(n)}
-                >{n}关/天</button>
-              ))}
-            </div>
-          </div>
-
-
-          <AppButton variant="success" size="sm" onClick={handleSaveSettings}>
-            <Check size={16} /> 保存设置
-          </AppButton>
-        </motion.div>
-      )}
+      {showSettings && <LearningSettingsPanel settings={settings} courseStatus={courseStatus} onSave={saveParentSettings} onClose={() => setShowSettings(false)} />}
 
       {/* Current grade info */}
       <AppCard variant="purple">
         <div className="flex items-center gap-2 flex-wrap">
           <GraduationCap size={20} className="text-purple-600" />
           <span className="text-sm font-bold text-purple-800">
-            当前年级：{GRADE_OPTIONS.find(g => g.value === state.parentSettings.gradeBand)?.label || '未设置'}
+            新课程设置：{GRADE_OPTIONS.find(g => g.value === settings.grade)?.label || '未设置'} · {activeUnit?.title || '单元未指定'}
           </span>
           {state.curriculumProfile && (
             <span className="text-xs text-purple-500 bg-purple-50 px-2 py-0.5 rounded-full">
-              {state.curriculumProfile.semester === 'lower' ? '下学期' : '上学期'}
+              {settings.semester === 'lower' ? '下学期' : '上学期'}{settings.semesterSource === 'auto' ? '（自动）' : '（手动）'}
               {' · '}
               {TEXTBOOK_OPTIONS.find(t => t.value === (state.curriculumProfile as any)?.textbookEdition)?.label || '通用版'}
             </span>
@@ -240,6 +194,7 @@ export default function ParentReportPage() {
             </span>
           )}
         </div>
+        {reportLesson && <p className="mt-2 text-xs text-purple-700">{legacyScopeUnknown ? '旧课程的完整设置快照未知；新选择会用于新课程。' : scopeChanged ? courseStatus === 'not-started' ? '本课尚未开始，新选择可立即用于准备课程。' : '当前课仍按创建时的范围学习；新设置将在下一课生效。' : '当前课与新课程设置一致。'}</p>}
       </AppCard>
 
       {/* Today */}
@@ -249,22 +204,55 @@ export default function ParentReportPage() {
         </h2>
         <div className="grid grid-cols-3 gap-3">
           <div className="text-center p-3 bg-amber-50 rounded-xl">
-            <div className="text-3xl font-extrabold text-amber-600">{todayCompleted}</div>
-            <div className="text-xs text-gray-500">今日完成</div>
+            <div className="text-3xl font-extrabold text-amber-600">{lessonCompletedTasks}/{lessonTaskTarget}</div>
+            <div className="text-xs text-gray-500">本课任务完成</div>
           </div>
           <div className="text-center p-3 bg-green-50 rounded-xl">
-            <div className="text-3xl font-extrabold text-green-600">{overallAccuracy}%</div>
-            <div className="text-xs text-gray-500">总体正确率</div>
+            <div data-testid="overall-first-answer-accuracy" className="text-3xl font-extrabold text-green-600">{totalAttempts ? `${overallAccuracy}%` : '—'}</div>
+            <div className="text-xs text-gray-500">累计首答正确率（{correctAttempts}/{totalAttempts}）</div>
           </div>
           <div className="text-center p-3 bg-blue-50 rounded-xl">
-            <div className="text-3xl font-extrabold text-blue-600">{last7DaysAccuracy}%</div>
-            <div className="text-xs text-gray-500">7日正确率</div>
+            <div className="text-3xl font-extrabold text-blue-600">{last7DaysTotalAttempts ? `${last7DaysAccuracy}%` : '—'}</div>
+            <div className="text-xs text-gray-500">7日首答正确率（{last7DaysCorrectAttempts}/{last7DaysTotalAttempts}）</div>
           </div>
         </div>
+        <p className="mt-3 text-xs leading-5 text-gray-600">首答正确率按每道题第一次实际提交计算。旧版只保留最终答案的记录无法还原首答，已标为未知且不计入分母；完成率与首答正确率分别显示。</p>
         <div className="mt-3">
-          <ProgressBar label="今日目标进度" value={state.completedToday} max={state.parentSettings.dailyGoal}
-            color="bg-gradient-to-r from-green-400 to-emerald-400" showPulse={state.completedToday >= state.parentSettings.dailyGoal} />
+          <ProgressBar label="本课六个核心任务进度" value={lessonCompletedTasks} max={lessonTaskTarget}
+            color="bg-gradient-to-r from-green-400 to-emerald-400" showPulse={lessonCompletedTasks >= 6} />
+          {reportLesson && (
+            <div className="mt-3 rounded-xl bg-white/80 p-3 text-xs text-gray-600 space-y-1" data-testid="report-course-evidence">
+              <p>本课创建时：{lessonGrade && GRADE_OPTIONS.find(g => g.value === lessonGrade)?.label || '年级未知'} · {lessonSemester === 'upper' ? '上学期' : lessonSemester === 'lower' ? '下学期' : '学期未知'} · {lessonUnit?.title || '单元未知'}</p>
+              <p>下一课设置：{GRADE_OPTIONS.find(g => g.value === settings.grade)?.label || settings.grade} · {activeUnit?.title || '单元未指定'}{scopeChanged ? '（完成本课后生效）' : ''}</p>
+              <p>不同题目数：{state.completedQuestions.length}　·　本课完成任务：{lessonCompletedTasks}/{lessonTaskTarget}　·　可信首答样本：{firstAnswerSamples}</p>
+            </div>
+          )}
         </div>
+      </AppCard>
+
+      <AppCard variant="blue">
+        <h2 className="mb-2 flex items-center gap-2 font-extrabold text-gray-800"><GraduationCap size={20} className="text-blue-600" />分年级与单元的学习证据</h2>
+        <p className="mb-4 text-xs text-gray-600">首答率只使用有可信首答的题次；独立与辅助完成按完成事件统计。旧课程若没有事件，首答情况未知，不计为满分。</p>
+        {metricGroups.length === 0 ? <p className="text-sm text-gray-500">尚无可核验的学习事件；旧记录的首答情况未知。</p> : (
+          <div className="space-y-4" data-testid="learning-metrics-report">
+            {metricGroups.map((group) => {
+              const unit = learningUnits.find(item => item.id === group.unitId);
+              const gradeLabel = GRADE_OPTIONS.find(item => item.value === group.grade)?.label ?? '年级未知';
+              const semesterLabel = group.semester === 'upper' ? '上学期' : group.semester === 'lower' ? '下学期' : '学期未知';
+              return <section key={`${group.grade}:${group.semester}:${group.unitId}`} className="rounded-xl border border-blue-100 bg-white p-3">
+                <h3 className="mb-2 font-bold text-blue-900">{gradeLabel} · {unit?.title ?? '单元未知'} · {semesterLabel}</h3>
+                <div className="space-y-2">
+                  {group.metrics.sort((a, b) => a.role.localeCompare(b.role) || a.skillId.localeCompare(b.skillId)).map(metric => (
+                    <div key={metric.metricId} className="rounded-lg bg-blue-50/60 p-2 text-sm text-gray-800">
+                      <p className="font-semibold">{ROLE_LABELS[metric.role] ?? '角色未知'} · {metric.skillId.split(':').pop()?.replace(/-/g, ' ') || '技能未知'}</p>
+                      <p className="text-xs text-gray-600">首答：{metric.firstAnswerCount ? `${Math.round((metric.firstTryAccuracy ?? 0) * 100)}%（${metric.firstCorrectCount}/${metric.firstAnswerCount}）` : '—（尚无可信首答）'}　独立完成：{metric.independentCompletions}　辅助完成：{metric.assistedCompletions}　完成题次：{metric.completedQuestionInstances}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>;
+            })}
+          </div>
+        )}
       </AppCard>
 
       {/* Overall stats */}
@@ -276,9 +264,9 @@ export default function ParentReportPage() {
           <Row label="累计完成关数" value={`${state.totalCompleted} 关`} />
           <Row label="正确 / 错误" value={<span><span className="text-green-600">{state.correctCount}</span> / <span className="text-red-400">{state.wrongCount}</span></span>} />
           <Row label="连续打卡" value={<StreakDisplay streak={state.streak} size="sm" />} />
-          <Row label="提交次数" value={`${totalAttempts} 题`} />
+          <Row label="可信首答样本" value={`${totalAttempts} 题`} />
           <Row label="侦探等级" value={<LevelBadge level={state.level} name={levelInfo.name} icon={levelInfo.icon} size="sm" />} />
-          <Row label="拥有星星" value={<StarDisplay count={state.stars} size="sm" />} />
+          <Row label="家庭积分" value={<StarDisplay count={getPointsBalance(state)} size="sm" />} />
           <Row label="获得徽章" value={<span className="font-extrabold text-purple-600">{state.badges.length} 枚</span>} />
         </div>
       </AppCard>
@@ -303,13 +291,13 @@ export default function ParentReportPage() {
         )}
       </AppCard>
 
-      {/* Skill Radar Chart */}
+      {/* Historical mistake counts, separate from first-answer learning evidence. */}
       <AppCard variant="purple">
         <h2 className="font-extrabold text-gray-800 flex items-center gap-2 mb-4">
-          <Brain size={20} className="text-purple-500" />技能分布图
+          <Brain size={20} className="text-purple-500" />历史错误分布（非掌握度）
         </h2>
         <SkillRadarChart skillMistakes={skillMistakes} totalCompleted={state.totalCompleted} />
-        <p className="text-xs text-gray-400 text-center mt-2">越靠近中心表示该技能越弱（错误次数越多）</p>
+        {Object.values(skillMistakes).some(count => count > 0) && <p className="text-xs text-gray-500 text-center mt-2">图形只反映旧版已记录的错误次数，缺少每项练习总数，不能用于判断掌握程度。</p>}
       </AppCard>
 
       {/* v2.9.0: 学习进度面板 — 技能掌握情况 */}
@@ -317,12 +305,13 @@ export default function ParentReportPage() {
         <AppCard variant="green">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-extrabold text-gray-800 flex items-center gap-2">
-              <GraduationCap size={20} className="text-green-600" />课程掌握进度
+              <GraduationCap size={20} className="text-green-600" />历史能力进度（旧统计）
             </h2>
             <span className="text-xs text-gray-400">
               难度等级 {state.learnerProfile.currentDifficultyLevel}
             </span>
           </div>
+          <p className="mb-3 text-xs text-gray-500">此处沿用旧版累计能力口径，可能混合不同年级与单元；上方学习证据按课程事件区分范围。</p>
           <div className="space-y-2">
             {Object.entries(state.learnerProfile.skillMastery)
               .filter(([, m]: [string, any]) => m.attempts > 0)
@@ -331,7 +320,7 @@ export default function ParentReportPage() {
               .map(([skillId, mastery]: [string, any]) => (
                 <div key={skillId} className="flex items-center gap-2">
                   <span className="text-xs text-gray-600 flex-1 truncate" title={skillId}>
-                    {skillId.split(':').pop()?.replace(/_/g, ' ') || skillId}
+                    {getHistoricalSkillLabel(skillId)}
                   </span>
                   <div className="flex-1">
                     <ProgressBar
@@ -428,7 +417,7 @@ export default function ParentReportPage() {
           <div className="space-y-2">
             {Object.entries(skillMistakes).sort((a, b) => b[1] - a[1]).map(([skill, count]) => (
               <div key={skill} className="flex items-center gap-2">
-                <span className="text-sm text-gray-700 flex-1">{SKILL_LABELS[skill as CognitiveSkill] || skill}</span>
+                <span className="text-sm text-gray-700 flex-1">{getCognitiveSkillLabel(skill)}</span>
                 <ProgressBar value={count} max={10} color={count >= 5 ? 'bg-red-400' : count >= 3 ? 'bg-amber-400' : 'bg-blue-400'} />
                 <span className="text-xs font-bold text-red-500 w-8 text-right">{count}次</span>
               </div>
@@ -459,7 +448,7 @@ export default function ParentReportPage() {
             className="px-3 py-1 rounded-lg text-xs font-bold bg-amber-100 hover:bg-amber-200 transition-colors"
             onClick={() => {
               if (!showScoreDiag) {
-                const lesson = (() => { try { return getTodayLesson(); } catch { return null; } })();
+                const lesson = (() => { try { return getStoredTodayLesson(); } catch { return null; } })();
                 setDebugLesson(lesson);
               }
               setShowScoreDiag(!showScoreDiag);
@@ -474,8 +463,8 @@ export default function ParentReportPage() {
             {/* 积分字段 */}
             <div className="grid grid-cols-2 gap-2">
               <div className="p-2 bg-white rounded-lg">
-                <div className="text-xs text-gray-500">stars（主积分）</div>
-                <div className="text-xl font-extrabold text-amber-600">{state.stars}</div>
+                <div className="text-xs text-gray-500">家庭积分</div>
+                <div className="text-xl font-extrabold text-amber-600">{getPointsBalance(state)}</div>
               </div>
               <div className="p-2 bg-white rounded-lg">
                 <div className="text-xs text-gray-500">level（等级）</div>
@@ -586,7 +575,7 @@ export default function ParentReportPage() {
             onClick={() => {
               if (!showDebug) {
                 try {
-                  const lesson = getTodayLesson();
+                  const lesson = getStoredTodayLesson();
                   setDebugLesson(lesson);
                 } catch { setDebugLesson(null); }
               }
@@ -614,201 +603,71 @@ export default function ParentReportPage() {
         )}
       </AppCard>
 
-      {/* v2.8.4: 数据备份与导出 */}
-      <AppCard variant="blue">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="font-extrabold text-gray-800 flex items-center gap-2">
-            <Download size={20} className="text-blue-600" />数据备份与导出
-          </h2>
-          <button
-            className="px-3 py-1 rounded-lg text-xs font-bold bg-blue-100 hover:bg-blue-200 transition-colors"
-            onClick={() => setShowDataExport(!showDataExport)}
-          >
-            {showDataExport ? '收起' : '展开'}
-          </button>
-        </div>
+      <DataTransferPanel />
+      <OfflineSupport />
 
-        {showDataExport && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-            <p className="text-xs text-gray-500 leading-relaxed">
-              导出只会<strong>复制</strong>当前本地学习数据，不会修改或清空任何记录。
-              积分、错题、奖励、打卡记录在导出前后完全一致。
-            </p>
+      {/* v2.12.0: 口算练习周报 */}
+      <AppCard variant="amber">
+        <h2 className="font-extrabold text-gray-800 flex items-center gap-2 mb-4">
+          <Calculator size={20} className="text-amber-500" />口算练习周报
+        </h2>
+        {(() => {
+          const records = state.mentalMathRecords || [];
+          if (records.length === 0) {
+            return (
+              <p className="text-sm text-gray-400 text-center py-4">
+                还没有口算练习记录，去「口算练习器」练一练吧！
+              </p>
+            );
+          }
+          const report = buildWeeklyReport(records, new Date());
+          return (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="bg-white rounded-xl p-3 border-2 border-amber-100 text-center">
+                  <div className="text-2xl font-extrabold text-amber-600">{report.activeDays}</div>
+                  <div className="text-xs text-gray-400">练习天数</div>
+                </div>
+                <div className="bg-white rounded-xl p-3 border-2 border-amber-100 text-center">
+                  <div className="text-2xl font-extrabold text-blue-600">{report.totalQuestions}</div>
+                  <div className="text-xs text-gray-400">本周题数</div>
+                </div>
+                <div className="bg-white rounded-xl p-3 border-2 border-amber-100 text-center">
+                  <div className="text-2xl font-extrabold text-green-600">
+                    {report.totalQuestions > 0 ? Math.round(report.accuracy) : 0}%
+                  </div>
+                  <div className="text-xs text-gray-400">正确率</div>
+                </div>
+              </div>
 
-            {/* 当前数据摘要 */}
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="p-2 bg-white rounded-lg text-center">
-                <div className="text-amber-600 font-extrabold text-lg">{state.stars}</div>
-                <div className="text-gray-500">当前星星</div>
-              </div>
-              <div className="p-2 bg-white rounded-lg text-center">
-                <div className="text-red-500 font-extrabold text-lg">{state.mistakes.length}</div>
-                <div className="text-gray-500">错题数量</div>
-              </div>
-              <div className="p-2 bg-white rounded-lg text-center">
-                <div className="text-green-600 font-extrabold text-lg">{state.streak}</div>
-                <div className="text-gray-500">连续打卡</div>
+              {report.totalQuestions > 0 && (
+                <div>
+                  <div className="text-xs font-bold text-gray-500 mb-2">各运算类型正确率</div>
+                  <div className="space-y-2">
+                    {Object.entries(report.byOperation).map(([op, stat]) => (
+                      <div key={op} className="flex items-center gap-2">
+                        <span className="text-xs w-10 text-gray-600">{OPERATION_LABELS[op as keyof typeof OPERATION_LABELS] || op}</span>
+                        <div className="flex-1 h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-amber-400 to-orange-400"
+                            style={{ width: `${stat.accuracy}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-bold text-gray-600 w-12 text-right">
+                          {stat.correct}/{stat.total}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="text-xs text-gray-400">
+                本周 {report.weekStart} ~ {report.weekEnd}，共 {report.totalSessions} 次练习
               </div>
             </div>
-
-            <div className="text-xs text-gray-400">
-              本地数据大小：{formatBytes(estimateLocalStorageSize())}
-            </div>
-
-            {/* 导出状态提示 */}
-            {exportStatus !== 'idle' && (
-              <div className={`p-3 rounded-lg text-xs flex items-start gap-2 ${
-                exportStatus === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
-              }`}>
-                {exportStatus === 'success'
-                  ? <CheckCircle2 size={14} className="flex-shrink-0 mt-0.5" />
-                  : <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
-                }
-                <span>{exportMessage}</span>
-              </div>
-            )}
-
-            {/* 按钮组 */}
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 active:scale-95 transition-all"
-                onClick={() => {
-                  try {
-                    const payload = createDataSnapshot();
-                    setExportPayload(payload);
-                    const { filename, sizeBytes } = downloadExportFile(payload);
-                    setExportStatus('success');
-                    setExportMessage(
-                      `已导出 ${filename}（${formatBytes(sizeBytes)}）。包含：星星 ${payload.summary.stars}颗、错题 ${payload.summary.mistakesCount}道、打卡 ${payload.summary.streak}天。当前学习数据没有被修改。`
-                    );
-                    setTimeout(() => setExportStatus('idle'), 8000);
-                  } catch (e) {
-                    setExportStatus('error');
-                    setExportMessage('导出失败：' + (e instanceof Error ? e.message : '未知错误'));
-                  }
-                }}
-              >
-                <Download size={14} />导出全部数据 JSON
-              </button>
-
-              <button
-                className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 active:scale-95 transition-all"
-                onClick={async () => {
-                  try {
-                    const payload = exportPayload ?? createDataSnapshot();
-                    setExportPayload(payload);
-                    const ok = await copyExportToClipboard(payload);
-                    setExportStatus(ok ? 'success' : 'error');
-                    setExportMessage(ok
-                      ? '已复制备份 JSON 到剪贴板。当前学习数据没有被修改。'
-                      : '复制失败，请尝试"导出全部数据"下载文件。'
-                    );
-                    setTimeout(() => setExportStatus('idle'), 5000);
-                  } catch {
-                    setExportStatus('error');
-                    setExportMessage('复制失败，请尝试"导出全部数据"。');
-                  }
-                }}
-              >
-                <Copy size={14} />复制备份 JSON
-              </button>
-
-              <button
-                className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 active:scale-95 transition-all"
-                onClick={() => {
-                  try {
-                    const fullPayload = createDataSnapshot();
-                    // 只保留错题数据
-                    const mistakesOnly = {
-                      ...fullPayload,
-                      data: {
-                        ...fullPayload.data,
-                        learningState: null,
-                        todayLesson: null,
-                        rewards: null,
-                        avatar: null,
-                        settings: null,
-                        // mistakes 保留
-                      },
-                    };
-                    const json = JSON.stringify(mistakesOnly, null, 2);
-                    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    const now = new Date();
-                    a.download = `math-detective-mistakes-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.json`;
-                    a.href = url;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    setExportStatus('success');
-                    setExportMessage(`已导出错题本（共 ${fullPayload.summary.mistakesCount} 道）。数据未被修改。`);
-                    setTimeout(() => setExportStatus('idle'), 5000);
-                  } catch (e) {
-                    setExportStatus('error');
-                    setExportMessage('导出失败：' + (e instanceof Error ? e.message : '未知错误'));
-                  }
-                }}
-              >
-                <FileText size={14} />导出错题本
-              </button>
-
-              <button
-                className="flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 active:scale-95 transition-all"
-                onClick={() => {
-                  try {
-                    const payload = createDataSnapshot();
-                    // 学习报告：摘要 + 统计字段
-                    const report = {
-                      exportedAt: payload.exportedAt,
-                      appVersion: payload.appVersion,
-                      summary: payload.summary,
-                      weeklySnapshots: (payload.data.learningState as any)?.weeklySnapshots || [],
-                      attemptRecords: (payload.data.learningState as any)?.attemptRecords || [],
-                      badges: (payload.data.learningState as any)?.badges || [],
-                    };
-                    const json = JSON.stringify(report, null, 2);
-                    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    const now = new Date();
-                    a.download = `math-detective-report-${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}.json`;
-                    a.href = url;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                    setExportStatus('success');
-                    setExportMessage('已导出学习报告。数据未被修改。');
-                    setTimeout(() => setExportStatus('idle'), 5000);
-                  } catch (e) {
-                    setExportStatus('error');
-                    setExportMessage('导出失败：' + (e instanceof Error ? e.message : '未知错误'));
-                  }
-                }}
-              >
-                <BarChart3 size={14} />导出学习报告
-              </button>
-            </div>
-
-            {/* 导入预留按钮 */}
-            <button
-              disabled
-              className="w-full flex items-center justify-center gap-1 px-3 py-2 rounded-xl bg-gray-50 text-gray-400 text-xs font-bold cursor-not-allowed border border-dashed border-gray-300"
-            >
-              导入备份（后续开放）
-            </button>
-
-            {/* 导出时间 */}
-            {exportPayload && (
-              <div className="text-xs text-gray-400 text-center">
-                最近导出：{new Date(exportPayload.exportedAt).toLocaleString('zh-CN')}
-                &nbsp;·&nbsp;checksum: {exportPayload.checksum}
-              </div>
-            )}
-          </motion.div>
-        )}
+          );
+        })()}
       </AppCard>
 
       <div className="text-center text-xs text-gray-400 py-2">
@@ -821,12 +680,15 @@ export default function ParentReportPage() {
 // ========== Skill Radar Chart (SVG) ==========
 
 function SkillRadarChart({ skillMistakes, totalCompleted }: { skillMistakes: Record<string, number>; totalCompleted: number }) {
+  if (totalCompleted === 0 || !Object.values(skillMistakes).some(count => count > 0)) {
+    return <p className="py-4 text-center text-sm text-gray-500">暂无足够的历史错误记录，暂不绘制分布图。</p>;
+  }
   const skills: { key: string; label: string; mistakes: number }[] = [
-    { key: 'find_numbers', label: '找数字', mistakes: skillMistakes.find_numbers || 0 },
-    { key: 'find_keywords', label: '找关键词', mistakes: skillMistakes.find_keywords || 0 },
-    { key: 'remove_noise', label: '排除干扰', mistakes: skillMistakes.remove_noise || 0 },
-    { key: 'understand_question', label: '理解题意', mistakes: skillMistakes.understand_question || 0 },
-    { key: 'choose_operation', label: '选择运算', mistakes: skillMistakes.choose_operation || 0 },
+    { key: 'find_numbers', label: getCognitiveSkillLabel('find_numbers'), mistakes: skillMistakes.find_numbers || 0 },
+    { key: 'find_keywords', label: getCognitiveSkillLabel('find_keywords'), mistakes: skillMistakes.find_keywords || 0 },
+    { key: 'remove_noise', label: getCognitiveSkillLabel('remove_noise'), mistakes: skillMistakes.remove_noise || 0 },
+    { key: 'understand_question', label: getCognitiveSkillLabel('understand_question'), mistakes: skillMistakes.understand_question || 0 },
+    { key: 'choose_operation', label: getCognitiveSkillLabel('choose_operation'), mistakes: skillMistakes.choose_operation || 0 },
   ];
 
   const cx = 140, cy = 100, maxR = 70, levels = 5;

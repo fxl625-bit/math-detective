@@ -8,7 +8,7 @@
 import { allQuestions } from '@/data/questions';
 import { getDefaultPhasesForStepType, getCurrentStep } from '@/lib/lessonPlanner';
 import { commitLessonTransaction, type LearningState } from '@/lib/lessonTransaction';
-import type { TodayLesson, LessonStep, GameState, Question } from '@/lib/types';
+import { DEFAULT_GAME_STATE, type TodayLesson, type LessonStep, type GameState, type Question } from '@/lib/types';
 
 // ========== Test helpers ==========
 
@@ -23,6 +23,7 @@ function makeLessonStep(overrides: Partial<LessonStep> = {}): LessonStep {
     currentPhaseIndex: overrides.currentPhaseIndex ?? 0,
     status: overrides.status || 'current',
     requiresAnswer: overrides.requiresAnswer ?? true,
+    awardedAt: overrides.awardedAt,
   };
 }
 
@@ -39,17 +40,10 @@ function makeLesson(overrides: Partial<TodayLesson> = {}): TodayLesson {
 
 function makeGameState(overrides: Partial<GameState> = {}): GameState {
   return {
-    stars: 0,
-    completedToday: 0,
-    streak: 0,
-    parentSettings: {
-      gradeBand: 'G1',
-      textbookEdition: 'PEP',
-      carrotMode: false,
-      mathFactMode: false,
-    },
+    ...structuredClone(DEFAULT_GAME_STATE),
     ...overrides,
-  } as GameState;
+    parentSettings: { ...DEFAULT_GAME_STATE.parentSettings, ...overrides.parentSettings, gradeBand: overrides.parentSettings?.gradeBand ?? 'G1' },
+  };
 }
 
 // ========== Tests ==========
@@ -138,8 +132,8 @@ test('wrong answer does not advance phase', () => {
 });
 
 // ===== Test 4: Step completion advances step index =====
-test('complete_step advances to next step', () => {
-  const step1 = makeLessonStep({ id: 's1', currentPhaseIndex: 5 });
+test('complete_step advances only after a correct answer was awarded', () => {
+  const step1 = makeLessonStep({ id: 's1', currentPhaseIndex: 6, awardedAt: new Date().toISOString() });
   const step2 = makeLessonStep({ id: 's2', currentPhaseIndex: 0, status: 'locked' });
   const lesson = makeLesson({
     steps: [step1, step2],
@@ -157,6 +151,15 @@ test('complete_step advances to next step', () => {
   assert(result.advanced === true, 'should advance to next step');
   assert(result.toStepIndex === 1, `should advance to step 1, got ${result.toStepIndex}`);
   assert(result.nextLesson.steps[0].status !== 'current', 'first step should no longer be current');
+});
+
+test('complete_step is blocked before an answer is awarded', () => {
+  const lesson = makeLesson({ steps: [makeLessonStep({ currentPhaseIndex: 6 }), makeLessonStep({ id: 'next', status: 'locked' })] });
+  const result = commitLessonTransaction({
+    state: { lesson, gameState: makeGameState() }, action: 'complete_step', payload: {}, source: 'test-unanswered',
+  });
+  assert(result.changed === false, 'an unanswered step cannot be marked complete');
+  assert(result.reason === 'answer gate blocked: no answer awarded', 'reports the answer gate as the reason');
 });
 
 // ===== Test 5: Double submit of same answer is idempotent =====

@@ -53,7 +53,7 @@ export const g6Questions: Question[] = [
     keywords: [{ word: '平均', type: 'divide' }],
     noisePhrases: [], usefulPhrases: ['2/3小时行40千米', '平均每小时行多少千米'],
     questionMeaningOptions: ['问速度', '问时间', '问路程'],
-    correctMeaning: '问速度', operation: 'division', equation: '40 ÷ 2/3 = ?', answer: 60,
+    correctMeaning: '问速度', operation: 'division', equation: '40 ÷ (2/3) = 60', answer: 60,
     answerSentence: '平均每小时行驶60千米。',
     explanation: '速度=路程÷时间。40÷2/3=40×3/2=120/2=60千米/时。除以分数等于乘它的倒数。',
     solutionSteps: ['速度=路程÷时间', '40÷2/3=40×3/2', '40×3/2=120/2=60'],
@@ -561,3 +561,4 @@ export const g6Questions: Question[] = [
     problemType: 'multi_step',
   }
 ];
+

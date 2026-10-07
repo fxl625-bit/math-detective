@@ -42,5 +42,10 @@ next-env.d.ts
 
 # archive zip
 *.zip
+/.browser-cache/
+/.next-upgrade/
+/.next-rewards/
+/.next-labels/
+/.next-parent-password/
 
 .vercel

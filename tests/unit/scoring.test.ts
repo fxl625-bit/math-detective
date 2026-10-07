@@ -52,46 +52,48 @@ function run(name: string, fn: () => void) {
 
 console.log('\n[test:scoring] Running scoring unit tests...\n');
 
-// 1. 答对一题后 stars 增加
-run('1. 答对一题后 stars 增加', () => {
+// 1. 答题只更新学习进度；星星余额已停用
+run('1. 答对一题保留历史计数但不再增加星星', () => {
   const state = makeState({ stars: 10, level: 1 });
   const after = completeQuestion(state, 'q_test_001', true);
-  assert.ok(after.stars > state.stars, `stars should increase: ${state.stars} → ${after.stars}`);
+  assert.equal(after.stars, 0);
   assert.equal(after.correctCount, state.correctCount + 1);
   assert.equal(after.totalCompleted, state.totalCompleted + 1);
   assert.equal(after.answerAttempts, state.answerAttempts + 1);
 });
 
-// 2. 答错不增加 stars
-run('2. 答错不增加 stars', () => {
+// 2. 答题时不继续保留旧星星余额
+run('2. 答错保留计数并把已停用的星星归零', () => {
   const state = makeState({ stars: 5 });
   const after = completeQuestion(state, 'q_test_002', false);
-  assert.equal(after.stars, state.stars, `stars should not increase on wrong answer`);
+  assert.equal(after.stars, 0);
   assert.equal(after.correctCount, state.correctCount, 'correctCount unchanged');
   assert.equal(after.answerAttempts, state.answerAttempts + 1, 'answerAttempts incremented');
 });
 
 // 3. 答错后再答对，只增加一次
-run('3. 答错后再答对，只增加一次星星', () => {
+run('3. 答错后再答对，历史尝试保留且不发星星', () => {
   const state = makeState({ stars: 0 });
   const afterWrong = completeQuestion(state, 'q_test_003', false);
   assert.equal(afterWrong.stars, 0, 'no stars on wrong');
   const afterRight = completeQuestion(afterWrong, 'q_test_003', true);
-  assert.ok(afterRight.stars > 0, 'stars added on correct');
+  assert.equal(afterRight.stars, 0);
   // 再次提交正确 — 同 questionId 已在 completedQuestions，不重复加
   const afterRepeat = completeQuestion(afterRight, 'q_test_003', true);
   assert.equal(afterRepeat.stars, afterRight.stars, 'no duplicate star on repeat correct');
 });
 
 // 4. 同一题重复提交正确答案，completedQuestions 幂等
-run('4. 同一题重复提交正确答案不重复加分', () => {
+run('4. 同题提交记录追加且完成题目集合保持幂等', () => {
   const state = makeState({ stars: 0 });
   const q = 'q_idempotent_test';
   const after1 = completeQuestion(state, q, true);
   const after2 = completeQuestion(after1, q, true);
   const after3 = completeQuestion(after2, q, true);
-  assert.equal(after1.stars, after2.stars, 'second submit same stars');
-  assert.equal(after2.stars, after3.stars, 'third submit same stars');
+  assert.equal(after1.stars, 0);
+  assert.equal(after2.stars, 0);
+  assert.equal(after3.stars, 0);
+  assert.equal(after3.attemptRecords.length, state.attemptRecords.length + 3, 'legacy records are append-only');
   assert.equal(after1.completedQuestions.filter(id => id === q).length, 1, 'question in list exactly once');
 });
 
@@ -101,7 +103,7 @@ run('5. daily reward 只发一次', () => {
   const lesson = makeLesson({ completed: true });
 
   const { lesson: l1, bonusStars: s1 } = grantDailyRewardOnce(state, lesson);
-  assert.ok(s1 > 0, `bonusStars should be > 0, got ${s1}`);
+  assert.equal(s1, 0, 'legacy reward migration grants no stars');
   assert.equal(l1.rewardClaimed, true, 'lesson.rewardClaimed should be true');
 
   // 第二次发放：rewardClaimed=true，应返回 bonusStars=0
@@ -109,21 +111,20 @@ run('5. daily reward 只发一次', () => {
   assert.equal(s2, 0, `second grant should return bonusStars=0, got ${s2}`);
 });
 
-// 6. rewardShown=true 不影响单题积分
-run('6. rewardShown=true 不影响单题积分', () => {
-  // 单题积分由 completeQuestion 完成，与 rewardShown 完全无关
+// 6. rewardShown=true does not create legacy currency
+run('6. rewardShown=true 不会触发旧星星奖励', () => {
   const state = makeState({ stars: 10 });
-  // 即使 lesson rewardShown=true，completeQuestion 也应该正常加分
+  // 即使 lesson rewardShown=true，答题进度照常记录但余额保持清零
   const after = completeQuestion(state, 'q_reward_shown', true);
-  assert.ok(after.stars > state.stars, 'stars added regardless of rewardShown');
+  assert.equal(after.stars, 0);
 });
 
 // 7. rewardClaimed=true 不影响单题积分
-run('7. rewardClaimed=true 不影响单题积分', () => {
+run('7. rewardClaimed=true 不会重新开启旧星星奖励', () => {
   const state = makeState({ stars: 10 });
-  // completeQuestion 不读 rewardClaimed，应正常加分
+  // completeQuestion 不读 rewardClaimed，仍记录答题且不产生星星
   const after = completeQuestion(state, 'q_reward_claimed', true);
-  assert.ok(after.stars > state.stars, 'stars added regardless of rewardClaimed');
+  assert.equal(after.stars, 0);
 });
 
 // 8. 重建今日任务不清空历史积分
@@ -138,14 +139,12 @@ run('8. generateSafeFallbackLesson 不清空 GameState', () => {
   assert.equal(state.stars, 999, 'GameState.stars unaffected');
 });
 
-// 9. grantDailyRewardOnce 返回正确 bonusStars
-run('9. grantDailyRewardOnce 返回 bonusStars >= 3', () => {
+// 9. legacy reward flag migration never pays stars
+run('9. grantDailyRewardOnce 仅迁移旗标且bonusStars为0', () => {
   const state = makeState({ stars: 0 });
   const lesson = makeLesson({ completed: true });
   const { bonusStars } = grantDailyRewardOnce(state, lesson);
-  assert.ok(bonusStars >= 3, `bonusStars should be >= 3, got ${bonusStars}`);
-  // 已知规则：3 基础 + 2 全关完成 = 5
-  assert.equal(bonusStars, 5, `bonusStars should be exactly 5 for completed lesson`);
+  assert.equal(bonusStars, 0);
 });
 
 // 10. migrateRewardFlags 不重置 stars（lesson 中没有 stars 字段）

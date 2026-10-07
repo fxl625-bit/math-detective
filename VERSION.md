@@ -1,6 +1,23 @@
+# 当前修复版本：2.13.2
+
+- 日期：2026-10-07
+- 家长模式已改为自设固定密码；规则与数据边界见 [家长密码说明](docs/PARENT_PASSWORD_2.13.2.md)。
+- v2.13.1 封板记录保留为历史基线，见下文。
+
+---
+# 数学侦探当前发布基线
+
+- 当前版本：**2.13.1**
+- 封板与上线日期：2026-09-29
+- 正式站点：https://math-detective.vercel.app
+- 部署 ID：dpl_BKPL9D4Nyhrbo198v1pzVgoMPz8N
+- 当前发布记录：[封板与上线验收](reports/2026-09-29-release/RELEASE_2.13.1.md)
+- 代码、测试、归档及回退记录以该发布记录为准；下面保留历史版本说明。
+
+---
 # Math Detective
 
-## Current Version: 2.11.0
+## Historical Version: 2.11.0
 ## Release Type: Stability & Curriculum Runtime Rebuild
 ## Release Date: 2026-06-17
 ## Branch: refactor/v2110-runtime-curriculum

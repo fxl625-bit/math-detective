@@ -10,7 +10,7 @@
  * - explain 阶段可展示完整推导
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import type { StepPhase } from '@/lib/types';
 import type { SolutionStepDetailed } from '@/lib/types';
 import { renderSafePreAnswerText } from '@/lib/hintSafety';
@@ -32,6 +32,7 @@ export interface HintSystemProps {
   wrongAttempts?: number;
   /** 点击完整推理时的回调（用于记录 usedFullHint） */
   onFullHintRequested?: () => void;
+  onHintLevelUsed?: (level: 'medium' | 'full') => void;
   /** 自定义组件类名 */
   className?: string;
 }
@@ -45,11 +46,13 @@ export default function HintSystem({
   allowFullHint = false,
   wrongAttempts = 0,
   onFullHintRequested,
+  onHintLevelUsed,
   className = '',
 }: HintSystemProps) {
   const [showMedium, setShowMedium] = useState(false);
   const [showFull, setShowFull] = useState(false);
   const [fullHintConfirm, setFullHintConfirm] = useState(false);
+  const mediumRecordedRef = useRef(false);
 
   // explain 阶段直接显示完整推理
   const isExplain = phase === 'explain';
@@ -69,11 +72,26 @@ export default function HintSystem({
       return;
     }
     setShowFull(true);
+    onHintLevelUsed?.('full');
     onFullHintRequested?.();
-  }, [fullHintConfirm, onFullHintRequested]);
+  }, [fullHintConfirm, onFullHintRequested, onHintLevelUsed]);
 
   // 根据错误次数决定是否主动显示 medium
   const shouldShowMedium = showMedium || wrongAttempts >= 2;
+
+  useEffect(() => {
+    mediumRecordedRef.current = false;
+    setShowMedium(false);
+    setShowFull(false);
+    setFullHintConfirm(false);
+  }, [question.id]);
+
+  useEffect(() => {
+    if (shouldShowMedium && !mediumRecordedRef.current) {
+      mediumRecordedRef.current = true;
+      onHintLevelUsed?.('medium');
+    }
+  }, [shouldShowMedium, onHintLevelUsed]);
 
   // 判断是否有完整步骤
   const hasFullSteps = fullSteps && fullSteps.length > 0;
@@ -98,8 +116,10 @@ export default function HintSystem({
         <>
           {!shouldShowMedium ? (
             <button
+              data-testid="hint-next"
+              type="button"
               onClick={() => setShowMedium(true)}
-              className="w-full text-center text-sm text-blue-600 font-bold py-2 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+              className="min-h-11 w-full text-center text-sm text-blue-600 font-bold py-2 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
             >
               💡 再给一点提示
             </button>
@@ -122,8 +142,9 @@ export default function HintSystem({
         <div className="text-center">
           {!fullHintConfirm ? (
             <button
+              type="button"
               onClick={handleFullHintClick}
-              className="text-sm text-amber-700 font-bold py-2 px-4 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200"
+              className="min-h-11 text-sm text-amber-700 font-bold py-2 px-4 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200"
             >
               📝 看完整推理
             </button>
@@ -133,8 +154,9 @@ export default function HintSystem({
                 ⚠️ 看完整推理后会看到答案思路哦，确定要继续吗？
               </p>
               <button
+                type="button"
                 onClick={handleFullHintClick}
-                className="text-sm bg-amber-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors"
+                className="min-h-11 text-sm bg-amber-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors"
               >
                 确定，我要看完整推理
               </button>

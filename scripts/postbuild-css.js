@@ -11,7 +11,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const staticDir = path.join(__dirname, '..', '.next', 'static');
+const buildDir = process.env.NEXT_BUILD_DIR || '.next';
+const staticDir = path.resolve(__dirname, '..', buildDir, 'static');
 
 function processCssFile(filePath) {
   let css = fs.readFileSync(filePath, 'utf-8');
@@ -91,5 +92,8 @@ function walk(dir) {
 }
 
 console.log('[postbuild-css] Stripping @layer wrappers for browser compatibility...');
+if (!fs.existsSync(staticDir)) {
+  throw new Error(`[postbuild-css] Build CSS directory does not exist: ${staticDir}`);
+}
 walk(staticDir);
 console.log('[postbuild-css] Done.');
