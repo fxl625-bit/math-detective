@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import type { LearningSettings } from '../../lib/types';
 
 type ParentSettings = {
   gradeBand: string;
@@ -6,11 +7,14 @@ type ParentSettings = {
   maxDifficulty: number;
   semester?: 'upper' | 'lower';
   semesterOverride?: 'upper' | 'lower';
+  learningSettings?: LearningSettings;
 };
 
 async function openPlay(page: Page, date: string, parentSettings: ParentSettings) {
   await page.clock.install({ time: new Date(date) });
   await page.addInitScript(settings => {
+    if (sessionStorage.getItem('semester-cache-stability-seeded') === '1') return;
+    sessionStorage.setItem('semester-cache-stability-seeded', '1');
     localStorage.setItem('math-detective-state', JSON.stringify({
       version: 9,
       stars: 31,
@@ -116,6 +120,11 @@ test('uses explicit override and returns to date detection when override is remo
   test.setTimeout(90000);
   await openPlay(page, '2026-09-28T04:00:00.000Z', {
     gradeBand: 'G2', dailyGoal: 6, maxDifficulty: 5, semesterOverride: 'lower',
+    // Current storage prefers canonical settings inherited from defaults; represent the override as the UI persists it.
+    learningSettings: {
+      schemaVersion: 1, grade: 'G2', semester: 'lower', semesterSource: 'manual', textbookEdition: 'PEP',
+      unitId: null, learnedTableRange: null, dailyGoal: 6, challengePreference: 'balanced',
+    },
   });
   expect((await readCourse(page)).semester).toBe('lower');
   expect((await readCourse(page)).profileSemester).toBe('lower');
@@ -124,6 +133,7 @@ test('uses explicit override and returns to date detection when override is remo
     const raw = localStorage.getItem('math-detective-state');
     const state = JSON.parse(raw || '{}');
     delete state.parentSettings.semesterOverride;
+    state.parentSettings.learningSettings.semesterSource = 'auto';
     localStorage.setItem('math-detective-state', JSON.stringify(state));
     localStorage.removeItem('math-detective-today-lesson');
   });

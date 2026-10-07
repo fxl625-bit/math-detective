@@ -3,6 +3,7 @@ import { getQuestionById } from '../../data/questions';
 import { inferAnswerSchema, parseMoneyToJiao } from '../../lib/answerSchema';
 import type { Question, TodayLesson } from '../../lib/types';
 import { getPointsBalance } from '../../lib/familyPoints';
+import { authorizeParentAccess, expectParentAccessLocked } from './helpers/parent-access';
 
 const cases = [['G1', 'g1-u1'], ['G1', 'g1-u2'], ['G1', 'g1-u5'], ['G2', 'g2-u1'], ['G2', 'g2-u3'], ['G3', 'g3-u3'], ['G3', 'g3-u5'], ['G4', 'g4-u4'], ['G5', 'g5-u3'], ['G6', 'g6-u4']] as const;
 const readLesson = (page: Page): Promise<TodayLesson> => page.evaluate(() => JSON.parse(localStorage.getItem('math-detective-today-lesson') || 'null'));
@@ -47,6 +48,10 @@ for (const [grade, unit] of cases) {
       await page.setViewportSize({ width: grade === 'G1' || grade === 'G2' ? 390 : 768, height: 844 });
       await page.goto('/');
       await page.getByTestId('learning-settings-toggle').click();
+      await expect(page.getByTestId('grade-select')).toHaveCount(0);
+      await expectParentAccessLocked(page);
+      await authorizeParentAccess(page);
+      await expect(page.getByTestId('grade-select')).toBeVisible();
       await page.getByTestId('grade-select').selectOption(grade);
       await page.getByTestId('unit-select').selectOption(unit);
       await page.getByTestId('semester-select').selectOption(semester);

@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 
-const BASE = 'http://localhost:3103';
+const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
 async function setupQ5Start(page: any) {
   await page.goto(`${BASE}/play?e2e=1`, { waitUntil: 'domcontentloaded', timeout: 60000 });
@@ -74,5 +74,5 @@ test('diag: inspect input element', async ({ page }) => {
   const answerInputs = await page.locator('input[name="answer"]').count();
   console.log('input[name="answer"] count:', answerInputs);
   
-  await page.screenshot({ path: 'test-results/diag-input.png', fullPage: true });
+  await page.screenshot({ path: test.info().outputPath('diag-input.png'), fullPage: true });
 });

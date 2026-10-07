@@ -22,7 +22,7 @@ const g2TimeAndMeasurement: Question[] = [
     explanation: '先统一单位：2米等于200厘米。剪去75厘米后，200-75=125厘米。',
     solutionSteps: ['把2米换成200厘米。', '用200厘米减去剪去的75厘米。', '200-75=125厘米。'],
     hints: ['先把米换成厘米，1米是100厘米。', '2米就是200厘米。', '200-75=125厘米。'],
-    numbers: [2, 75, 100], unit: '厘米', difficulty: 4, role: 'advanced', family: 'g2-unit-conversion-subtraction', tier: 1, method: 'equivalence',
+    numbers: [2, 75], unit: '厘米', difficulty: 4, role: 'advanced', family: 'g2-unit-conversion-subtraction', tier: 1, method: 'equivalence',
   }),
   makeProgressionQuestion({
     id: 'prog_g2_u4_03', gradeBand: 'G2', unitId: 'g2-u4', skillKey: 'g2-u4:length-units', domain: 'measurement',

@@ -1,129 +1,100 @@
 import { test, expect, type Page } from '@playwright/test';
+import { currentLessonState, submitCurrentAnswerThroughUi } from './helpers/legacy-lesson';
 
-const BASE = 'http://localhost:3000';
+const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
 async function setupFreshUser(page: Page) {
-  await page.goto(`${BASE}/play`);
+  await page.goto(`${BASE}/play?e2e=1`);
   await page.evaluate(() => {
     localStorage.clear();
     const state = {
       version: 9, stars: 50, streak: 5, totalCompleted: 19,
       correctCount: 18, wrongCount: 1, answerAttempts: 20, level: 2,
-      badges: [], completedQuestions: [], mistakes: [],
-      completedToday: 0, lastPlayDate: '', lastCheckinDate: '',
-      lastStreakCheckDate: '', skillMistakes: {}, skillLevel: 2,
-      parentRewards: [], rewardRedemptions: [], parentGateAttempts: [],
-      weeklySnapshots: [], resumeCards: 1,
-      decorations: [], collectibleCards: [],
-      questionReviewDates: {}, questionReviewCounts: {},
-      attemptRecords: [],
+      badges: [], completedQuestions: [], mistakes: [], completedToday: 0,
+      lastPlayDate: '', lastCheckinDate: '', lastStreakCheckDate: '', skillMistakes: {}, skillLevel: 2,
+      parentRewards: [], rewardRedemptions: [], parentGateAttempts: [], weeklySnapshots: [], resumeCards: 1,
+      decorations: [], collectibleCards: [], questionReviewDates: {}, questionReviewCounts: {},
+      attemptRecords: [], learningEvents: [],
       parentSettings: { gradeBand: 'G1', dailyGoal: 5, maxDifficulty: 2, semester: 'lower' },
-      curriculumProfile: {
-        country: 'CN', textbookEdition: 'PEP', grade: 1,
-        semester: 'lower', detectedAt: '2026-06-17T00:00:00.000Z',
-        semesterProgress: 'review'
-      },
-      learnerProfile: {
-        skillMastery: {}, currentDifficultyLevel: 2, totalCompleted: 19,
-        recentAccuracy: 100, recentFirstTryAccuracy: 90,
-        averageAttempts: 1.1, fullHintRate: 0.1, difficultyBias: 0,
-        startedAt: '2026-04-01', consecutiveCheckInDays: 5,
-      },
+      curriculumProfile: { country: 'CN', textbookEdition: 'PEP', grade: 1, semester: 'lower', detectedAt: '2026-06-17T00:00:00.000Z', semesterProgress: 'review' },
+      learnerProfile: { skillMastery: {}, currentDifficultyLevel: 2, totalCompleted: 19, recentAccuracy: 100, recentFirstTryAccuracy: 90, averageAttempts: 1.1, fullHintRate: 0.1, difficultyBias: 0, startedAt: '2026-04-01', consecutiveCheckInDays: 5 },
       usageStage: 2,
     };
     localStorage.setItem('math-detective-state', JSON.stringify(state));
     localStorage.removeItem('math-detective-today-lesson');
   });
   await page.reload();
-  await page.waitForSelector('text=/侦探|任务|破案|读完|找到|开始/', { timeout: 15000 });
+  await page.waitForFunction(() => !!(window as any).MATH_DETECTIVE_TEST, { timeout: 15000 });
+  await page.waitForFunction(() => !!(window as any).MATH_DETECTIVE_TEST?.getState()?.questionId, { timeout: 15000 });
+}
+
+async function advanceLessonInBrowser(page: Page) {
+  const dialogAction = page.getByRole('dialog').getByRole('button', { name: /关闭反馈|继续学习/ }).first();
+  if (await dialogAction.isVisible().catch(() => false)) {
+    await dialogAction.click({ timeout: 1000 }).catch(() => undefined);
+    await page.waitForTimeout(150);
+    return;
+  }
+  const state = await currentLessonState(page);
+  if (state?.currentPhase === 'explain') {
+    const continueButton = page.getByRole('button', { name: /完成.*下一关|继续破案|学会了|完成/ }).first();
+    await expect(continueButton, 'Explanation should offer a visible continue action').toBeVisible();
+    await continueButton.click();
+    return;
+  }
+  const advanced = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.goNext());
+  expect(advanced, `Expected the lesson to advance from ${state?.currentPhase}`).toBe(true);
+}
+
+async function finishFullLessonThroughUi(page: Page) {
+  const submittedQuestions = new Set<string>();
+  for (let action = 0; action < 120; action++) {
+    const state = await currentLessonState(page);
+    if (state?.completed) break;
+    if (state?.currentPhase === 'answer' || state?.currentPhase === 'build_equation') {
+      const submitted = await submitCurrentAnswerThroughUi(page);
+      submittedQuestions.add(submitted.questionId);
+    } else {
+      await advanceLessonInBrowser(page);
+    }
+  }
+  const finalState = await currentLessonState(page);
+  expect(finalState?.completed, 'All six questions should complete').toBe(true);
+  expect(submittedQuestions.size, 'Each of the six questions must be answered through the UI').toBe(6);
+  await expect(page.getByRole('heading', { name: /今日任务完成|今天的侦探任务全部完成/ }).first()).toBeVisible();
 }
 
 test('v2.11.0: Complete full lesson - 6 questions', async ({ page }) => {
+  test.setTimeout(180000);
   await setupFreshUser(page);
-
-  for (let step = 0; step < 6; step++) {
-    console.log(`--- Step ${step + 1}/6 ---`);
-    for (let i = 0; i < 8; i++) {
-      const btn = page.locator('button:has-text(/读完|找到|判断|理解|数字找|关键词|算式|擦掉|观察|确认|开始/)').first();
-      if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await btn.click();
-        await page.waitForTimeout(600);
-        continue;
-      }
-      break;
-    }
-    const answerInput = page.locator('input[inputMode="decimal"], input[type="text"]');
-    const submitBtn = page.locator('button[type="submit"]');
-    const isAnswer = await answerInput.isVisible({ timeout: 2000 }).catch(() => false);
-    if (isAnswer) {
-      const ans = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.getCorrectAnswer?.());
-      if (ans != null) {
-        console.log(`  Answering: ${ans}`);
-        await answerInput.fill(String(ans));
-        await submitBtn.click();
-        await page.waitForTimeout(800);
-        const cont = page.locator('button:has-text("完成，进入下一关")');
-        if (await cont.isVisible({ timeout: 1000 }).catch(() => false)) {
-          console.log('  Continue -> next');
-          await cont.click();
-          await page.waitForTimeout(600);
-        }
-      }
-    } else {
-      const cont = page.locator('button:has-text(/完成|继续|下一/)').first();
-      if (await cont.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await cont.click();
-        await page.waitForTimeout(600);
-      }
-    }
-    const done = await page.locator('text=/今日任务完成|全部完成|宝箱/').isVisible({ timeout: 500 }).catch(() => false);
-    if (done) { console.log('  LESSON COMPLETE!'); break; }
-  }
-  const isComplete = await page.locator('text=/今日任务完成|全部完成/').isVisible().catch(() => false);
-  expect(isComplete).toBeTruthy();
+  await finishFullLessonThroughUi(page);
 });
 
 test('v2.11.0: Last question requires answer', async ({ page }) => {
+  test.setTimeout(180000);
   await setupFreshUser(page);
-  for (let step = 0; step < 5; step++) {
-    for (let i = 0; i < 8; i++) {
-      const btn = page.locator('button:has-text(/读完|找到|判断|理解|数字找|关键词|算式|擦掉|观察|确认|开始/)').first();
-      if (await btn.isVisible({ timeout: 500 }).catch(() => false)) {
-        await btn.click(); await page.waitForTimeout(400); continue;
-      }
-      break;
-    }
-    const input = page.locator('input[inputMode="decimal"], input[type="text"]');
-    if (await input.isVisible({ timeout: 1000 }).catch(() => false)) {
-      const ans = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.getCorrectAnswer?.());
-      if (ans != null) {
-        await input.fill(String(ans));
-        await page.locator('button[type="submit"]').click();
-        await page.waitForTimeout(500);
-        const cont = page.locator('button:has-text("完成，进入下一关")');
-        if (await cont.isVisible({ timeout: 800 }).catch(() => false)) { await cont.click(); await page.waitForTimeout(400); }
-      }
+  for (let action = 0; action < 100; action++) {
+    const state = await currentLessonState(page);
+    if (state?.currentStepIndex === 5 && (state?.currentPhase === 'answer' || state?.currentPhase === 'build_equation')) break;
+    if (state?.completed) throw new Error('Lesson completed before reaching the unanswered sixth question');
+    if (state?.currentPhase === 'answer' || state?.currentPhase === 'build_equation') {
+      await submitCurrentAnswerThroughUi(page);
     } else {
-      const cont = page.locator('button:has-text(/完成|继续|下一/)').first();
-      if (await cont.isVisible({ timeout: 500 }).catch(() => false)) { await cont.click(); await page.waitForTimeout(400); }
+      await advanceLessonInBrowser(page);
     }
   }
-  // Step 6: try completing without answer
-  for (let i = 0; i < 6; i++) {
-    const btn = page.locator('button:has-text(/读完|找到|判断|理解|数字找|关键词|算式|擦掉|观察|确认|开始/)').first();
-    if (await btn.isVisible({ timeout: 500 }).catch(() => false)) { await btn.click(); await page.waitForTimeout(300); continue; }
-    break;
+
+  const beforeSubmit = await currentLessonState(page);
+  expect(beforeSubmit?.currentStepIndex).toBe(5);
+  expect(beforeSubmit?.currentPhase).toBe('answer');
+  await expect(page.locator('input[name="answer"]')).toBeVisible();
+  await expect(page.getByRole('button', { name: /完成.*下一关|学会了|继续破案/ })).toHaveCount(0);
+  expect(beforeSubmit?.completed, 'The final question must block completion until answered').toBe(false);
+
+  const submitted = await submitCurrentAnswerThroughUi(page);
+  expect(submitted.afterAttempts - submitted.beforeAttempts).toBe(1);
+  for (let attempt = 0; attempt < 5 && !(await currentLessonState(page))?.completed; attempt++) {
+    await advanceLessonInBrowser(page);
   }
-  const allBtns = page.locator('button:has-text(/完成|继续|下一/)');
-  const cnt = await allBtns.count();
-  for (let i = 0; i < cnt; i++) {
-    const b = allBtns.nth(i);
-    if (await b.isVisible()) { await b.click(); await page.waitForTimeout(300); }
-  }
-  const state = await page.evaluate(() => {
-    const l = JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}');
-    return { completed: l.completed };
-  });
-  console.log('After no-answer clicks:', JSON.stringify(state));
-  expect(state.completed).toBe(false);
+  await expect.poll(async () => (await currentLessonState(page))?.completed).toBe(true);
 });

@@ -8,7 +8,20 @@
  */
 
 import { allQuestions } from '@/data/questions';
-import { inferLessonType, classifyNumberRole as libClassifyNumberRole } from '@/lib/questionValidation';
+import {
+  inferLessonType,
+  classifyNumberRole as libClassifyNumberRole,
+  questionContainsVisibleNumber,
+  stringSimilarity,
+  validateQuestionMeaningMode,
+} from '@/lib/questionValidation';
+import { getDefaultPhasesForStepType } from '@/lib/lessonPlanner';
+import type { LessonStepType } from '@/lib/types';
+
+const ALL_STEP_TYPES: LessonStepType[] = [
+  'find_numbers', 'find_action_words', 'simulation', 'remove_noise', 'full_solve',
+  'find_compare_numbers', 'spot_extra_info', 'spot_missing_info', 'answer_only',
+];
 
 // ========== 禁止关键词列表 ==========
 
@@ -41,6 +54,16 @@ interface ValidationError {
 function validateQuestion(q: typeof allQuestions[0]): ValidationError {
   const errors: string[] = [];
   const lessonType = q.lessonType || inferLessonType(q);
+  for (const error of validateQuestionMeaningMode(q)) errors.push(`[CRITICAL] ${error}`);
+
+  if (q.questionMeaningMode === 'direct') {
+    for (const stepType of ALL_STEP_TYPES) {
+      const phases = getDefaultPhasesForStepType(stepType, q);
+      if (phases.includes('choose_operation')) {
+        errors.push(`[CRITICAL] direct 题 ${stepType} 默认阶段仍包含 choose_operation`);
+      }
+    }
+  }
 
   // 1. number_clue 是否存在0数字题 [P0]
   if (lessonType === 'number_clue' && q.numbers.length === 0) {
@@ -89,7 +112,8 @@ function validateQuestion(q: typeof allQuestions[0]): ValidationError {
 
   // 7. 一年级禁止复杂算式
   if (q.gradeBand === 'G1' &&
-    (q.operation === 'multiplication' || q.operation === 'division' || q.operation === 'mixed')) {
+    (q.operation === 'multiplication' || q.operation === 'division' ||
+      (q.operation === 'mixed' && /[×÷*\/]/.test(q.equation)))) {
     errors.push(`[WARNING] G1 用了 ${q.operation} 运算`);
   }
 
@@ -99,42 +123,31 @@ function validateQuestion(q: typeof allQuestions[0]): ValidationError {
   }
 
   // 9. 选项数量不足
-  if (q.questionMeaningOptions && q.questionMeaningOptions.length < 2) {
+  if (q.questionMeaningMode !== 'direct' && q.questionMeaningOptions && q.questionMeaningOptions.length < 2) {
     errors.push('[WARNING] 选项数量不足2个');
   }
 
   // 10. correctAnswer 不在选项中
-  if (q.questionMeaningOptions && q.correctMeaning && !q.questionMeaningOptions.includes(q.correctMeaning)) {
+  if (q.questionMeaningMode !== 'direct' && q.questionMeaningOptions && q.correctMeaning && !q.questionMeaningOptions.includes(q.correctMeaning)) {
     errors.push('[WARNING] correctMeaning 不在选项中');
   }
 
   // 11. number_clue 数字必须在题干中存在
   if (lessonType === 'number_clue') {
     for (const n of q.numbers) {
-      const arabicFound = q.text.includes(String(n));
-      const cnMap: Record<number, string[]> = {
-        1: ['一'], 2: ['二', '两'], 3: ['三'], 4: ['四'], 5: ['五'],
-        6: ['六'], 7: ['七'], 8: ['八'], 9: ['九'], 10: ['十'],
-      };
-      const cnFound = cnMap[n]?.some(c => q.text.includes(c)) || false;
-      if (!arabicFound && !cnFound) {
+      if (!questionContainsVisibleNumber(q.text, n)) {
         errors.push(`[WARNING] 数字 ${n} 未在题干中找到`);
       }
     }
   }
 
   // 12. 低年级高相似度选项
-  if ((q.gradeBand === 'G1' || q.gradeBand === 'OlympiadIntro') && q.questionMeaningOptions) {
+  if (q.questionMeaningMode !== 'direct' && (q.gradeBand === 'G1' || q.gradeBand === 'OlympiadIntro') && q.questionMeaningOptions) {
     const opts = q.questionMeaningOptions;
     for (let i = 0; i < opts.length; i++) {
       for (let j = i + 1; j < opts.length; j++) {
         if (opts[i].length > 3 && opts[j].length > 3) {
-          const aWords = new Set(opts[i]);
-          const bWords = new Set(opts[j]);
-          let common = 0;
-          for (const w of aWords) { if (bWords.has(w)) common++; }
-          const all = new Set([...aWords, ...bWords]).size;
-          const sim = common / all;
+          const sim = stringSimilarity(opts[i], opts[j]);
           if (sim > 0.85) {
             errors.push(`[WARNING] G1 选项相似度 ${(sim*100).toFixed(0)}%: "${opts[i]}" vs "${opts[j]}"`);
           }

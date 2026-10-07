@@ -1,8 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { submitCurrentAnswerThroughUi } from './helpers/legacy-lesson';
 
-const BASE = 'http://localhost:3000';
+const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
 /**
  * v2.11.2: Full six-question real-flow E2E test.
@@ -205,16 +206,9 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   // Submit answer
   const q1Input = page.locator('input[name="answer"]').first();
   await expect(q1Input, 'Q1 answer input must be visible').toBeVisible({ timeout: 3000 });
-  await q1Input.fill('6');
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForTimeout(1500);
-
-  // Verify correct feedback
-  const q1Body = await page.locator('body').innerText();
-  expect(q1Body.includes('正确') || q1Body.includes('✅') || q1Body.includes('回答正确'),
-    'Q1 must show correct feedback').toBe(true);
-
-  report.steps.push({ question: 'Q1-g1ll_02', answer: '6', phase: 'completed' });
+  const q1Result = await submitCurrentAnswerThroughUi(page, 'click', '6');
+  expect(q1Result.questionId).toBe('g1ll_02');
+  report.steps.push({ question: 'Q1-g1ll_02', answer: q1Result.answer, attemptDelta: q1Result.afterAttempts - q1Result.beforeAttempts, phase: q1Result.afterState.currentPhase });
 
   // Continue → Q2
   await page.locator('button:has-text("继续"), button:has-text("下一关")').first().click();
@@ -266,16 +260,9 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   await expect(q2SubmitBtn, 'Q2 submit button must be visible').toBeVisible({ timeout: 2000 });
 
   // Submit answer
-  await q2Input.fill('7');
-  await page.waitForTimeout(200);
-  await q2SubmitBtn.click();
-  await page.waitForTimeout(1500);
-
-  const q2Body = await page.locator('body').innerText();
-  expect(q2Body.includes('正确') || q2Body.includes('✅') || q2Body.includes('回答正确'),
-    'Q2 must show correct feedback').toBe(true);
-
-  report.steps.push({ question: 'Q2-g1ll_03', answer: '7', inputVisible: true, submitVisible: true, phase: 'completed' });
+  const q2Result = await submitCurrentAnswerThroughUi(page, 'click', '7');
+  expect(q2Result.questionId).toBe('g1ll_03');
+  report.steps.push({ question: 'Q2-g1ll_03', answer: q2Result.answer, inputVisible: true, submitVisible: true, attemptDelta: q2Result.afterAttempts - q2Result.beforeAttempts, phase: q2Result.afterState.currentPhase });
 
   // Continue → Q3
   await page.locator('button:has-text("继续"), button:has-text("下一关")').first().click();
@@ -306,11 +293,9 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   // Submit answer
   const q3Input = page.locator('input[name="answer"]').first();
   await expect(q3Input, 'Q3 answer input must be visible').toBeVisible({ timeout: 3000 });
-  await q3Input.fill('23');
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForTimeout(1500);
-
-  report.steps.push({ question: 'Q3-g1ll_29', answer: '23', phase: 'completed' });
+  const q3Result = await submitCurrentAnswerThroughUi(page, 'click', '23');
+  expect(q3Result.questionId).toBe('g1ll_29');
+  report.steps.push({ question: 'Q3-g1ll_29', answer: q3Result.answer, attemptDelta: q3Result.afterAttempts - q3Result.beforeAttempts, phase: q3Result.afterState.currentPhase });
 
   // Continue → Q4
   await page.locator('button:has-text("继续"), button:has-text("下一关")').first().click();
@@ -347,11 +332,9 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   // Submit answer
   const q4Input = page.locator('input[name="answer"]').first();
   await expect(q4Input, 'Q4 answer input must be visible').toBeVisible({ timeout: 3000 });
-  await q4Input.fill('8');
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForTimeout(1500);
-
-  report.steps.push({ question: 'Q4-g1ll_07', answer: '8', phase: 'completed' });
+  const q4Result = await submitCurrentAnswerThroughUi(page, 'click', '8');
+  expect(q4Result.questionId).toBe('g1ll_07');
+  report.steps.push({ question: 'Q4-g1ll_07', answer: q4Result.answer, attemptDelta: q4Result.afterAttempts - q4Result.beforeAttempts, phase: q4Result.afterState.currentPhase });
 
   // Continue → Q5
   await page.locator('button:has-text("继续"), button:has-text("下一关")').first().click();
@@ -359,9 +342,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   await dismissOverlay(page);
 
   // =====================================================================
-  // Q5: answer_only (g1ll_32) — answer=57
-  // NOTE: answer_only without reasoningFrame shows "继续 →" skip button
-  // instead of answer input. Use test API as workaround.
+  // Q5: answer_only (g1ll_32), submitted through the real answer form.
   // =====================================================================
   console.log('=== Q5: answer_only (g1ll_32) ===');
   await page.waitForTimeout(500);
@@ -370,12 +351,9 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   expect(q5State?.currentStepIndex, 'Should be at Q5').toBe(4);
   expect(q5State?.questionId, 'Should be g1ll_32').toBe('g1ll_32');
 
-  // Submit via test API
-  const q5SubmitResult = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.submitAnswer());
-  expect(q5SubmitResult, 'Q5 API submit must succeed').toBe(true);
-  await page.waitForTimeout(500);
-
-  report.steps.push({ question: 'Q5-g1ll_32', answer: '57', apiSubmit: true, phase: 'completed' });
+  const q5Result = await submitCurrentAnswerThroughUi(page, 'click', '57');
+  expect(q5Result.questionId).toBe('g1ll_32');
+  report.steps.push({ question: 'Q5-g1ll_32', answer: q5Result.answer, attemptDelta: q5Result.afterAttempts - q5Result.beforeAttempts, phase: q5Result.afterState.currentPhase });
 
   await dismissOverlay(page);
   await page.locator('button:has-text("下一关"), button:has-text("完成"), button:has-text("继续"), button:has-text("学会了")').first().click();
@@ -383,8 +361,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   await dismissOverlay(page);
 
   // =====================================================================
-  // Q6: answer_only (g1ll_68) — answer=8
-  // NOTE: Same FullSolvePhased issue as Q5.
+  // Q6: answer_only (g1ll_68), submitted through the real answer form.
   // =====================================================================
   console.log('=== Q6: answer_only (g1ll_68) ===');
   await page.waitForTimeout(500);
@@ -393,9 +370,8 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   expect(q6State?.currentStepIndex, 'Should be at Q6').toBe(5);
   expect(q6State?.questionId, 'Should be g1ll_68').toBe('g1ll_68');
 
-  // Submit via test API
-  const q6SubmitResult = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.submitAnswer());
-  expect(q6SubmitResult, 'Q6 API submit must succeed').toBe(true);
+  const q6Result = await submitCurrentAnswerThroughUi(page, 'click', '8');
+  expect(q6Result.questionId).toBe('g1ll_68');
   await page.waitForTimeout(1000);
 
   // =====================================================================
@@ -403,9 +379,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   // =====================================================================
   console.log('=== Q6: verify completion ===');
 
-  const q6Body = await page.locator('body').innerText();
-  expect(q6Body.includes('太棒了') || q6Body.includes('完整推理'),
-    'Q6 must show explain/feedback phase').toBe(true);
+  expect((await getState(page))?.currentPhase, 'Q6 must reach its explanation phase').toBe('explain');
 
   // Find and verify the finish button
   const finishBtn = page.locator('button:has-text("学会"), button:has-text("继续破案"), button:has-text("完成")').first();
@@ -416,7 +390,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   expect(btnDisabled, 'Q6 finish button must NOT be disabled').toBe(false);
 
   // Take screenshot for visual verification
-  await page.screenshot({ path: 'test-results/full-six-q-finish.png' });
+  await page.screenshot({ path: test.info().outputPath('full-six-q-finish.png') });
 
   // Click the finish button once
   await finishBtn.click();
@@ -434,7 +408,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
 
   expect(isComplete, 'Must reach completion page after all 6 questions').toBe(true);
 
-  report.steps.push({ question: 'Q6-g1ll_68', answer: '8', apiSubmit: true, finishButtonDisabled: btnDisabled, phase: 'completed' });
+  report.steps.push({ question: 'Q6-g1ll_68', answer: q6Result.answer, attemptDelta: q6Result.afterAttempts - q6Result.beforeAttempts, finishButtonDisabled: btnDisabled, phase: q6Result.afterState.currentPhase });
   report.finalState = {
     completed: finalState?.completed,
     completionReached: isComplete,
@@ -442,7 +416,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   };
 
   // Save report
-  const reportPath = path.join(__dirname, '..', '..', 'reports', 'full-six-question-flow.json');
+  const reportPath = test.info().outputPath('full-six-question-flow.json');
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   console.log('Full six-question report saved to reports/full-six-question-flow.json');

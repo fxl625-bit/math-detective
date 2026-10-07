@@ -9,7 +9,7 @@ test('uses the configured production origin and version', async ({ page }, info)
   expect(response?.status()).toBe(200);
   expect(new URL(page.url()).origin).toBe(expectedOrigin);
   await expect(page.getByTestId('start-lesson')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => localStorage.getItem('math-detective-app-version'))).toBe('2.13.2');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('math-detective-app-version'))).toBe('2.13.3');
   const identity = await page.evaluate(() => ({
     origin: location.origin,
     version: localStorage.getItem('math-detective-app-version'),

@@ -47,5 +47,6 @@ next-env.d.ts
 /.next-rewards/
 /.next-labels/
 /.next-parent-password/
+/.next-ci-repair/
 
 .vercel

@@ -82,6 +82,81 @@ const CHINESE_NUMBER_MAP: Record<string, number> = {
   '两': 2, '几': -1, '半': 0.5, '百': 100, '千': 1000,
 };
 
+const CHINESE_DIGITS: Record<string, number> = {
+  '零': 0, '〇': 0, '一': 1, '二': 2, '两': 2, '三': 3, '四': 4,
+  '五': 5, '六': 6, '七': 7, '八': 8, '九': 9,
+};
+const CHINESE_NUMBER_UNITS = new Set(['个', '位', '本', '张', '只', '条', '支', '颗', '米', '厘米', '分米', '千米', '公里', '千克', '克', '元', '角', '分', '时', '分钟', '小时', '天', '岁', '页', '人', '组', '份', '度', '斤', '袋', '盒', '次', '倍', '辆', '根', '块', '年', '月', '日', '侧', '科']);
+
+function parseChineseNumber(value: string): number | null {
+  if (!value) return null;
+  if ([...value].every(char => CHINESE_DIGITS[char] !== undefined)) {
+    return Number([...value].map(char => CHINESE_DIGITS[char]).join(''));
+  }
+  let total = 0;
+  let section = 0;
+  let pending = 0;
+  for (const char of value) {
+    const digit = CHINESE_DIGITS[char];
+    if (digit !== undefined) {
+      pending = digit;
+      continue;
+    }
+    const unit = char === '十' ? 10 : char === '百' ? 100 : char === '千' ? 1000 : char === '万' ? 10000 : 0;
+    if (!unit) return null;
+    if (unit === 10000) {
+      section += pending;
+      total = (total + (section || 1)) * unit;
+      section = 0;
+      pending = 0;
+    } else {
+      section += (pending || (unit === 10 ? 1 : 0)) * unit;
+      pending = 0;
+    }
+  }
+  return total + section + pending;
+}
+
+/** True when a value is stated as a number, Chinese numeral, discount, half, or visible countable icon. */
+export function questionContainsVisibleNumber(text: string, target: number): boolean {
+  const arabic = text.match(/\d+(?:\.\d+)?/g) || [];
+  if (arabic.some(token => Number(token) === target)) return true;
+
+  const numberRuns = text.match(/[零〇一二两三四五六七八九十百千万]+/g) || [];
+  if (target === 2 && /两两分组/.test(text)) return true;
+  for (const run of numberRuns) {
+    const value = parseChineseNumber(run);
+    const start = text.indexOf(run);
+    const suffix = text.slice(start + run.length);
+    const unit = [...CHINESE_NUMBER_UNITS].find(candidate => suffix.startsWith(candidate));
+    if (unit && value === target) return true;
+  }
+  if (Number.isInteger(target) && target > 0) {
+    const symbols = text.match(/[●○●○■□▲△]+/g) || [];
+    if (symbols.some(group => group.length === target)) return true;
+  }
+  return false;
+}
+
+/** Meaning checks are explicit: legacy questions default to the original choice flow. */
+export function validateQuestionMeaningMode(q: Question): string[] {
+  const errors: string[] = [];
+  const options = q.questionMeaningOptions || [];
+  if (q.questionMeaningMode === 'direct') {
+    if (!q.answerSchema) errors.push('direct 题缺少 answerSchema');
+    if (options.length > 0) errors.push('direct 题 questionMeaningOptions 必须为空');
+    if (q.correctMeaning !== '') errors.push('direct 题 correctMeaning 必须为空');
+    if (q.cognitiveSkills.includes('understand_question')) errors.push('direct 题不得包含 understand_question 技能');
+    return errors;
+  }
+
+  if (options.length < 2) errors.push('choice 题题意选项至少需要2个');
+  if (new Set(options).size !== options.length) errors.push('choice 题题意选项必须唯一');
+  const correctCount = options.filter(option => option === q.correctMeaning).length;
+  if (correctCount !== 1) errors.push(`choice 题正确题意必须恰好出现1次，当前为${correctCount}次`);
+  return errors;
+}
+
 /**
  * 提取题目中所有表面数字（阿拉伯+中文）
  */
@@ -273,6 +348,7 @@ export function validateQuestionIntegrity(q: Question): QuestionValidationResult
   const warnings: string[] = [];
   const lessonType = q.lessonType || inferLessonType(q);
   const keywordType = q.keywordType || inferKeywordType(q);
+  errors.push(...validateQuestionMeaningMode(q));
 
   // 1. questionText 不为空
   if (!q.text || q.text.trim().length === 0) {
@@ -347,9 +423,7 @@ export function validateQuestionIntegrity(q: Question): QuestionValidationResult
   }
 
   // 10. options 有效性：至少2个选项
-  if (q.questionMeaningOptions && q.questionMeaningOptions.length < 2) {
-    errors.push('选项数量不足2个');
-  }
+  // Choice count, uniqueness, and its one correct meaning are checked together above.
 
   // 11. lessonType 与 keywordType 匹配
   if (lessonType && keywordType) {
@@ -373,7 +447,7 @@ export function validateQuestionIntegrity(q: Question): QuestionValidationResult
   }
 
   // 14. 低年级禁止让近义概念中硬分辨
-  if (q.gradeBand === 'G1' && q.questionMeaningOptions) {
+  if (q.questionMeaningMode !== 'direct' && q.gradeBand === 'G1' && q.questionMeaningOptions) {
     const options = q.questionMeaningOptions;
     // 检查是否有过于相似的两个选项
     for (let i = 0; i < options.length; i++) {
@@ -702,7 +776,7 @@ export function validateQuestionIntegrity(q: Question): QuestionValidationResult
  * 校验选项有效性
  */
 export function validateOptions(q: Question): string[] {
-  const errors: string[] = [];
+  const errors: string[] = validateQuestionMeaningMode(q);
   const lessonType = q.lessonType || inferLessonType(q);
 
   // 1. 选项必须能清晰区分
@@ -770,16 +844,24 @@ export function validateCrossReference(
 
 // ========== 辅助函数 ==========
 
-function stringSimilarity(a: string, b: string): number {
+export function stringSimilarity(a: string, b: string): number {
   if (a === b) return 1;
-  const setA = new Set(a.split(''));
-  const setB = new Set(b.split(''));
-  let intersection = 0;
-  for (const c of setA) {
-    if (setB.has(c)) intersection++;
+  const left = [...a];
+  const right = [...b];
+  let previous = right.map((_, index) => index + 1);
+  for (let i = 0; i < left.length; i++) {
+    const current = [i + 1];
+    for (let j = 0; j < right.length; j++) {
+      current[j + 1] = Math.min(
+        current[j] + 1,
+        previous[j + 1] + 1,
+        previous[j] + (left[i] === right[j] ? 0 : 1),
+      );
+    }
+    previous = current;
   }
-  const union = new Set([...setA, ...setB]).size;
-  return union === 0 ? 0 : intersection / union;
+  const longest = Math.max(left.length, right.length);
+  return longest === 0 ? 1 : 1 - previous[right.length] / longest;
 }
 
 /**

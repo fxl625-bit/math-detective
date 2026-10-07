@@ -1,8 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { submitCurrentAnswerThroughUi } from './helpers/legacy-lesson';
 
-const BASE = 'http://localhost:3104';
+const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
 /**
  * v2.11.1: Real Q5→Q6 consecutive answer_only flow test.
@@ -200,7 +201,7 @@ test('v2.11.1-q5-immediate-answer: Q5 answer_only shows answer input immediately
   await expect(submitBtn).toBeVisible({ timeout: 3000 });
 
   // Take screenshot for evidence
-  await page.screenshot({ path: 'test-results/q5-initial-answer-page.png' });
+  await page.screenshot({ path: test.info().outputPath('q5-initial-answer-page.png') });
 });
 
 // ========== Test 2: Q5 single click submit shows correct feedback ==========
@@ -226,47 +227,16 @@ test('v2.11.1-q5-single-submit: Q5 single click shows correct feedback', async (
     if (origSubmit) {
       (window as any).MATH_DETECTIVE_TEST.submitAnswer = function (...args: any[]) {
         (window as any).__submitCount++;
-        return (origSubmit as Function).apply(this, args);
+        return (origSubmit as (...args: unknown[]) => boolean).apply(this, args);
       };
     }
   });
 
-  // Type answer 57
-  const input = page.locator('input[name="answer"]').first();
-  await input.fill('57');
-  await page.waitForTimeout(200);
-
-  // Verify FormData reads the value
-  const formValue = await page.evaluate(() => {
-    const form = document.querySelector('form');
-    if (!form) return null;
-    return new FormData(form).get('answer');
-  });
-  console.log('FormData value before submit:', formValue);
-  expect(formValue).toBe('57');
-
-  // Click submit ONCE
-  const submitBtn = page.locator('button[type="submit"]').first();
-  await submitBtn.click();
-
-  // Wait for feedback
-  await page.waitForTimeout(1500);
-
-  const bodyText = await page.locator('body').innerText();
-
-  // ThreeQuestionFlow shows "三问法破案成功！" or standard flow shows "回答正确"
-  const hasCorrect = bodyText.includes('回答正确') || bodyText.includes('✅') || bodyText.includes('三问法破案成功') || bodyText.includes('破案成功');
-  console.log('After submit — hasCorrect:', hasCorrect);
-
-  if (!hasCorrect) {
-    console.log('BODY TEXT:', bodyText.slice(0, 500));
-  }
-
-  expect(hasCorrect).toBe(true);
-
-  // Only ONE success message instance
-  const correctCount = (bodyText.match(/破案成功/g) || []).length + (bodyText.match(/回答正确/g) || []).length;
-  expect(correctCount).toBeLessThanOrEqual(2); // "三问法破案成功" has 破案成功
+  // Read the actual current question answer and submit once through the UI.
+  const result = await submitCurrentAnswerThroughUi(page, 'click', '57');
+  expect(result.formValue).toBe(result.answer);
+  expect(result.questionId).toBe('g1ll_32');
+  expect(result.afterAttempts - result.beforeAttempts).toBe(1);
 
   // Submit button should be gone (replaced by continue button)
   const submitBtnAfter = page.locator('button[type="submit"]').first();
@@ -279,7 +249,7 @@ test('v2.11.1-q5-single-submit: Q5 single click shows correct feedback', async (
   console.log('Continue button visible:', continueVisible);
   expect(continueVisible).toBe(true);
 
-  await page.screenshot({ path: 'test-results/q5-correct-feedback.png' });
+  await page.screenshot({ path: test.info().outputPath('q5-correct-feedback.png') });
 });
 
 // ========== Test 3: Q5→Q6 transition ==========
@@ -295,12 +265,8 @@ test('v2.11.1-q5-to-q6-transition: Continue from Q5 enters Q6 with fresh state',
   }, { timeout: 10000 });
 
   const input = page.locator('input[name="answer"]').first();
-  await input.fill('57');
-  await page.waitForTimeout(200);
-
-  const submitBtn = page.locator('button[type="submit"]').first();
-  await submitBtn.click();
-  await page.waitForTimeout(1500);
+  const q5Result = await submitCurrentAnswerThroughUi(page, 'click', '57');
+  expect(q5Result.questionId).toBe('g1ll_32');
 
   // Click "完成，进入下一关"
   const continueBtn = page.locator('button:has-text("完成")').first();
@@ -323,7 +289,7 @@ test('v2.11.1-q5-to-q6-transition: Continue from Q5 enters Q6 with fresh state',
   expect(state?.currentStepIndex).toBe(5);
 
   // Q6 answer input must be visible
-  const q6Input = page.locator('input').first();
+  const q6Input = page.locator('input[name="answer"]').first();
   const inputVisible = await q6Input.isVisible().catch(() => false);
   console.log('Q6 input visible:', inputVisible);
 
@@ -332,7 +298,7 @@ test('v2.11.1-q5-to-q6-transition: Continue from Q5 enters Q6 with fresh state',
   console.log('Q6 input value:', q6InputValue);
   expect(q6InputValue).toBe('');
 
-  await page.screenshot({ path: 'test-results/q6-arrived.png' });
+  await page.screenshot({ path: test.info().outputPath('q6-arrived.png') });
 });
 
 // ========== Test 4: Q6 single submit → completion ==========
@@ -347,10 +313,8 @@ test('v2.11.1-q6-single-submit: Q6 single submit shows correct feedback', async 
     return s?.currentPhase === 'answer';
   }, { timeout: 10000 });
 
-  await page.locator('input[name="answer"]').first().fill('57');
-  await page.waitForTimeout(200);
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForTimeout(1500);
+  const q5Result = await submitCurrentAnswerThroughUi(page, 'click', '57');
+  expect(q5Result.questionId).toBe('g1ll_32');
 
   // Click "完成，进入下一关"
   const continueBtn = page.locator('button:has-text("完成")').first();
@@ -374,30 +338,10 @@ test('v2.11.1-q6-single-submit: Q6 single submit shows correct feedback', async 
     await page.waitForTimeout(500);
   }
 
-  // Find answer input and fill 8
-  const q6Input = page.locator('input[name="answer"]').first();
-  const q6InputExists = await q6Input.isVisible().catch(() => false);
-  if (q6InputExists) {
-    await q6Input.fill('8');
-    await page.waitForTimeout(200);
-  }
+  const q6Result = await submitCurrentAnswerThroughUi(page, 'click', '8');
+  expect(q6Result.questionId).toBe('g1ll_68');
 
-  // Click submit — use force to bypass any remaining overlay
-  const submitBtn = page.locator('button[type="submit"]').first();
-  const submitExists = await submitBtn.isVisible().catch(() => false);
-  if (submitExists) {
-    await submitBtn.click({ force: true });
-    await page.waitForTimeout(1500);
-  }
-
-  const bodyText = await page.locator('body').innerText();
-  const hasCorrect = bodyText.includes('回答正确') || bodyText.includes('✅') || bodyText.includes('破案成功') || bodyText.includes('完整推理') || bodyText.includes('太棒了');
-  console.log('Q6 correct feedback:', hasCorrect);
-  console.log('Q6 body text:', bodyText.slice(0, 400));
-
-  expect(hasCorrect).toBe(true);
-
-  await page.screenshot({ path: 'test-results/q6-correct-feedback.png' });
+  await page.screenshot({ path: test.info().outputPath('q6-correct-feedback.png') });
 
   // Try to complete
   const completeBtn = page.locator('button:has-text("完成")').first();
@@ -445,11 +389,8 @@ test('v2.11.1-diagnostic-trace: Record full click chain for Q5 and Q6', async ({
     return s?.currentPhase === 'answer';
   }, { timeout: 10000 });
 
-  await page.locator('input[name="answer"]').first().fill('57');
-  await page.waitForTimeout(200);
-
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForTimeout(1500);
+  const q5Result = await submitCurrentAnswerThroughUi(page, 'click', '57');
+  expect(q5Result.questionId).toBe('g1ll_32');
 
   // Continue to Q6
   const continueBtn = page.locator('button:has-text("完成")').first();
@@ -460,25 +401,14 @@ test('v2.11.1-diagnostic-trace: Record full click chain for Q5 and Q6', async ({
   await dismissProgressToast(page);
 
   // Try Q6
-  const q6Input = page.locator('input[name="answer"]').first();
-  const q6InputVisible = await q6Input.isVisible().catch(() => false);
-  if (q6InputVisible) {
-    await q6Input.fill('8');
-    await page.waitForTimeout(200);
-  }
-
-  const q6SubmitBtn = page.locator('button[type="submit"]').first();
-  const q6SubmitVisible = await q6SubmitBtn.isVisible().catch(() => false);
-  if (q6SubmitVisible) {
-    await q6SubmitBtn.click({ force: true });
-    await page.waitForTimeout(1500);
-  }
+  const q6Result = await submitCurrentAnswerThroughUi(page, 'click', '8');
+  expect(q6Result.questionId).toBe('g1ll_68');
 
   // Collect trace
   const trace = await page.evaluate(() => (window as any).__trace);
 
   // Save trace to file
-  const tracePath = path.join(__dirname, '..', '..', 'reports', 'q5-q6-consecutive-trace.json');
+  const tracePath = test.info().outputPath('q5-q6-consecutive-trace.json');
   fs.mkdirSync(path.dirname(tracePath), { recursive: true });
   fs.writeFileSync(tracePath, JSON.stringify({
     generatedAt: new Date().toISOString(),

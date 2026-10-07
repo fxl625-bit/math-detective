@@ -21,7 +21,6 @@ import { needsAddSubtractPrompt, getKeywordTypeDescription, classifyKeyword } fr
 import { inferLessonType, extractNumbers, classifyNumberRole } from '@/lib/questionValidation';
 import { checkAnswer, resolveAnswerType } from '@/lib/answerChecker';
 import { textRevealsAnswer, hintRevealsAnswer, stringStepsRevealAnswer } from '@/lib/hintSafety';
-import { markDailyRewardShown } from '@/lib/rewardSystem';
 import { commitLessonTransaction, updateDebugState, assertCorrectAnswerAdvanced, assertRepairContinued, assertFeedbackWithoutCorrectAnswer, assertQuestionAdvancedWithoutAnswerGate, getDebugState, type LessonAction, type LearningState, type LessonActionPayload } from '@/lib/lessonTransaction';
 import HintSystem from '@/components/lesson/HintSystem';
 import AppButton from '@/components/ui/AppButton';
@@ -386,19 +385,6 @@ function PlayPageContent() {
           setLesson(uncompleted);
           return;
         }
-        const now = new Date().toISOString();
-        let completedLesson: TodayLesson = {
-          ...result.nextLesson,
-          completedAt: result.nextLesson.completedAt || now,
-        };
-
-        const { lesson: shownLesson } = markDailyRewardShown(state, completedLesson);
-        completedLesson = shownLesson;
-
-        saveTodayLesson(completedLesson);
-        lessonRef.current = completedLesson;
-        setLesson(completedLesson);
-
         setShowConfetti(true);
         setFeedback({
           show: true,
@@ -2226,11 +2212,15 @@ function FullSolvePhased({
 }: { phase: StepPhase; question: Question; visual: ReturnType<typeof getVisual>; onPhaseAdvance: () => void; onStepComplete: (correct: boolean) => void; onPhaseBack: () => void; onWrongAnswer: (input: string) => void; onSubmitAnswer?: (inputAnswer: string, questionId: string) => void; simpleAnswerOnly?: boolean; coreTitle?: string }) {
   // silence unused onPhaseBack warning — used by EquationAnswerPhase
   const [selectedMeaning, setSelectedMeaning] = useState<string | null>(null);
+  useEffect(() => {
+    if (question.questionMeaningMode === 'direct' && phase === 'choose_operation') onPhaseAdvance();
+  }, [onPhaseAdvance, phase, question.questionMeaningMode]);
 
   // v2.10.0 Sub-project B: Route three-question flow phases to ThreeQuestionFlow
   const threeQuestionPhases = ['known_facts', 'target', 'plan', 'check', 'answer', 'explain'];
-  if (threeQuestionPhases.includes(phase) && !simpleAnswerOnly) {
-    const rf = (question as any).reasoningFrame;
+  const rf = (question as any).reasoningFrame;
+  const requiresReasoningFrame = phase === 'answer' || phase === 'explain';
+  if (threeQuestionPhases.includes(phase) && !simpleAnswerOnly && (rf || !requiresReasoningFrame)) {
     const tqfPhase = phase as 'known_facts' | 'target' | 'plan' | 'check';
 
     if (!rf) {
@@ -2368,6 +2358,7 @@ function FullSolvePhased({
   }
 
   if (phase === 'choose_operation') {
+    if (question.questionMeaningMode === 'direct') return null;
     return (
       <div className="space-y-4">
         <AppCard variant="purple">

@@ -14,6 +14,15 @@ test.describe('daily reward is shown once', () => {
     });
     expect(afterCompletion.lesson.rewardClaimed).toBe(true);
     expect(afterCompletion.lesson.rewardShown).toBe(true);
+    const ledger = afterCompletion.state.pointsWallet.ledger;
+    const perfectRewards = ledger.filter((entry: { type: string }) => entry.type === 'perfect_lesson');
+    expect(perfectRewards).toHaveLength(1);
+    expect(perfectRewards[0].unitsDelta).toBe(2); // Two half-point units equal one point.
+    expect(perfectRewards[0].referenceId).toBe(afterCompletion.lesson.lessonId);
+    const completionEvents = afterCompletion.state.learningEvents.filter(
+      (event: { eventType: string }) => event.eventType === 'lesson_completed',
+    );
+    expect(completionEvents).toHaveLength(1);
     const stars = afterCompletion.state?.stars ?? 0;
     const exp = afterCompletion.state?.exp ?? 0;
     const streak = afterCompletion.state?.streak ?? 0;
@@ -30,10 +39,13 @@ test.describe('daily reward is shown once', () => {
       const state = JSON.parse(localStorage.getItem('math-detective-state') || 'null');
       return { lesson, state };
     });
-    if (afterReload.lesson) {
-      expect(afterReload.lesson.rewardClaimed).toBe(true);
-      expect(afterReload.lesson.rewardShown).toBe(true);
-    }
+    expect(afterReload.lesson).not.toBeNull();
+    expect(afterReload.lesson.rewardClaimed).toBe(true);
+    expect(afterReload.lesson.rewardShown).toBe(true);
+    expect(afterReload.state.pointsWallet.ledger).toEqual(ledger);
+    expect(afterReload.state.learningEvents.filter(
+      (event: { eventType: string }) => event.eventType === 'lesson_completed',
+    )).toEqual(completionEvents);
     expect(afterReload.state?.stars ?? 0).toBe(stars);
     expect(afterReload.state?.exp ?? 0).toBe(exp);
     expect(afterReload.state?.streak ?? 0).toBe(streak);

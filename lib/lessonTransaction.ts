@@ -19,6 +19,7 @@ import { APP_VERSION } from './appVersion';
 import { appendUniqueEvent, createEventIdentity } from './learningEvents';
 import { decideDifficultyIncrease } from './learningMetrics';
 import { grantPerfectLessonPoints } from './familyPoints';
+import { grantDailyRewardOnce, markDailyRewardShown } from './rewardSystem';
 
 // ========== v2.6.6: Ranking 答案校验 ==========
 
@@ -241,13 +242,20 @@ function finalizeLessonCompletion(
     completionMode: 'independent',
     result: 'completed',
   });
-  const nextState = completed.accepted
+  const eventState = completed.accepted
     ? { ...state, childProfileId: identity.childProfileId, deviceId: identity.deviceId, learningEvents: completed.events }
     : state;
-  const reward = grantPerfectLessonPoints(nextState, lesson);
+  const completedAt = lesson.completedAt || at;
+  const completionLesson = { ...lesson, completedAt };
+  const claimed = grantDailyRewardOnce(eventState, completionLesson);
+  const shown = markDailyRewardShown(claimed.state, claimed.lesson);
+  const markedLesson = shown.lesson;
+  const reward = grantPerfectLessonPoints(shown.state, markedLesson);
+  const committedState = { ...reward.state, lastCommittedLesson: markedLesson };
   return {
     ...transaction,
-    nextState: { ...transaction.nextState, gameState: reward.state },
+    nextLesson: markedLesson,
+    nextState: { lesson: markedLesson, gameState: committedState },
   };
 }
 

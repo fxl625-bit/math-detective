@@ -14,7 +14,7 @@ import * as path from 'path';
  * 3. Reverse problem "又给了" → action direction is increase, even though solution is subtraction
  */
 
-const BASE = 'http://localhost:3000';
+const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 const today = new Date().toISOString().slice(0, 10);
 
 function buildFixture(questionId: string, stepIndex: number) {
@@ -127,7 +127,7 @@ test('v2.11.3-action-word-semantic: keyword "加" must select increase', async (
   const isIncreaseGreen = increaseClasses?.includes('bg-green-100') || increaseClasses?.includes('green');
 
   // Take screenshot
-  await page.screenshot({ path: 'test-results/action-word-increase.png' });
+  await page.screenshot({ path: test.info().outputPath('action-word-increase.png') });
 
   // If increase is marked as CORRECT (green), the fix works
   expect(isIncreaseGreen,
@@ -146,7 +146,7 @@ test('v2.11.3-action-word-semantic: keyword "加" must select increase', async (
   console.log('Decrease button classes after click:', decreaseClasses);
   const isDecreaseRed = decreaseClasses?.includes('bg-red-100') || decreaseClasses?.includes('red');
 
-  await page.screenshot({ path: 'test-results/action-word-decrease-wrong.png' });
+  await page.screenshot({ path: test.info().outputPath('action-word-decrease-wrong.png') });
 
   expect(isDecreaseRed,
     'Keyword "加" → "数量变少，用减法" must be WRONG. Got: ' + (decreaseClasses || 'null')
@@ -188,7 +188,7 @@ test('v2.11.3-action-word-semantic: keyword "飞走了" must select decrease', a
   const decreaseClasses = await decreaseBtn.getAttribute('class');
   const isDecreaseCorrect = decreaseClasses?.includes('bg-green-100') || decreaseClasses?.includes('green');
 
-  await page.screenshot({ path: 'test-results/action-word-flyaway-correct.png' });
+  await page.screenshot({ path: test.info().outputPath('action-word-flyaway-correct.png') });
 
   expect(isDecreaseCorrect,
     'Keyword "飞走" (decrease) must be the CORRECT choice'
@@ -231,7 +231,7 @@ test('v2.11.3-action-word-semantic: reverse problem distinguishes action from so
   const increaseClasses = await increaseBtn.getAttribute('class');
   const isIncreaseCorrect = increaseClasses?.includes('bg-green-100') || increaseClasses?.includes('green');
 
-  await page.screenshot({ path: 'test-results/action-word-reverse-correct.png' });
+  await page.screenshot({ path: test.info().outputPath('action-word-reverse-correct.png') });
 
   expect(isIncreaseCorrect,
     'Reverse problem: "又给了" means increase, must be correct. Solution is subtraction but action direction is increase.'

@@ -10,7 +10,7 @@ test.describe('/play no home redirect', () => {
     await openPlayE2E(page);
     await page.waitForTimeout(1500);
     expect(page.url()).toContain('/play');
-    expect(page.url()).not.toBe('http://localhost:3000/');
+    expect(new URL(page.url()).pathname).not.toBe('/');
     await assertNoForbiddenChildText(page);
   });
 

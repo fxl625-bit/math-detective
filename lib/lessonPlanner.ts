@@ -342,6 +342,11 @@ export function getDynamicStepDescription(type: LessonStepType, question?: Quest
  * 逻辑排序题不走 build_equation 流程，使用 understand_clues → logic_elimination → ranking_answer。
  */
 export function getDefaultPhasesForStepType(type: LessonStepType, question?: Question): StepPhase[] {
+  if (question?.questionMeaningMode === 'direct') {
+    return getDefaultPhasesForStepType(type, { ...question, questionMeaningMode: 'choice' })
+      .filter(phase => phase !== 'choose_operation');
+  }
+
   // v2.6.5: 逻辑排序题特殊处理
   if (question?.problemType === 'logic_ranking' || question?.problemType === 'logic_truth' || question?.problemType === 'logic_ordering') {
     if (type === 'full_solve') {
@@ -398,18 +403,29 @@ export function getDefaultPhasesForStepType(type: LessonStepType, question?: Que
 
 export function normalizeStep(step: Partial<LessonStep>, question?: Question): LessonStep {
   const type: LessonStepType = step.type || 'answer_only';  // v2.11.0
+  const currentQuestion = question || getQuestionById(step.questionId || '');
+  const savedPhases = Array.isArray(step.phases) && step.phases.length > 0 ? step.phases : null;
+  let phases: StepPhase[] = savedPhases
+    ? [...savedPhases]
+    : getDefaultPhasesForStepType(type, currentQuestion);
 
-  const phases: StepPhase[] =
-    Array.isArray(step.phases) && step.phases.length > 0
-      ? step.phases
-      : getDefaultPhasesForStepType(type, question);
-
-  const currentPhaseIndex =
+  let currentPhaseIndex =
     typeof step.currentPhaseIndex === 'number' &&
     step.currentPhaseIndex >= 0 &&
-    step.currentPhaseIndex < phases.length
+    step.currentPhaseIndex < (savedPhases?.length ?? phases.length)
       ? step.currentPhaseIndex
       : 0;
+
+  if (currentQuestion?.questionMeaningMode === 'direct' && phases.includes('choose_operation')) {
+    const skippedBeforeCurrent = phases.slice(0, currentPhaseIndex).filter(phase => phase === 'choose_operation').length;
+    phases = phases.filter(phase => phase !== 'choose_operation');
+    currentPhaseIndex = Math.max(0, currentPhaseIndex - skippedBeforeCurrent);
+    if (currentPhaseIndex >= phases.length) currentPhaseIndex = Math.max(0, phases.length - 1);
+  }
+  if (currentQuestion?.questionMeaningMode === 'direct' && phases.length === 0) {
+    phases = getDefaultPhasesForStepType(type, currentQuestion);
+    currentPhaseIndex = 0;
+  }
 
   const id =
     step.id && typeof step.id === 'string' && step.id.length > 0
@@ -436,7 +452,7 @@ export function normalizeStep(step: Partial<LessonStep>, question?: Question): L
 export function normalizeLesson(lesson: TodayLesson | null): TodayLesson | null {
   if (!lesson || !Array.isArray(lesson.steps)) return null;
 
-  const steps = lesson.steps.map(s => normalizeStep(s));
+  const steps = lesson.steps.map(s => normalizeStep(s, getQuestionById(s.questionId || '')));
 
   const currentStepIndex =
     typeof lesson.currentStepIndex === 'number' &&
@@ -492,7 +508,7 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
   }
 
   // 5. 标准化所有 step
-  const steps = lesson.steps.map(s => normalizeStep(s));
+  const steps = lesson.steps.map(s => normalizeStep(s, getQuestionById(s.questionId || '')));
   const n = steps.length;
 
   // 6. 修正 currentStepIndex
@@ -1863,7 +1879,7 @@ export function getCurrentStep(lesson: TodayLesson): LessonStep | null {
       : 0;
 
   const raw = lesson.steps[idx];
-  return raw ? normalizeStep(raw) : null;
+  return raw ? normalizeStep(raw, getQuestionById(raw.questionId || '')) : null;
 }
 
 export function completeCurrentStep(lesson: TodayLesson): TodayLesson {

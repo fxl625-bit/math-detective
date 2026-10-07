@@ -306,6 +306,8 @@ export interface Question {
   usefulPhrases: string[];
   questionMeaningOptions: string[];
   correctMeaning: string;
+  /** Choice asks learners to select an interpretation; direct presents no pre-answer meaning options. */
+  questionMeaningMode?: 'choice' | 'direct';
   operation: OperationType;
   equation: string;
   answer: number | string;

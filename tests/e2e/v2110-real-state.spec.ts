@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
+import { submitCurrentAnswerThroughUi } from './helpers/legacy-lesson';
 
-const BASE = 'http://localhost:3000';
+const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
 /**
  * v2.11.0: Real-user-state E2E tests.
@@ -199,25 +200,34 @@ test('v2.11.0-real: last question (step 6) requires answer — cannot bypass', a
     stepType: atAnswer?.stepType,
   }));
 
-  // Try advancing without submitting answer
-  await advancePhase(page);
-  await page.waitForTimeout(500);
+  expect(atAnswer?.currentStepIndex).toBe(5);
+  expect(atAnswer?.currentPhase).toBe('answer');
+  const answerBox = page.locator('input[name="answer"]');
+  await expect(answerBox).toBeVisible();
+  const finishWithoutAnswer = page.getByRole('button', { name: /完成.*下一关|学会了|继续破案/ });
+  await expect(finishWithoutAnswer).toHaveCount(0);
+  const priorFinalAttempts = await page.evaluate((questionId) => {
+    const state = JSON.parse(localStorage.getItem('math-detective-state') || '{}');
+    return (state.learningEvents || []).filter((event: any) => event.eventType === 'attempt_submitted' && event.questionId === questionId).length;
+  }, atAnswer?.questionId);
+  expect(priorFinalAttempts, 'No final-question attempt should exist before submission').toBe(0);
+  expect(atAnswer?.completed).toBe(false);
+  const feedbackClose = page.getByRole('dialog').getByRole('button', { name: '关闭反馈' });
+  if (await feedbackClose.isVisible().catch(() => false)) {
+    await feedbackClose.click();
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  }
 
-  const afterTry = await getState(page);
-  console.log('After no-answer advance:', JSON.stringify({
-    completed: afterTry?.completed,
-    step: afterTry?.currentStepIndex,
-  }));
+  // Now submit the actual current question through its visible answer form once.
+  const submitted = await submitCurrentAnswerThroughUi(page);
+  expect(submitted.questionId).toBe(atAnswer?.questionId);
+  expect(submitted.afterAttempts - submitted.beforeAttempts).toBe(1);
 
-  // Lesson must NOT be completed without answering last question
-  expect(afterTry?.completed).toBe(false);
-
-  // Now submit correct answer
-  await submitCorrectAnswer(page);
-  await page.waitForTimeout(800);
-
-  // Advance through explain
-  await advancePhase(page);
+  const closeFeedback = page.getByRole('dialog').getByRole('button', { name: /关闭反馈|继续学习/ }).first();
+  if (await closeFeedback.isVisible().catch(() => false)) await closeFeedback.click();
+  const finish = page.getByRole('button', { name: /完成.*下一关|学会了|继续破案/ }).first();
+  await expect(finish).toBeVisible({ timeout: 3000 });
+  await finish.click();
   await page.waitForTimeout(500);
 
   const finalState = await getState(page);

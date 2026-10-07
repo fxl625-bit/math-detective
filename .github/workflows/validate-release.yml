@@ -45,19 +45,52 @@ jobs:
       - name: State machine tests
         run: npm run test:state-machine
 
+      - name: Scoring and export tests
+        run: |
+          npm run test:scoring
+          npm run test:data-export
+
+      - name: Parent password and question meaning tests
+        run: |
+          npm run test:parent-password
+          npm run test:direct-meaning
+          npm run test:completion-reward
+
+  playwright:
+    name: Release E2E (${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
-      - name: E2E tests
-        run: npm run test:e2e
+      - name: Run complete desktop and mobile E2E suite
+        run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
 
-      - name: Build
-        run: npm run build
-
-      - name: Upload Playwright report
+      - name: Upload Playwright reports and failure traces
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: playwright-release-evidence-${{ matrix.shard }}-of-4
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
           retention-days: 14

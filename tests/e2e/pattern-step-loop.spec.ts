@@ -44,7 +44,7 @@ test.describe('pattern step loop', () => {
 
     // Assert 1: URL remains /play — no redirect to home
     expect(page.url()).toContain('/play');
-    expect(page.url()).not.toBe('http://localhost:3000/');
+    expect(new URL(page.url()).pathname).not.toBe('/');
 
     // Assert 2: No engineering error page shown
     const content = await page.content();

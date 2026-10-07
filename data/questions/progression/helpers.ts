@@ -25,7 +25,6 @@ export interface NewQuestionSpec {
   domain: Question['domain'];
   visualKey?: Question['visualKey'];
   cognitiveSkills?: Question['cognitiveSkills'];
-  meaningOptions?: string[];
   text: string;
   answer: number | string;
   answerSentence: string;
@@ -103,14 +102,16 @@ export function makeProgressionQuestion(spec: NewQuestionSpec): Question {
     id: spec.id,
     gradeBand: spec.gradeBand,
     domain: spec.domain,
-    cognitiveSkills: spec.cognitiveSkills ?? ['build_model', 'explain_reasoning'],
+    cognitiveSkills: (spec.cognitiveSkills ?? ['build_model', 'explain_reasoning'])
+      .filter(skill => skill !== 'understand_question'),
     text: spec.text,
     numbers: spec.numbers,
     keywords: [],
     noisePhrases: [],
     usefulPhrases: [],
-    questionMeaningOptions: spec.meaningOptions ?? [spec.answerSentence],
-    correctMeaning: spec.answerSentence,
+    questionMeaningOptions: [],
+    correctMeaning: '',
+    questionMeaningMode: 'direct',
     operation: spec.operation,
     equation: spec.equation,
     answer: spec.answer,

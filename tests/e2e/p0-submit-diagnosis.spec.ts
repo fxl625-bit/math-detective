@@ -5,6 +5,7 @@
  * Only operates real DOM. Never calls internal functions.
  */
 import { test, expect } from '@playwright/test';
+import { getQuestionById } from '../../data/questions';
 
 test.describe('P0-1: Real Browser Submit Diagnosis', () => {
 
@@ -114,34 +115,12 @@ test.describe('P0-1: Real Browser Submit Diagnosis', () => {
         console.log('Question info:', JSON.stringify(questionInfo));
 
         // G) Fill the answer input
-        const inputField = page.locator('input[type="text"], input[type="number"]').first();
+        const inputField = page.locator('form input[name="answer"]').first();
         await inputField.waitFor({ state: 'visible', timeout: 2000 });
 
-        // Compute correct answer from page text
-        const pageText = await page.textContent('main') || '';
-        const eqMatch = pageText.match(/(\d+)\s*[-+]\s*(\d+)\s*=\s*\?/);
-        if (!eqMatch) {
-          console.log('WARNING: Could not find equation in page text');
-          console.log('Page text excerpt:', pageText.substring(0, 300));
-          // Try to get answer from numbers
-          const numMatch = pageText.match(/(\d+).*?(\d+)/);
-          if (numMatch) {
-            const [_, a, b] = numMatch.map(Number);
-            const answer = pageText.includes('+') || pageText.includes('加') || pageText.includes('一共')
-              ? String(a + b) : String(Math.abs(a - b));
-            console.log('Guessed answer:', answer, 'from numbers:', a, b);
-            await inputField.fill(answer);
-          } else {
-            await inputField.fill('6'); // fallback
-          }
-        } else {
-          const [_, aStr, bStr] = eqMatch;
-          const a = parseInt(aStr), b = parseInt(bStr);
-          const answer = pageText.includes('+') || pageText.includes('加') || pageText.includes('一共')
-            ? String(a + b) : String(a - b);
-          console.log('Equation:', `${a} ${pageText.includes('+') ? '+' : '-'} ${b} = ?  → answer: ${answer}`);
-          await inputField.fill(answer);
-        }
+        const question = getQuestionById(questionInfo!.questionId);
+        expect(question).toBeDefined();
+        await inputField.fill(String(question!.answer));
 
         await page.waitForTimeout(200);
 
@@ -160,7 +139,7 @@ test.describe('P0-1: Real Browser Submit Diagnosis', () => {
         });
         console.log(JSON.stringify(before, null, 2));
 
-        await page.screenshot({ path: 'artifacts/v2102/submit-diagnosis/01-before-click.png', fullPage: true });
+        await page.screenshot({ path: test.info().outputPath('01-before-click.png'), fullPage: true });
 
         // I) CLICK SUBMIT ONCE
         const submitBtn = page.getByRole('button', { name: /提交答案/ });
@@ -185,7 +164,7 @@ test.describe('P0-1: Real Browser Submit Diagnosis', () => {
           };
         });
         console.log(JSON.stringify(after100, null, 2));
-        await page.screenshot({ path: 'artifacts/v2102/submit-diagnosis/02-after-100ms.png', fullPage: true });
+        await page.screenshot({ path: test.info().outputPath('02-after-100ms.png'), fullPage: true });
 
         // K) AFTER 1000ms
         await page.waitForTimeout(900);
@@ -210,11 +189,12 @@ test.describe('P0-1: Real Browser Submit Diagnosis', () => {
           };
         });
         console.log(JSON.stringify(after1000, null, 2));
-        await page.screenshot({ path: 'artifacts/v2102/submit-diagnosis/03-after-1000ms.png', fullPage: true });
+        await page.screenshot({ path: test.info().outputPath('03-after-1000ms.png'), fullPage: true });
 
         // L) BUG ASSERTION
         const phaseChanged = after1000.phaseIndex !== before.phaseIndex;
         const stepChanged = after1000.stepIndex !== before.stepIndex;
+        expect(phaseChanged || stepChanged, 'One submit must advance the lesson').toBe(true);
         console.log(`\n=== DIAGNOSIS ===`);
         console.log(`Phase changed: ${phaseChanged} (${before.phaseIndex} → ${after1000.phaseIndex})`);
         console.log(`Step changed: ${stepChanged} (${before.stepIndex} → ${after1000.stepIndex})`);
@@ -245,7 +225,7 @@ test.describe('P0-1: Real Browser Submit Diagnosis', () => {
             });
             console.log('\n=== AFTER SECOND CLICK ===');
             console.log(JSON.stringify(afterSecond, null, 2));
-            await page.screenshot({ path: 'artifacts/v2102/submit-diagnosis/04-after-second-click.png', fullPage: true });
+            await page.screenshot({ path: test.info().outputPath('04-after-second-click.png'), fullPage: true });
           }
         } else {
           console.log('PASS: Phase advanced on first click');
@@ -266,10 +246,11 @@ test.describe('P0-1: Real Browser Submit Diagnosis', () => {
       }
     }
 
+    expect(foundAnswer, 'The diagnostic must reach and submit an actual answer').toBe(true);
     if (!foundAnswer) {
       console.log('WARNING: Never reached answer phase — lesson may have no answer-needed questions');
       // Take a screenshot of the final state
-      await page.screenshot({ path: 'artifacts/v2102/submit-diagnosis/99-final-state.png', fullPage: true });
+      await page.screenshot({ path: test.info().outputPath('99-final-state.png'), fullPage: true });
     }
   });
 });

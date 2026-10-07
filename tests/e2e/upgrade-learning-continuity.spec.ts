@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { getQuestionById } from '../../data/questions';
+import { authorizeParentAccess, expectParentAccessLocked } from './helpers/parent-access';
 
 test('a begun grade-one course keeps its identity across grade changes and midnight', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-09-28T10:00:00+08:00'));
@@ -10,6 +11,10 @@ test('a begun grade-one course keeps its identity across grade changes and midni
   const initial = await page.evaluate(() => JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}'));
   await page.goto('/');
   await page.getByTestId('learning-settings-toggle').click();
+  await expect(page.getByTestId('grade-select')).toHaveCount(0);
+  await expectParentAccessLocked(page);
+  await authorizeParentAccess(page);
+  await expect(page.getByTestId('grade-select')).toBeVisible();
   await page.getByTestId('grade-select').selectOption('G6');
   await page.getByTestId('unit-select').selectOption('g6-u3');
   await page.getByTestId('semester-select').selectOption('lower');

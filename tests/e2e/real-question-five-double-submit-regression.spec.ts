@@ -12,7 +12,7 @@ import * as path from 'path';
  * Tracks submit count, blur events, and button replacement.
  */
 
-const BASE = 'http://localhost:3000';
+const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 const today = new Date().toISOString().slice(0, 10);
 
 function buildFullLessonFixture() {
@@ -272,7 +272,7 @@ test('v2.11.3-q5-single-submit: one click submits and shows correct feedback', a
     console.log('Feedback visible after first click:', hasFeedback);
 
     // Take screenshot
-    await page.screenshot({ path: 'test-results/q5-single-submit-feedback.png' });
+    await page.screenshot({ path: test.info().outputPath('q5-single-submit-feedback.png') });
 
     // Record trace
     const trace = await page.evaluate(() => (window as any).__q5trace || []);
@@ -319,7 +319,7 @@ test('v2.11.3-q5-single-submit: one click submits and shows correct feedback', a
         const feedbackText = await page.locator('body').innerText();
         const hasFeedback = feedbackText.includes('正确') || feedbackText.includes('✅') || feedbackText.includes('回答正确');
 
-        await page.screenshot({ path: 'test-results/q5-single-submit-tqf.png' });
+        await page.screenshot({ path: test.info().outputPath('q5-single-submit-tqf.png') });
 
         const trace = await page.evaluate(() => (window as any).__q5trace || []);
         const submitCount = trace.filter((e: any) => e.event === 'submit').length;
@@ -335,7 +335,7 @@ test('v2.11.3-q5-single-submit: one click submits and shows correct feedback', a
           const text = await allBtns.nth(i).textContent().catch(() => '');
           console.log(`  Button ${i}: "${text?.slice(0, 30)}"`);
         }
-        await page.screenshot({ path: 'test-results/q5-no-submit-btn.png' });
+        await page.screenshot({ path: test.info().outputPath('q5-no-submit-btn.png') });
         expect(false, 'Q5 must have a submit button').toBe(true);
       }
     } else {
@@ -350,7 +350,7 @@ test('v2.11.3-q5-single-submit: one click submits and shows correct feedback', a
         await page.waitForTimeout(500);
       }
 
-      await page.screenshot({ path: 'test-results/q5-no-input.png' });
+      await page.screenshot({ path: test.info().outputPath('q5-no-input.png') });
       const bodyText = await page.locator('body').innerText();
       console.log('Q5 body text (no input):', bodyText.slice(0, 300));
     }
@@ -369,7 +369,7 @@ test('v2.11.3-q5-single-submit: one click submits and shows correct feedback', a
     pointerDownCount: trace.filter((e: any) => e.event === 'pointerdown').length,
   };
 
-  const reportPath = path.join(__dirname, '..', '..', 'reports', 'q5-first-submit-trace.json');
+  const reportPath = test.info().outputPath('q5-first-submit-trace.json');
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   console.log('Q5 trace report saved to reports/q5-first-submit-trace.json');

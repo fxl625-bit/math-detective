@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { authorizeParentAccess, expectParentAccessLocked } from './helpers/parent-access';
 
 for (const [width, height] of [[360, 800], [390, 844], [768, 1024], [1024, 768], [1440, 900], [844, 390]]) {
   test(`home, settings and learning fit ${width}x${height}`, async ({ page }, info) => {
@@ -17,6 +18,10 @@ for (const [width, height] of [[360, 800], [390, 844], [768, 1024], [1024, 768],
     expect(await overflow()).toBeLessThanOrEqual(1);
     await page.screenshot({ path: info.outputPath(`home-${width}.png`), fullPage: true });
     await page.getByTestId('learning-settings-toggle').click();
+    await expect(page.getByTestId('grade-select')).toHaveCount(0);
+    await expectParentAccessLocked(page);
+    await authorizeParentAccess(page);
+    await expect(page.getByTestId('grade-select')).toBeVisible();
     await page.getByTestId('grade-select').selectOption('G6');
     await page.getByTestId('unit-select').selectOption('g6-u3');
     expect(await overflow()).toBeLessThanOrEqual(1);

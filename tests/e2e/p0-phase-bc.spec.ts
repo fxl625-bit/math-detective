@@ -4,12 +4,13 @@
  */
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
+import { currentCorrectAnswer, submitCurrentAnswerThroughUi } from './helpers/legacy-lesson';
 
-const BASE_URL = 'http://localhost:3100';
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
 test.describe('Phase B: One-Click Submit (Full 6 Levels)', () => {
   test('all 6 levels advance on first correct submit click', async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto(`${BASE_URL}/play?e2e=1`);
 
     // Inject v2.10.0 state with usageStage 3, totalCompleted 85
     const stateJson = fs.readFileSync('tests/fixtures/state-v2100.json', 'utf-8');
@@ -19,7 +20,7 @@ test.describe('Phase B: One-Click Submit (Full 6 Levels)', () => {
     }, stateJson);
 
     // Navigate to /play
-    await page.goto(`${BASE_URL}/play`);
+    await page.goto(`${BASE_URL}/play?e2e=1`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);
 
@@ -53,22 +54,11 @@ test.describe('Phase B: One-Click Submit (Full 6 Levels)', () => {
 
           console.log(`Level ${level}: ANSWER PHASE. Buttons: ${phaseInfo.buttons.slice(0,6).join(', ')}`);
 
-          // Get answer from equation in page text
-          const eqMatch = phaseInfo.mainText.match(/(\d+)\s*[-+]\s*(\d+)\s*=\s*\?/);
-          let answer = '6';
-          if (eqMatch) {
-            const a = parseInt(eqMatch[1]), b = parseInt(eqMatch[2]);
-            if (phaseInfo.mainText.includes('+') || phaseInfo.mainText.includes('加') || phaseInfo.mainText.includes('一共'))
-              answer = String(a + b);
-            else answer = String(a - b);
-          }
+          const answer = await currentCorrectAnswer(page);
           console.log(`  Answer: ${answer}`);
 
           // Fill input and click submit ONCE
           const input = page.locator('input:not([type="hidden"])').first();
-          await input.fill(answer);
-          await page.waitForTimeout(100);
-
           // Record BEFORE state
           const before_phase = await page.evaluate(() => {
             const raw = localStorage.getItem('math-detective-today-lesson');
@@ -78,9 +68,10 @@ test.describe('Phase B: One-Click Submit (Full 6 Levels)', () => {
             return s?.currentPhaseIndex;
           });
 
-          // CLICK SUBMIT ONCE
-          await page.getByRole('button', { name: /提交答案/ }).first().click({ force: true });
-          await page.waitForTimeout(1000);
+          // One real UI submission; helper verifies one correct attempt event and phase transition.
+          const submitted = await submitCurrentAnswerThroughUi(page);
+          expect(submitted.answer).toBe(answer);
+          expect(submitted.afterAttempts - submitted.beforeAttempts).toBe(1);
 
           // Record AFTER state
           const after = await page.evaluate(() => {
@@ -108,11 +99,6 @@ test.describe('Phase B: One-Click Submit (Full 6 Levels)', () => {
           } else {
             multiClickLevels++;
             console.log(`  ❌ Level ${level}: submit button still visible — needs 2nd click`);
-
-            // Click again (for diagnosis only)
-            await page.getByRole('button', { name: /提交答案/ }).first().click({ force: true });
-            await page.waitForTimeout(500);
-            totalSubmitClicks++;
           }
 
           // Click "完成" / "下一步" if present
@@ -151,8 +137,9 @@ test.describe('Phase B: One-Click Submit (Full 6 Levels)', () => {
       }
 
       if (!foundAnswer) {
-        console.log(`⚠️ Level ${level}: no answer phase found (may have no submit-needed step)`);
+        console.log(`⚠️ Level ${level}: no answer phase found`);
       }
+      expect(foundAnswer, `Level ${level} must reach an answer phase`).toBe(true);
     }
 
     console.log(`\n=== SUMMARY ===`);
@@ -170,19 +157,20 @@ test.describe('Phase B: One-Click Submit (Full 6 Levels)', () => {
 
     // All questions must advance on first click
     expect(multiClickLevels).toBe(0);
+    expect(totalSubmitClicks).toBe(6);
   });
 });
 
 test.describe('Phase C: No Single-Digit Questions', () => {
   test('no single-digit questions for experienced user', async ({ page }) => {
-    await page.goto(BASE_URL);
+    await page.goto(`${BASE_URL}/play?e2e=1`);
     const stateJson = fs.readFileSync('tests/fixtures/state-v2100.json', 'utf-8');
     await page.evaluate((raw) => {
       localStorage.setItem('math-detective-state', raw);
       localStorage.removeItem('math-detective-today-lesson');
     }, stateJson);
 
-    await page.goto(`${BASE_URL}/play`);
+    await page.goto(`${BASE_URL}/play?e2e=1`);
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1500);
 

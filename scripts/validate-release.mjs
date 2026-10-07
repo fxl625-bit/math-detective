@@ -6,7 +6,7 @@
  * Usage: node scripts/validate-release.mjs
  */
 
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -22,8 +22,10 @@ const STEPS = [
   { name: 'test:state-machine', cmd: 'npm run test:state-machine' },
   { name: 'test:scoring', cmd: 'npm run test:scoring' },
   { name: 'test:data-export', cmd: 'npm run test:data-export' },
+  { name: 'test:parent-password', cmd: 'npm run test:parent-password' },
+  { name: 'test:direct-meaning', cmd: 'npm run test:direct-meaning' },
+  { name: 'test:completion-reward', cmd: 'npm run test:completion-reward' },
   { name: 'test:e2e', cmd: 'npm run test:e2e' },
-  { name: 'build', cmd: 'npm run build' },
 ];
 
 console.log('========================================');
@@ -38,7 +40,14 @@ const results = [];
 for (const step of STEPS) {
   process.stdout.write(`  ${step.name} ... `);
   try {
-    execSync(step.cmd, { cwd: __dirname + '/..', stdio: 'pipe', timeout: 300000 });
+    const result = spawnSync(step.cmd, {
+      cwd: __dirname + '/..',
+      shell: true,
+      stdio: 'inherit',
+      timeout: step.name === 'test:e2e' ? 60 * 60 * 1000 : 10 * 60 * 1000,
+    });
+    if (result.error) throw result.error;
+    if (result.status !== 0) throw new Error(`${step.name} exited with ${result.status ?? result.signal}`);
     console.log('PASS');
     results.push({ name: step.name, status: 'PASS' });
     passed++;

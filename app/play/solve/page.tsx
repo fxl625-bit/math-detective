@@ -67,7 +67,7 @@ export default function FullSolvePage() {
   }, [q]);
 
   function handleNextStep() {
-    const flow: SolveStep[] = ['numbers', 'keywords', 'noise', 'meaning', 'operation', 'answer', 'done'];
+    const flow: SolveStep[] = ['numbers', 'keywords', 'noise', ...(q.questionMeaningMode === 'direct' ? [] : ['meaning' as const]), 'operation', 'answer', 'done'];
     const idx = flow.indexOf(step);
     if (idx < flow.length - 1) {
       setStep(flow[idx + 1]);
@@ -108,8 +108,9 @@ export default function FullSolvePage() {
     }
   }
 
-  const stepIndex = (['numbers', 'keywords', 'noise', 'meaning', 'operation', 'answer', 'done'] as SolveStep[]).indexOf(step);
-  const totalSteps = 6;
+  const flow: SolveStep[] = ['numbers', 'keywords', 'noise', ...(q.questionMeaningMode === 'direct' ? [] : ['meaning' as const]), 'operation', 'answer', 'done'];
+  const stepIndex = flow.indexOf(step);
+  const totalSteps = flow.length - 1;
 
   return (
     <div className="space-y-4 pb-4">

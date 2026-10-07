@@ -101,7 +101,7 @@ const u1EqualAddends = makeProgressionQuestion({
   answerSentence: '这个数是3。', answerSchema: { kind: 'integer', min: 1, max: 9 }, operation: 'addition', equation: '3+3+3=9',
   explanation: '按提示逐个试：1+1+1=3，2+2+2=6，3+3+3=9，所以相同的数是3。',
   solutionSteps: ['试1：1+1+1=3，不是9。', '试2：2+2+2=6，还不到9。', '试3：3+3+3=9，所以答案是3。'],
-  hints: ['三个数要相同，可以从小到大试。', '试1和2：三个1是3，三个2是6。', '三个3相加正好是9。'],
+  hints: ['三个数要相同，可以从小到大试。', '先试1，再试2，比较每次三个相同数相加的结果与9的大小。', '三个3相加正好是9。'],
   numbers: [3, 9], unit: '个', difficulty: 3, role: 'olympiad', family: 'g1-u1-equal-addends', tier: 1, method: 'enumeration', variantIndex: 1,
 });
 

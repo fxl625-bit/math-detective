@@ -6,13 +6,16 @@
  */
 import { test, expect } from '@playwright/test';
 import fs from 'fs';
+import { getQuestionById } from '../../data/questions';
 
 const FIXTURES = ['state-v28', 'state-v29', 'state-v2100', 'state-current'];
-const BASE_URL = 'http://localhost:3100';
+const BASE_URL = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
 for (const fixture of FIXTURES) {
   test.describe(`Migration: ${fixture}`, () => {
     test('auto-invalidates old lesson and preserves data', async ({ page }) => {
+      // Freeze the June fixture date so semester assertions do not depend on CI date.
+      await page.clock.setFixedTime(new Date('2026-06-17T04:00:00Z'));
       // Load fixture data
       const raw = fs.readFileSync(`tests/fixtures/${fixture}.json`, 'utf-8');
       let fixtureData: any;
@@ -78,8 +81,9 @@ for (const fixture of FIXTURES) {
       console.log('Lesson:', JSON.stringify(lessonInfo, null, 2));
 
       // Assertions
-      // 1. Stars preserved (156 from fixture)
-      expect(state.stars).toBe(156);
+      // 1. Approved migration clears old stars while preserving learning history.
+      expect(state.stars).toBe(0);
+      expect(state.totalCompleted).toBe(85);
 
       // 2. Migration built learnerProfile
       expect(state.hasLearnerProfile).toBe(true);
@@ -146,18 +150,16 @@ test.describe('P0-1: Real Browser Submit Click Count', () => {
           console.log('Buttons:', phaseInfo.buttons.slice(0, 8));
 
           // Fill answer
-          const inputField = page.locator('input').first();
+          const inputField = page.locator('form input[name="answer"]').first();
           await inputField.waitFor({ state: 'visible', timeout: 2000 });
 
-          // Get answer from page
-          const eqText = phaseInfo.pageText || '';
-          const eqMatch = eqText.match(/(\d+)\s*[-+]\s*(\d+)/);
-          let answer = '6';
-          if (eqMatch) {
-            const a = parseInt(eqMatch[1]), b = parseInt(eqMatch[2]);
-            answer = eqText.includes('+') || eqText.includes('加') || eqText.includes('一共')
-              ? String(a + b) : String(a - b);
-          }
+          const questionId = await page.evaluate(() => {
+            const lesson = JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}');
+            return lesson.steps?.[lesson.currentStepIndex]?.questionId as string;
+          });
+          const question = getQuestionById(questionId);
+          expect(question).toBeDefined();
+          const answer = String(question!.answer);
           await inputField.fill(answer);
           await page.waitForTimeout(100);
 
@@ -235,6 +237,7 @@ test.describe('P0-1: Real Browser Submit Click Count', () => {
     }
 
     console.log(`\nTotal submit clicks: ${submitClicks}, Phase advanced on first click: ${phaseAdvanced}`);
-    expect(submitClicks).toBeLessThanOrEqual(6); // Max 6 steps, each should submit once
+    expect(submitClicks).toBe(1);
+    expect(phaseAdvanced).toBe(true);
   });
 });

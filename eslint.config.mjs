@@ -7,12 +7,18 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
+    ".browser-cache/**",
+    ".claude/worktrees/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
     "coverage/**",
     "test-results/**",
+    "playwright-report/**",
+    "reports/**",
+    "artifacts/runtime/**",
+    ".next-*/**",
     "next-env.d.ts",
   ]),
   {

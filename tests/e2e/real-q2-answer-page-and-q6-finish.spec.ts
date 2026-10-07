@@ -1,8 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
 import * as fs from 'fs';
 import * as path from 'path';
+import { submitCurrentAnswerThroughUi } from './helpers/legacy-lesson';
 
-const BASE = 'http://localhost:3100';
+const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
 /**
  * v2.11.2: Real Q2 answer page + Q6 finish button flow test.
@@ -196,17 +197,12 @@ async function clickPhaseAdvance(page: Page) {
 }
 
 // Submit answer helper
-async function submitAnswer(page: Page, answer: string) {
+async function submitAnswer(page: Page, expectedAnswer: string) {
   const input = page.locator('input[name="answer"]').first();
   const inputVisible = await input.isVisible({ timeout: 3000 }).catch(() => false);
 
   if (inputVisible) {
-    await input.fill(answer);
-    await page.waitForTimeout(200);
-
-    const submitBtn = page.locator('button[type="submit"]').first();
-    await submitBtn.click();
-    await page.waitForTimeout(1500);
+    await submitCurrentAnswerThroughUi(page, 'click', expectedAnswer);
     return true;
   }
   return false;
@@ -226,7 +222,9 @@ async function clickContinueButton(page: Page) {
 // Record hit-test for a button
 async function recordHitTest(page: Page, buttonSelector: string): Promise<any> {
   return await page.evaluate((sel: string) => {
-    const btn = document.querySelector(sel);
+    const btn = sel === 'finishButton'
+      ? Array.from(document.querySelectorAll('button')).find((candidate) => /学会|继续破案|完成/.test(candidate.textContent || ''))
+      : document.querySelector(sel);
     if (!btn) return { error: 'button not found', selector: sel };
 
     const rect = btn.getBoundingClientRect();
@@ -387,7 +385,7 @@ test('v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit b
   console.log('Q2 body text (first 300 chars):', q2BodyText.slice(0, 300));
 
   // Take screenshot
-  await page.screenshot({ path: 'test-results/q2-answer-page.png' });
+  await page.screenshot({ path: test.info().outputPath('q2-answer-page.png') });
 
   // === Q2 DIAGNOSTIC REPORT ===
   const q2Diagnostic: any = {
@@ -403,15 +401,12 @@ test('v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit b
 
   // If answer input exists, submit it
   if (q2InputVisible) {
-    await q2Input.fill('7');
-    await page.waitForTimeout(200);
-    await q2SubmitBtn.click();
-    await page.waitForTimeout(1500);
+    const q2Result = await submitCurrentAnswerThroughUi(page, 'click', '7');
     q2Diagnostic.submitted = true;
 
     const q2FeedbackText = await page.locator('body').innerText();
     q2Diagnostic.feedbackText = q2FeedbackText.slice(0, 200);
-    q2Diagnostic.correctFeedbackVisible = q2FeedbackText.includes('正确') || q2FeedbackText.includes('✅') || q2FeedbackText.includes('回答正确');
+    q2Diagnostic.correctFeedbackVisible = q2Result.afterState.currentPhase === 'explain';
   } else {
     q2Diagnostic.submitted = false;
     q2Diagnostic.missingAnswerPage = true;
@@ -419,7 +414,7 @@ test('v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit b
   }
 
   // Save Q2 diagnostic
-  const q2ReportPath = path.join(__dirname, '..', '..', 'reports', 'q2-missing-answer-page-trace.json');
+  const q2ReportPath = test.info().outputPath('q2-missing-answer-page-trace.json');
   fs.mkdirSync(path.dirname(q2ReportPath), { recursive: true });
   fs.writeFileSync(q2ReportPath, JSON.stringify(q2Diagnostic, null, 2));
   console.log('Q2 diagnostic saved to reports/q2-missing-answer-page-trace.json');
@@ -479,9 +474,8 @@ test('v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit b
   }));
   // For answer_only with FullSolvePhased, the answer phase may show "继续 →"
   // if there's no reasoningFrame. Use test API to submit answer programmatically.
-  const q5Submitted = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.submitAnswer());
-  console.log('Q5 API submit result:', q5Submitted);
-  await page.waitForTimeout(500);
+  const q5Submitted = await submitAnswer(page, '57');
+  expect(q5Submitted, 'Q5 must submit through the visible answer form').toBe(true);
   // Now dismiss any overlay and click continue
   await dismissProgressToast(page);
   await clickContinueButton(page);
@@ -497,8 +491,8 @@ test('v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit b
     questionId: q6State?.questionId,
   }));
   // Use test API to submit answer (handles both UI and non-UI answer flows)
-  const q6Submitted = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.submitAnswer());
-  console.log('Q6 API submit result:', q6Submitted);
+  const q6Submitted = await submitAnswer(page, '8');
+  expect(q6Submitted, 'Q6 must submit through the visible answer form').toBe(true);
   await page.waitForTimeout(1000);
 
   // Wait for feedback
@@ -534,7 +528,7 @@ test('v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit b
       };
     });
     // Use page.evaluate with a specific selector that works in browser context
-    const hitTestSelector = 'button.bg-green-500, button[class*="bg-green"]';
+    const hitTestSelector = 'finishButton';
     q6HitTest = await recordHitTest(page, hitTestSelector);
     // If the above didn't find the right button, try getting element from Playwright locator
     if (q6HitTest.error) {
@@ -554,7 +548,7 @@ test('v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit b
     q6HitTest.buttonProps = btnProps;
     q6HitTest.finishButtonVisible = finishBtnVisible;
     q6HitTest.finishButtonDisabled = btnProps.disabled || btnProps.ariaDisabled === 'true';
-    q6HitTest.feedbackVisible = q6BodyText.includes('完整推理') || q6BodyText.includes('太棒了') || q6BodyText.includes('回答正确') || q6BodyText.includes('✅');
+    q6HitTest.feedbackVisible = (await getState(page))?.currentPhase === 'explain';
 
     console.log('Q6 hit test result:', JSON.stringify({
       hitTargetTag: q6HitTest.hitTargetTag,
@@ -564,7 +558,7 @@ test('v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit b
     }));
 
     // Take screenshot of Q6 feedback page
-    await page.screenshot({ path: 'test-results/q6-feedback-page.png' });
+    await page.screenshot({ path: test.info().outputPath('q6-feedback-page.png') });
 
     // Count overlays that actually overlap the button position
     const btnBoundingBox = await finishBtn.boundingBox();
@@ -602,7 +596,7 @@ test('v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit b
   }
 
   // Save Q6 diagnostic
-  const q6ReportPath = path.join(__dirname, '..', '..', 'reports', 'q6-feedback-button-hit-test.json');
+  const q6ReportPath = test.info().outputPath('q6-feedback-button-hit-test.json');
   fs.writeFileSync(q6ReportPath, JSON.stringify(q6HitTest, null, 2));
   console.log('Q6 hit-test saved to reports/q6-feedback-button-hit-test.json');
 
@@ -641,7 +635,7 @@ test('v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit b
     },
   };
 
-  const fullReportPath = path.join(__dirname, '..', '..', 'reports', 'q2-q6-runtime-trace.json');
+  const fullReportPath = test.info().outputPath('q2-q6-runtime-trace.json');
   fs.writeFileSync(fullReportPath, JSON.stringify(fullReport, null, 2));
   console.log('Full diagnostic saved to reports/q2-q6-runtime-trace.json');
 
@@ -780,9 +774,8 @@ test('v2.11.2-q6-finish-button-hit-test: Button receives pointer/click events', 
   // ==== Q5: answer_only, g1ll_32, answer=57 ====
   console.log('=== Q5: answer_only ===');
   await page.waitForTimeout(500);
-  const q5Submitted = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.submitAnswer());
-  console.log('Q5 API submit result:', q5Submitted);
-  await page.waitForTimeout(500);
+  const q5Submitted = await submitAnswer(page, '57');
+  expect(q5Submitted, 'Q5 must submit through the visible answer form').toBe(true);
   await dismissProgressToast(page);
   await clickContinueButton(page);
   await dismissProgressToast(page);
@@ -790,8 +783,8 @@ test('v2.11.2-q6-finish-button-hit-test: Button receives pointer/click events', 
   // ==== Q6: answer_only, g1ll_68, answer=8 ====
   console.log('=== Q6: answer_only ===');
   await page.waitForTimeout(500);
-  const q6Submitted = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.submitAnswer());
-  console.log('Q6 API submit result:', q6Submitted);
+  const q6Submitted = await submitAnswer(page, '8');
+  expect(q6Submitted, 'Q6 must submit through the visible answer form').toBe(true);
   await page.waitForTimeout(1000);
 
   // === Q6 HIT-TEST: Verify button receives pointer/click events ===
@@ -825,7 +818,7 @@ test('v2.11.2-q6-finish-button-hit-test: Button receives pointer/click events', 
     });
 
     // Use CSS selector (not Playwright :has-text) for page.evaluate
-    const hitTestSelector = 'button.bg-green-500, button[class*="bg-green"]';
+    const hitTestSelector = 'finishButton';
     q6HitTest = await recordHitTest(page, hitTestSelector);
     // If CSS-only selector didn't find the right button, get element info from Playwright handle
     if (q6HitTest.error) {
@@ -844,7 +837,7 @@ test('v2.11.2-q6-finish-button-hit-test: Button receives pointer/click events', 
     q6HitTest.buttonProps = btnProps;
     q6HitTest.finishButtonVisible = finishBtnVisible;
     q6HitTest.finishButtonDisabled = btnProps.disabled || btnProps.ariaDisabled === 'true';
-    q6HitTest.feedbackVisible = q6BodyText.includes('完整推理') || q6BodyText.includes('太棒了') || q6BodyText.includes('回答正确') || q6BodyText.includes('✅');
+    q6HitTest.feedbackVisible = (await getState(page))?.currentPhase === 'explain';
 
     console.log('Q6 hit test result:', JSON.stringify({
       hitTargetTag: q6HitTest.hitTargetTag,
@@ -853,7 +846,7 @@ test('v2.11.2-q6-finish-button-hit-test: Button receives pointer/click events', 
       topElement: q6HitTest.topElement,
     }));
 
-    await page.screenshot({ path: 'test-results/q6-hit-test.png' });
+    await page.screenshot({ path: test.info().outputPath('q6-hit-test.png') });
 
     // Count overlays that actually overlap the button position
     const btnBoundingBox2 = await finishBtn.boundingBox();
@@ -888,7 +881,7 @@ test('v2.11.2-q6-finish-button-hit-test: Button receives pointer/click events', 
   }
 
   // Save Q6 diagnostic
-  const q6ReportPath = path.join(__dirname, '..', '..', 'reports', 'q6-feedback-button-hit-test.json');
+  const q6ReportPath = test.info().outputPath('q6-feedback-button-hit-test.json');
   fs.mkdirSync(path.dirname(q6ReportPath), { recursive: true });
   q6HitTest.q6BodyText = q6BodyText.slice(0, 500);
   fs.writeFileSync(q6ReportPath, JSON.stringify(q6HitTest, null, 2));

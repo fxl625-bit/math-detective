@@ -4,6 +4,7 @@ import { getQuestionById } from '../../data/questions';
 import { inferAnswerSchema } from '../../lib/answerSchema';
 import { getPointsBalance } from '../../lib/familyPoints';
 import { createNetworkFaultProxy } from './helpers/network-fault-proxy';
+import { authorizeParentAccess, expectParentAccessLocked } from './helpers/parent-access';
 
 const OFFLINE_CACHE_NAME = 'math-detective-shell-v1';
 
@@ -139,6 +140,11 @@ test('backup file round-trips between isolated synthetic browser contexts', asyn
   }, stateWithStars(3));
   const destinationPage = await destination.newPage();
   await destinationPage.goto(new URL('/parent-report', baseURL).href);
+  await expect(destinationPage.getByRole('button', { name: '选择备份文件', exact: true })).toHaveCount(0);
+  await expect(destinationPage.getByRole('button', { name: '备份当前数据并恢复', exact: true })).toHaveCount(0);
+  await expectParentAccessLocked(destinationPage);
+  await authorizeParentAccess(destinationPage);
+  await expect(destinationPage.getByRole('button', { name: '选择备份文件', exact: true })).toBeVisible();
   await destinationPage.locator('input[type="file"]').setInputFiles({
     name: 'synthetic-backup.json',
     mimeType: 'application/json',

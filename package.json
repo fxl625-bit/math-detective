@@ -1,6 +1,6 @@
 {
   "name": "math-detective",
-  "version": "2.13.2",
+  "version": "2.13.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -19,6 +19,7 @@
     "validate:reasoning-frame": "tsx -r tsconfig-paths/register scripts/validate-reasoning-frame.ts",
     "validate:v291": "npm run validate:numeric-skill-labels && npm run validate:semantic-skills && npm run validate:reasoning-frame",
     "test:submit-transaction": "tsx -r tsconfig-paths/register tests/unit/submit-transaction.test.ts",
+    "test:state-machine": "tsx -r tsconfig-paths/register tests/unit/lesson-state-machine.test.ts",
     "test:three-question-render": "tsx -r tsconfig-paths/register tests/component/three-question-flow.test.ts",
     "test:scoring": "tsx -r tsconfig-paths/register tests/unit/scoring.test.ts",
     "test:data-export": "tsx -r tsconfig-paths/register tests/unit/data-export.test.ts",
@@ -34,7 +35,10 @@
     "test:e2e:no-irrelevant": "node scripts/run-playwright.js tests/e2e/no-irrelevant-number-step.spec.ts",
     "validate:extra-info": "node scripts/audit-extra-info.mjs",
     "test:e2e:pattern": "node scripts/run-playwright.js tests/e2e/pattern-step-loop.spec.ts",
-    "test:e2e:playthrough": "node scripts/run-playwright.js tests/e2e/full-lesson-playthrough.spec.ts"
+    "test:e2e:playthrough": "node scripts/run-playwright.js tests/e2e/full-lesson-playthrough.spec.ts",
+    "test:parent-password": "tsx tests/unit/parent-password.test.ts",
+    "test:direct-meaning": "tsx -r tsconfig-paths/register tests/unit/direct-meaning-validation.test.ts",
+    "test:completion-reward": "tsx -r tsconfig-paths/register tests/unit/completion-reward-transaction.test.ts"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",
