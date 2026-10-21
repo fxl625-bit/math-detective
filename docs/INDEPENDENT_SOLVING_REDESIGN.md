@@ -137,5 +137,5 @@ AnswerGate 拓展为真实正确提交，或明确讲解结束且迁移已作答
 - 已贯通：学习事件、技能统计、家长报告、最近30个原题实例的能力画像、基于独立证据的升难，以及备份导入导出。复练队列表示待执行的练习，执行后真实答对可移出；不等于已独立掌握名单，原始讲解与辅助完成事件保留。
 - 内容审计：655/655题有互动任务，其中G1–G6共625题、奥数入门30题；严格同构变式覆盖20/655题（3.05%）。其余题明确降级复练，不声称全部题都有变式。题库的原答案与解析未重写。
 - 浏览器验收清单：保留原246项测试意图并新增42项，共288项、49个文件，覆盖桌面与手机。G1–G6变式成功使用真实题库内容的合成课程实例验证学习状态；各年级真实设置与六题选题另由原有完整课程用例验证。
-- 发布构建使用 `NEXT_BUILD_DIR=.next-independent npm run build`；完整浏览器使用 `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3221`、`playwright.no-server.config.ts`、`--workers=2 --retries=0`。未完整结束的诊断轮次不计通过。
+- 发布构建使用隔离的 Next 输出目录（`.next-independent` 或 `.next-ci-repair`）；最终完整浏览器使用 `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3222`、`playwright.no-server.config.ts`、`--workers=4 --retries=0`。未完整结束的诊断轮次不计通过。
 - 机器验证输出保存在 `reports/2026-10-21-independent-solving/`；发布记录绑定最终Git SHA、两条GitHub工作流与Vercel部署。只有完整运行的PASS结果才是验收依据，本计划不替代运行证据。

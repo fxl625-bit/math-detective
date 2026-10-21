@@ -53,6 +53,9 @@ for (const fixture of FIXTURES) {
           hasLearnerProfile: !!s.learnerProfile,
           learnerDifficulty: s.learnerProfile?.currentDifficultyLevel,
           learnerTotalCompleted: s.learnerProfile?.totalCompleted,
+          learnerRecentAccuracy: s.learnerProfile?.recentAccuracy,
+          correctCount: s.correctCount,
+          wrongCount: s.wrongCount,
           trainingMode: s.trainingMode,
           schoolHarder: s.schoolHarder,
         };
@@ -95,8 +98,18 @@ for (const fixture of FIXTURES) {
       // 4. Usage stage properly detected
       expect(state.usageStage).toBeGreaterThanOrEqual(3);
 
-      // 5. Learner difficulty calibrated (≥2 from migration)
-      expect(state.learnerDifficulty).toBeGreaterThanOrEqual(2);
+      // 5. v2.8's legacy right/wrong counters lack question-instance evidence.
+      // Preserve its history but do not promote difficulty from unverified accuracy.
+      if (fixture === 'state-v28') {
+        expect(state.correctCount).toBe(72);
+        expect(state.wrongCount).toBe(13);
+        expect(state.learnerTotalCompleted).toBe(85);
+        expect(state.learnerRecentAccuracy).toBe(0);
+        expect(state.learnerDifficulty).toBe(1);
+      } else {
+        // Newer fixtures contain trustworthy learner profile/evidence snapshots.
+        expect(state.learnerDifficulty).toBeGreaterThanOrEqual(2);
+      }
 
       // 6. Old lesson automatically INVALIDATED (safe_ prefix → rebuild)
       if (fixture === 'state-current') {

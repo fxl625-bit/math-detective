@@ -50,8 +50,10 @@ const awardedLegacy = normalizeStep({
   phases: ['read', 'find_numbers', 'choose_operation', 'build_equation', 'answer'],
   currentPhaseIndex: 4, awardedAt: '2026-10-20T10:00:00.000Z',
 }, cachedQuestion);
-assert.deepEqual(awardedLegacy.phases, ['answer', 'explain']);
-assert.equal(awardedLegacy.currentPhaseIndex, 1, 'awarded legacy steps resume in review');
+assert.deepEqual(awardedLegacy.phases, ['read', 'find_numbers', 'build_equation', 'answer'],
+  'Already awarded history retains its phases, apart from the removed direct-mode meaning choice');
+assert.equal(awardedLegacy.currentPhaseIndex, 3, 'the saved read-only position remains stable when the meaning choice is removed');
+assert.equal(awardedLegacy.awardedAt, '2026-10-20T10:00:00.000Z', 'migration must preserve the original award identity');
 assert.equal(Boolean(awardedLegacy.solving?.independentCorrect), false, 'legacy awards do not prove independent mastery');
 const allSkipped = normalizeStep({
   id: 'cached-direct-empty', type: 'simulation', title: 'cached', description: 'cached',

@@ -64,11 +64,6 @@ test('v2.11.0-semantic: Operation label matches equation for each question in le
 
   const reviewedQuestionIds: string[] = [];
   for (let stepIndex = 0; stepIndex < 6; stepIndex += 1) {
-    const feedbackDialog = page.getByRole('dialog');
-    if (await feedbackDialog.isVisible().catch(() => false)) {
-      const continueLearning = feedbackDialog.getByRole('button', { name: '继续学习', exact: true });
-      if (await continueLearning.isVisible().catch(() => false)) await continueLearning.click();
-    }
     const state = await getState(page);
     expect(state?.currentStepIndex).toBe(stepIndex);
     expect(state?.currentPhase).toBe('answer');

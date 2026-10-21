@@ -364,7 +364,7 @@ export function normalizeStep(step: Partial<LessonStep>, question?: Question): L
   const type: LessonStepType = step.type || 'answer_only';  // v2.11.0
   const currentQuestion = question || getQuestionById(step.questionId || '');
   let savedPhases = Array.isArray(step.phases) && step.phases.length > 0 ? step.phases : null;
-  const isUnmigratedCurrentStep = !step.solving && step.status === 'current'
+  const isUnmigratedCurrentStep = step.status !== 'completed' && !step.awardedAt
     && savedPhases?.some(phase => phase !== 'answer' && phase !== 'explain');
   if (isUnmigratedCurrentStep) savedPhases = null;
   let phases: StepPhase[] = savedPhases

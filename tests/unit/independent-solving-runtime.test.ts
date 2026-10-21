@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { allQuestions, getQuestionById } from '@/data/questions';
 import { progressionQuestions, questionLearningMetadata } from '@/data/questions/progression';
 import { DEFAULT_GAME_STATE, type LearningProfile, type LessonStep, type TodayLesson } from '@/lib/types';
-import { buildReasoningTasks, selectTransferQuestion } from '@/lib/independentSolving';
+import { buildReasoningTasks, createSolvingEvidence, selectTransferQuestion } from '@/lib/independentSolving';
 import { commitLessonTransaction } from '@/lib/lessonTransaction';
 import { appendUniqueEvent } from '@/lib/learningEvents';
 import { buildDailyLesson, generateSafeFallbackLesson, getDefaultPhasesForStepType, hasLessonStarted, normalizeStep } from '@/lib/lessonPlanner';
@@ -39,6 +39,13 @@ assert.ok(helpQuestion, 'fixture needs a question with at least one generated re
   assert.equal(normalizeStep({ id: 'old-answered', type: 'full_solve', questionId: helpQuestion.id,
     currentPhaseIndex: 4, awardedAt: '2026-10-20T00:00:00.000Z' }).currentPhaseIndex, 1);
   assert.equal(legacy.solving?.firstAttemptCorrect, null);
+  for (const solving of [undefined, createSolvingEvidence()]) {
+    const future = normalizeStep({ id: 'legacy-locked-future', type: 'find_numbers', questionId: helpQuestion.id,
+      status: 'locked', phases: ['read', 'find_numbers', 'answer', 'explain'], currentPhaseIndex: 0, solving });
+    assert.deepEqual(future.phases, ['answer', 'explain'], 'Unanswered locked legacy slots also need migration before they become current');
+    assert.equal(future.status, 'locked');
+    assert.equal(future.solving?.independentCorrect, false);
+  }
 }
 
 {
