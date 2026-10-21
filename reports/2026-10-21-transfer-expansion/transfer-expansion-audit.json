@@ -1,0 +1,6304 @@
+{
+  "sourceCount": 625,
+  "allowedSafeSources": 620,
+  "unsafeSourceCount": 5,
+  "unsafeSourceIds": [
+    "g1ll_65",
+    "g1ll_67",
+    "g2_24",
+    "g5o_13",
+    "g5o_32"
+  ],
+  "entries": 595,
+  "numericDistinctCount": 578,
+  "structuralCount": 17,
+  "gaps": 30,
+  "grades": {
+    "G1": {
+      "total": 147,
+      "matched": 139,
+      "unavailable": 8
+    },
+    "G2": {
+      "total": 91,
+      "matched": 88,
+      "unavailable": 3
+    },
+    "G3": {
+      "total": 107,
+      "matched": 101,
+      "unavailable": 6
+    },
+    "G4": {
+      "total": 105,
+      "matched": 100,
+      "unavailable": 5
+    },
+    "G5": {
+      "total": 106,
+      "matched": 100,
+      "unavailable": 6
+    },
+    "G6": {
+      "total": 69,
+      "matched": 67,
+      "unavailable": 2
+    }
+  },
+  "coverageRows": [
+    {
+      "sourceId": "g1_01",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_02",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_03",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_04",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_05",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_06",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_07",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_08",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_09",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_10",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_11",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_11_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_12",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_13",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_13_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_14",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_15",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_15_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_16",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_17",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_18",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_19",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_19_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_20",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_21",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_21_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_22",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_22_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_23",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_23_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_24",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_24_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1_25",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1_25_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_01",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_02",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_03",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_04",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_05",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_06",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_07",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_08",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_09",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_10",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_11",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_11_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "choice",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_12",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_13",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_13_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_14",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "choice",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_15",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_15_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "comparison_symbol",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_16",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_17",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_18",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "comparison_symbol",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_19",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_19_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_20",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_21",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_21_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_22",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_22_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "comparison_symbol",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_23",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_23_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_24",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_24_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_25",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_25_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_26",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_26_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_27",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_27_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_28",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_28_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_29",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_29_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_30",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_30_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_31",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_31_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_32",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_32_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_33",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_33_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_34",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_34_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_35",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_35_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_36",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_36_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_37",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_37_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_38",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_38_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_39",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_39_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_40",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_40_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_41",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_41_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_42",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_42_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_43",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_43_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_44",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_44_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_45",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_45_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_46",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_46_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "choice",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_47",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_47_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_48",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_48_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "money",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_49",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_49_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_50",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_50_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "money",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_51",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_51_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_52",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_52_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_53",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_53_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_54",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_54_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_55",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_55_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_56",
+      "grade": "G1",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "保留三个互不相同形状类别且直接识别的原任务时，类别数固定为3；将其中一类改成重复类别需要新增去重合并判断，删减种类则缩小分类任务，因此当前不提供难度等价且答案不同的变式。"
+    },
+    {
+      "sourceId": "g1ll_57",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_57_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_58",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_58_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_59",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_59_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_60",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_60_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_61",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_61_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_62",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_62_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_63",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_63_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_64",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_64_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_65",
+      "grade": "G1",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "text",
+      "reason": "source-unsafe",
+      "detail": "原题尚未通过安全复核，保持隔离。"
+    },
+    {
+      "sourceId": "g1ll_66",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_66_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_67",
+      "grade": "G1",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "text",
+      "reason": "source-unsafe",
+      "detail": "原题尚未通过安全复核，保持隔离。"
+    },
+    {
+      "sourceId": "g1ll_68",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_68_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_69",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_69_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_70",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_70_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_71",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_71_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_72",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_72_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_73",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_73_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_74",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1ll_74_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_75",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_75_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "choice",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_76",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_76_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_77",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_77_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_78",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_78_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_79",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_79_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "choice",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_80",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_80_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_81",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_81_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_82",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_82_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_83",
+      "grade": "G2",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "text",
+      "reason": "constant-answer-by-design",
+      "detail": "直尺的大格和小格单位分别固定为厘米与毫米；题目无可变数字，换单位定义会改题目事实而不是同难度变式。"
+    },
+    {
+      "sourceId": "g1ll_84",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_84_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_85",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_85_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_86",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_86_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_87",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_87_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "ordering",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1ll_88",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g1ll_88_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_01",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_01_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_02",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_02_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_03",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_04",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_05",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_06",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_07",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_08",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_09",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_10",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_11",
+      "grade": "G1",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "not_enough_information",
+      "reason": "constant-answer-by-design",
+      "detail": "题干明确说“还缺一个条件，无法判断”；现有三个排除条件没有唯一确定铅笔所在盒子。任何仍保留“不足以判断”结论的变式都与源题答案语义相同，题目无数值参数。"
+    },
+    {
+      "sourceId": "g1t_12",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_13",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_13_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_14",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_15",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_15_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_16",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_17",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_18",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_19",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_19_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_20",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_21",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_21_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_22",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_22_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_23",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_23_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_24",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_24_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_25",
+      "grade": "G1",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "大三角形内一点连到三个顶点，必将内部划为3个小三角形；连线不延长时除这3个外只计外侧大三角形，答案恒为4。改变顶点连线或内部点约束会改变题型。"
+    },
+    {
+      "sourceId": "g1t_26",
+      "grade": "G1",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "题干固定2×2的四个等大方格并计入外侧大正方形，答案恒为4+1=5。只改图形朝向或颜色不改变数字答案；改成更大网格会增加需要穷数的子正方形层级，难度不再等价。"
+    },
+    {
+      "sourceId": "g1t_27",
+      "grade": "G1",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "用固定3个不同非零数字选十位和个位且不重复，排列总数恒为3×2=6；替换具体数字不改变答案，增加或减少数字会改变枚举规模。"
+    },
+    {
+      "sourceId": "g1t_28",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_28_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_29",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_29_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g1t_30",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_g1t_30_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_01",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_02",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_03",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_04",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_05",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_06",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_07",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_08",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_09",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_10",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_11",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_11_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_12",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_13",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_13_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_14",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_15",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_15_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_16",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_17",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_18",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_19",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_19_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_20",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_21",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_21_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_22",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_22_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_23",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_23_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2_24",
+      "grade": "G2",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "source-unsafe",
+      "detail": "原题尚未通过安全复核，保持隔离。"
+    },
+    {
+      "sourceId": "g2_25",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2_25_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_01",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_02",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_03",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_04",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_05",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_06",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_07",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_08",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_09",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_10",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_11",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_11_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_12",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_13",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_13_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_14",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_15",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_15_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_16",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_17",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_18",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g2o_19",
+      "grade": "G2",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "题目规定用2、5、8组成不重复两位数。固定3个不同且非零数字时，十位任选3种、个位任选其余2种，恒为3×2=6；换具体数字不会改变答案，增减可选数字会改变枚举规模与难度。"
+    },
+    {
+      "sourceId": "g2o_20",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_g2o_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_01",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_02",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_03",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_04",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_05",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_06",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_07",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_08",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_09",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_10",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_11",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_11_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_12",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_13",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_13_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_14",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_15",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_15_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_16",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_17",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_18",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_19",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_19_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_20",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_21",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_21_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_22",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_22_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_23",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_23_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_24",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_24_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_25",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_25_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_01",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_02",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_03",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_04",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_05",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_06",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_07",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_08",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_09",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_10",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_11",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_11_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_12",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_13",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_13_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_14",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_15",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_15_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_16",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_17",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_18",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_19",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_19_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_20",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_21",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_21_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_22",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_22_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_23",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_23_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_24",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_24_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3o_25",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3o_25_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_01",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_02",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_03",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_04",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_05",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_06",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_07",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_08",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_09",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_10",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_11",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_11_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_12",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_13",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_13_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_14",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_15",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_15_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_16",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_17",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_18",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_19",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_19_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_20",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_21",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_21_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_22",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_22_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_23",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_23_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_24",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_24_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4_25",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4_25_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_01",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_02",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_03",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_04",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_05",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_06",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_07",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_08",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_09",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_10",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_10_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_11",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_11_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_12",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_13",
+      "grade": "G4",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "固定使用四个互异数字且其中恰有0，首位不能为0时，百位有3种、十位3种、个位2种，答案恒为18。仅改变数字标签不会改变排列数；改变数字个数、重复限制或首位约束会改变枚举规模或题型。"
+    },
+    {
+      "sourceId": "g4o_14",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_15",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_15_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_16",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_17",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_18",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_19",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_19_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_20",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_21",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_21_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_22",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_22_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_23",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_23_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_24",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_24_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_25",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_25_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_26",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_26_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_27",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_g4o_27_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g4o_28",
+      "grade": "G4",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "题目有3种颜色并保证摸到3个同色；保留每色至少2个的原容量范围时，最坏情况总能先取每色2个共6个，第7个保证三同色，答案恒为7。把某色减到2个以下需额外处理该色不足2个的容量分支，改变原推理负担，因此不纳入本轮同难度变式。"
+    },
+    {
+      "sourceId": "g5_01",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_02",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_03",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_04",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_05",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_06",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_07",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_08",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_09",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_10",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_11",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_11_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_12",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_13",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_13_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_14",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_15",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_15_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_16",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_17",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_18",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_19",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_19_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_20",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_21",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_21_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_22",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_22_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_23",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_23_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_24",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_24_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5_25",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5_25_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_01",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_02",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_03",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_04",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_05",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_06",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_07",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_08",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "ratio",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_09",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_10",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_11",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_11_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_12",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_13",
+      "grade": "G5",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "text",
+      "reason": "source-unsafe",
+      "detail": "原题尚未通过安全复核，保持隔离。"
+    },
+    {
+      "sourceId": "g5o_14",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "percent",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_15",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_15_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "percent",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_16",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_17",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "percent",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_18",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_19",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_19_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_20",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_21",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_21_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_22",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_22_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_23",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_23_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_24",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_24_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_25",
+      "grade": "G5",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "multi_field",
+      "reason": "difficulty-not-preserved",
+      "detail": "要保留三边互异、单个边长数字、三组面乘积的加法进位型态（连续两次进位）以及棱长整除切块，逐项检查一位偶数边长2/4/6/8后，唯一满足两次连续进位的不同数值组合仍是原来的8、6、4的排列，答案也因此不变；换边长会改变两次加法进位或引入一位数乘积，保持进位的近邻组12、8、6则引入两位边长和两位乘数。小正方体棱长改为1会使切块数直接等于已求总体积，省去原需除以8的分装步骤；棱长3仅有一位互异倍数3、6、9且面和仅1次进位，棱长至少4无法给出3个互异的一位倍数。把三边改成相等虽可切块却会化为正方体、减少三组不同面面积的比较。没有同时改变答案并保持原算术和几何负担的安全变式。"
+    },
+    {
+      "sourceId": "g5o_26",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_26_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_27",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_27_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_28",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_28_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_29",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_29_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_30",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_30_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_31",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_31_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g5o_32",
+      "grade": "G5",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "text",
+      "reason": "source-unsafe",
+      "detail": "原题尚未通过安全复核，保持隔离。"
+    },
+    {
+      "sourceId": "g5o_33",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_g5o_33_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_01",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_02",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_03",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_04",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_05",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_06",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "percent",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_07",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_08",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_09",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_10",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_11",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_11_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_12",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_12_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_13",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_13_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_14",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_14_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_15",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_15_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_16",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_16_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_17",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_17_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_18",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_18_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_19",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_19_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_20",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_20_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_21",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_21_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "percent",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_22",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_22_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_23",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_23_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_24",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_24_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "multi_field",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g6_25",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_g6_25_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_mul_01",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_mul_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_mul_02",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_mul_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_mul_03",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_mul_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_mul_04",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_mul_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_mul_05",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_mul_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_mul_06",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_mul_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_mul_07",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_mul_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_div_01",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_div_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_div_02",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_div_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "g3_div_03",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_g3_div_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "extra_01",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_extra_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "extra_02",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_extra_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "extra_03",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_extra_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "extra_04",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_extra_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "extra_05",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_extra_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "extra_06",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_extra_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "extra_07",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_extra_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "extra_08",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_extra_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "miss_01",
+      "grade": "G3",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "not_enough_information",
+      "reason": "constant-answer-by-design",
+      "detail": "这道题在现有题干下都只能判定信息不足，不能得到唯一数值答案。只知道送出3颗，不知道原来或剩余数量；原数减3可对应多个非负剩余数，无法唯一确定原数。"
+    },
+    {
+      "sourceId": "miss_02",
+      "grade": "G3",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "not_enough_information",
+      "reason": "constant-answer-by-design",
+      "detail": "这道题在现有题干下都只能判定信息不足，不能得到唯一数值答案。只知道第一站上车15人，不知道原有人数；原人数加15有多个可能结果，无法唯一确定现在人数。"
+    },
+    {
+      "sourceId": "miss_03",
+      "grade": "G4",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "not_enough_information",
+      "reason": "constant-answer-by-design",
+      "detail": "这道题在现有题干下都只能判定信息不足，不能得到唯一数值答案。只知道平均分给5人，不知道铅笔总数；多个总数会产生不同的人均数量。"
+    },
+    {
+      "sourceId": "miss_04",
+      "grade": "G4",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "not_enough_information",
+      "reason": "constant-answer-by-design",
+      "detail": "这道题在现有题干下都只能判定信息不足，不能得到唯一数值答案。只知道每瓶5元，不知道购买瓶数；总价随瓶数变化，无法唯一确定。"
+    },
+    {
+      "sourceId": "miss_05",
+      "grade": "G5",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "not_enough_information",
+      "reason": "constant-answer-by-design",
+      "detail": "这道题在现有题干下都只能判定信息不足，不能得到唯一数值答案。只知道长方形菜地长20米，不知道宽；周长随宽变化，无法唯一确定篱笆长度。"
+    },
+    {
+      "sourceId": "miss_06",
+      "grade": "G5",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "not_enough_information",
+      "reason": "constant-answer-by-design",
+      "detail": "这道题在现有题干下都只能判定信息不足，不能得到唯一数值答案。只知道两组之间的数量差，没有任一人的绝对本数；可同时平移三人的本数而保持差值不变。"
+    },
+    {
+      "sourceId": "miss_07",
+      "grade": "G3",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "not_enough_information",
+      "reason": "constant-answer-by-design",
+      "detail": "这道题在现有题干下都只能判定信息不足，不能得到唯一数值答案。只知道原有30本和卖出了一部分，不知道卖出本数；剩余数量不唯一。"
+    },
+    {
+      "sourceId": "miss_08",
+      "grade": "G6",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "not_enough_information",
+      "reason": "constant-answer-by-design",
+      "detail": "这道题在现有题干下都只能判定信息不足，不能得到唯一数值答案。只知道男女生比例3:2，没有任何总人数或其中一组的具体人数；总人数可按比例任意缩放。"
+    },
+    {
+      "sourceId": "prog_g1_u4_01",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u4_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u4_02",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u4_02_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u4_03",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u4_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u4_04",
+      "grade": "G1",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "T形四格外框段数由题干固定的相邻关系决定为10；改变边长只改变单位长度，不改变所问段数。"
+    },
+    {
+      "sourceId": "prog_g1_u5_01",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u5_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u5_02",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u5_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u5_03",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u5_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u2_01",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u2_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u2_02",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u2_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u1_01",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u1_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u1_02",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u1_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u3_01",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u3_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u3_02",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u3_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u5_04",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u5_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "money",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u6_01",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u6_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u6_02",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u6_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u2_03",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u2_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g1_u2_04",
+      "grade": "G1",
+      "status": "variant",
+      "variantId": "transfer_prog_g1_u2_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u2_01",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u2_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u2_02",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u2_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u2_03",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u2_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u2_04",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u2_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u2_05",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u2_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u2_06",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u2_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u2_07",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u2_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u2_08",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u2_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u2_09",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u2_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u5_01",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u5_01_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u5_02",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u5_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u5_03",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u5_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u5_04",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u5_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u5_05",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u5_05_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u5_06",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u5_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u5_07",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u5_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u5_08",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u5_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u5_09",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u5_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u1_01",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u1_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u1_02",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u1_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u1_03",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u1_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u1_04",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u1_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u1_05",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u1_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u1_06",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u1_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u1_07",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u1_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u1_08",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u1_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u1_09",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u1_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u1_10",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u1_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u4_01",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u4_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u4_02",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u4_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u4_03",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u4_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g2_u6_01",
+      "grade": "G2",
+      "status": "variant",
+      "variantId": "transfer_prog_g2_u6_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u1_01",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u1_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u1_02",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u1_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u1_03",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u1_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u1_04",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u1_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u1_05",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u1_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u1_06",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u1_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u1_07",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u1_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u1_08",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u1_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u3_01",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u3_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u3_02",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u3_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u3_03",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u3_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u3_04",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u3_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u3_05",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u3_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u3_06",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u3_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u3_07",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u3_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u3_08",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u3_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u3_09",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u3_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u4_01",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u4_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u4_02",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u4_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u4_03",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u4_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u4_04",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u4_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u4_05",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u4_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u4_06",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u4_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u4_07",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u4_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u6_01",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u6_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u6_02",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u6_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u6_03",
+      "grade": "G3",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "题目明确给2种主食和2种饮料各选1种，全部搭配固定为2×2=4种；只换选项名称答案不变，改变任一类选项数会同时改变可见选项数与组合域。"
+    },
+    {
+      "sourceId": "prog_g3_u6_04",
+      "grade": "G3",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "候选人固定为3人，组长与记录员有顺序且不能同人，所以具体人名下都恒有3×2=6种；改候选人数会改变枚举规模和答案范围。"
+    },
+    {
+      "sourceId": "prog_g3_u6_05",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u6_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u6_06",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u6_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u6_07",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u6_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u6_08",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u6_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u6_09",
+      "grade": "G3",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "固定3人排成一列且其中1人不能在首位时，受限者有2个位置、其余两人可互换，恒有2×2=4种；改变人数会扩大排列域并改变题目规模。"
+    },
+    {
+      "sourceId": "prog_g3_u5_01",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u5_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u5_02",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u5_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u5_03",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u5_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u5_04",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u5_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u5_05",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u5_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u5_06",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u5_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u5_07",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u5_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g3_u5_08",
+      "grade": "G3",
+      "status": "variant",
+      "variantId": "transfer_prog_g3_u5_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u3_01",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u3_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u3_02",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u3_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u3_03",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u3_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u3_04",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u3_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u3_05",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u3_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u3_06",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u3_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u3_07",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u3_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u3_08",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u3_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u3_09",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u3_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u4_01",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u4_01_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u4_02",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u4_02_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u4_03",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u4_03_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u4_04",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u4_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u4_05",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u4_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u4_06",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u4_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u4_07",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u4_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u4_08",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u4_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u4_09",
+      "grade": "G4",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "直角三角形另两角相等时，两角和为90度且各为45度；改变角度关系会改变题目条件或分类目标。"
+    },
+    {
+      "sourceId": "prog_g4_u5_01",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u5_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u5_02",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u5_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u5_03",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u5_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u5_04",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u5_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u5_05",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u5_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u5_06",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u5_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u5_07",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u5_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u5_08",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u5_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u5_09",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u5_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u1_01",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u1_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u1_02",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u1_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u1_03",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u1_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u1_04",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u1_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u1_05",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u1_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u1_06",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u1_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u1_07",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u1_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u1_08",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u1_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u1_09",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u1_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u1_10",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u1_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u2_01",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u2_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u2_02",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u2_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u2_03",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u2_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u2_04",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u2_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u2_05",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u2_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u2_06",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u2_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u6_01",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u6_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u6_02",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u6_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u6_03",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u6_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u6_04",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u6_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g4_u6_05",
+      "grade": "G4",
+      "status": "variant",
+      "variantId": "transfer_prog_g4_u6_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u1_01",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u1_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u1_02",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u1_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u1_03",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u1_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u1_04",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u1_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u1_05",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u1_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u2_01",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u2_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u2_02",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u2_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u2_03",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u2_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u3_01",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u3_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u3_02",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u3_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u3_03",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u3_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u3_04",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u3_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u4_01",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u4_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u4_02",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u4_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u4_03",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u4_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u5_01",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u5_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u5_02",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u5_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u5_03",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u5_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u6_01",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u6_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u6_02",
+      "grade": "G5",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "integer",
+      "reason": "constant-answer-by-design",
+      "detail": "固定用3个互异非零数字组成不重复两位数，十位有3种、个位有2种，答案恒为6；换数字标签不改答案，改数字数量会改变枚举规模。"
+    },
+    {
+      "sourceId": "prog_g5_u6_03",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u6_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u2_04",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u2_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u2_05",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u2_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u2_06",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u2_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u2_07",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u2_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u2_08",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u2_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u2_09",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u2_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u4_04",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u4_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u4_05",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u4_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u4_06",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u4_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u4_07",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u4_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u4_08",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u4_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u4_09",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u4_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u5_04",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u5_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u5_05",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u5_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u5_06",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u5_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u6_04",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u6_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u6_05",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u6_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u6_06",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u6_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u6_07",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u6_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u6_08",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u6_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u6_09",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u6_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u6_10",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u6_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g5_u4_10",
+      "grade": "G5",
+      "status": "variant",
+      "variantId": "transfer_prog_g5_u4_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u1_01",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u1_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u1_02",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u1_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u1_03",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u1_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "fraction",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u2_01",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u2_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u2_02",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u2_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u2_03",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u2_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u3_01",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u3_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u3_02",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u3_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u3_03",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u3_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u4_01",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u4_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u4_02",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u4_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u4_03",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u4_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u5_01",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u5_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u5_02",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u5_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u5_03",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u5_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u6_01",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u6_01_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u6_02",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u6_02_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u2_04",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u2_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u2_05",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u2_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u5_04",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u5_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u5_05",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u5_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u6_03",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u6_03_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u5_06",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u5_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u5_07",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u5_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u5_08",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u5_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u5_09",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u5_09_v1_01",
+      "verificationMode": "structural-proof",
+      "schemaKind": "text",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u6_04",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u6_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u6_05",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u6_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u6_06",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u6_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u6_07",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u6_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u6_08",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u6_08_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u6_09",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u6_09_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u4_04",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u4_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u4_05",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u4_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u4_06",
+      "grade": "G6",
+      "status": "gap",
+      "variantId": null,
+      "verificationMode": null,
+      "schemaKind": "decimal",
+      "reason": "difficulty-not-preserved",
+      "detail": "保持周长除以3.14得到整数直径、半径为一位整数，并使周长和面积都保留一位小数时，周长须为6.28r、面积须为3.14r²。对r=1至9逐一检查，只有r=5使面积保留一位小数（78.5）；其余半径的面积均需两位小数，因此同样精度负担下答案固定。"
+    },
+    {
+      "sourceId": "prog_g6_u1_04",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u1_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u3_04",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u3_04_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u4_07",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u4_07_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "decimal",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u5_10",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u5_10_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u1_05",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u1_05_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u2_06",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u2_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    },
+    {
+      "sourceId": "prog_g6_u1_06",
+      "grade": "G6",
+      "status": "variant",
+      "variantId": "transfer_prog_g6_u1_06_v1_01",
+      "verificationMode": "numeric-distinct",
+      "schemaKind": "integer",
+      "reason": null,
+      "detail": null
+    }
+  ],
+  "issues": [],
+  "passed": true,
+  "registeredCount": 595,
+  "registryErrors": []
+}

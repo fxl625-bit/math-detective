@@ -1,0 +1,86 @@
+{
+  "version": "2.15.0",
+  "date": "2026-10-21",
+  "application": "3752542db59f5b2258533622ee820766eb86d1abc051493883c19a2e1a557b59",
+  "lint": {
+    "passed": true,
+    "errors": 0,
+    "warnings": 609
+  },
+  "typecheck": {
+    "passed": true
+  },
+  "productionBuild": {
+    "passed": true,
+    "runtime": "Node 24.14.0 on Windows",
+    "localTransport": "Original Google font bytes fetched through curl due to a local proxy hang; no font mocking or source changes. Vercel uses its standard build."
+  },
+  "units": {
+    "suites": 33,
+    "passed": 33,
+    "failed": 0
+  },
+  "staticGates": [
+    {
+      "gate": "questions",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "gate": "themes",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "gate": "hints",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "gate": "child-ui",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "gate": "real-curriculum",
+      "passed": true,
+      "exitCode": 0
+    },
+    {
+      "gate": "lesson-generation",
+      "passed": true,
+      "exitCode": 0
+    }
+  ],
+  "curriculum": {
+    "units": 36,
+    "lessons": 1008,
+    "questionSlots": 6048
+  },
+  "mathematics": {
+    "passed": true,
+    "sources": 625,
+    "variants": 595,
+    "gaps": 30,
+    "registered": 595,
+    "issues": 0,
+    "registryErrors": 0
+  },
+  "browser": {
+    "tests": 324,
+    "passed": true,
+    "startTime": "2026-10-21T11:35:05.158Z",
+    "duration": 766595.063,
+    "expected": 324,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "reportSha256": "457f4624cc5346280dc146d632b1081301d0291fa88b4bf872643db0e92a6178"
+  },
+  "independentReview": {
+    "passed": true,
+    "report": "SOL_REVIEW.md"
+  },
+  "releaseBoundary": "Local verification complete. GitHub same-commit workflows and Vercel candidate/canonical verification are recorded separately after publication.",
+  "passed": true
+}

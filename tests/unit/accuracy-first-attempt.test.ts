@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { getAccuracyStats } from '@/lib/storage';
+import { getAccuracyStats, getDateString } from '@/lib/storage';
 import { DEFAULT_GAME_STATE, type GameState, type LearningEvent } from '@/lib/types';
 
 function event(eventId: string, questionId: string, instanceId: string, type: LearningEvent['eventType'], result: LearningEvent['result'], timestamp: string): LearningEvent {
@@ -7,7 +7,8 @@ function event(eventId: string, questionId: string, instanceId: string, type: Le
     eventId, schemaVersion: 1, childProfileId: 'child', deviceId: 'device', sessionId: 'session', lessonId: 'lesson',
     questionInstanceId: instanceId, questionId, questionVersion: '1', skillIds: [], grade: 'G2', semester: 'upper',
     unitId: 'u1', role: 'current_concept', eventType: type, actionId: eventId, attemptId: eventId,
-    timestamp, hintLevel: 'none', completionMode: 'independent', result, firstAttemptKnown: true,
+    timestamp: new Date(`${getDateString()}T${timestamp.slice(11, 19)}`).toISOString(),
+    hintLevel: 'none', completionMode: 'independent', result, firstAttemptKnown: true,
   };
 }
 

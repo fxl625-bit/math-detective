@@ -24,6 +24,7 @@ import { isSolvingEvidence } from './solvingValidation';
 import { summarizeSolving } from './solvingMetrics';
 import { allQuestions } from '@/data/questions';
 import { createSolvingEvidence, buildReasoningTasks, evaluateReasoningTask, selectTransferQuestion, type SolvingEvidence } from './independentSolving';
+import { normalizeLearningSettingsFromParent } from './learningSettings';
 
 // ========== v2.6.6: Ranking 答案校验 ==========
 
@@ -362,7 +363,9 @@ function handleSolvingAction(lesson: TodayLesson, gameState: GameState, step: Le
     if (step.solving?.phase !== 'explanation' || !step.solving.fullExplanationViewedBeforeSolve) return noChangeResult(lesson, gameState, 'explanation must be viewed first', source);
     if (step.transfer) return noChangeResult(lesson, gameState, 'transfer already selected', source);
     const original = getQuestionById(step.questionId); if (!original) return noChangeResult(lesson, gameState, 'original question missing', source);
-    const selection = selectTransferQuestion(original, allQuestions);
+    const settings = normalizeLearningSettingsFromParent(gameState.parentSettings);
+    const unitId = settings.unitId ?? (lesson.settingSnapshot?.grade === settings.grade ? lesson.settingSnapshot.unitId : null);
+    const selection = selectTransferQuestion(original, allQuestions, { ...settings, unitId });
     const transfer = selection.kind === 'matched' ? { questionId: selection.questionId,
       questionInstanceId: `${originalInstance}:transfer:${selection.questionId}`, parentQuestionInstanceId: originalInstance,
       status: 'pending' as const, solving: createSolvingEvidence() } : { questionId: step.questionId,

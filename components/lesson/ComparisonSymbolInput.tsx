@@ -24,7 +24,6 @@ export function ComparisonSymbolInput({
   options,
   value,
   onChange,
-  onSubmit,
   disabled = false,
 }: ComparisonSymbolInputProps) {
   return (
@@ -33,9 +32,9 @@ export function ComparisonSymbolInput({
         <button
           key={sym}
           type="button"
+          aria-pressed={value === sym}
           onClick={() => {
             onChange(sym);
-            setTimeout(() => onSubmit(), 200);
           }}
           disabled={disabled}
           className={`w-20 h-20 rounded-2xl border-2 text-3xl font-extrabold transition-all ${

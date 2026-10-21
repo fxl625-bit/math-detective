@@ -1,0 +1,205 @@
+{
+  "suites": 33,
+  "passed": 33,
+  "failed": 0,
+  "results": [
+    {
+      "suite": "accuracy-first-attempt.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 15958
+    },
+    {
+      "suite": "achievements.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 606
+    },
+    {
+      "suite": "answer-checker-strict.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 15057
+    },
+    {
+      "suite": "completion-reward-transaction.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 3533
+    },
+    {
+      "suite": "curriculum-core-lesson.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 933
+    },
+    {
+      "suite": "data-export.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1559
+    },
+    {
+      "suite": "data-transfer.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 963
+    },
+    {
+      "suite": "direct-meaning-validation.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1177
+    },
+    {
+      "suite": "event-metrics.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 894
+    },
+    {
+      "suite": "family-points.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 914
+    },
+    {
+      "suite": "independent-solving-content.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1433
+    },
+    {
+      "suite": "independent-solving-runtime.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 938
+    },
+    {
+      "suite": "learning-calendar.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 763
+    },
+    {
+      "suite": "learning-events.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1241
+    },
+    {
+      "suite": "learning-settings.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 644
+    },
+    {
+      "suite": "lesson-profile-signature.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1881
+    },
+    {
+      "suite": "lesson-state-machine.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 971
+    },
+    {
+      "suite": "load-state-idempotency.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 737
+    },
+    {
+      "suite": "mental-math-upgrade.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1443
+    },
+    {
+      "suite": "mistake-explanation-gate.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1240
+    },
+    {
+      "suite": "mistake-review.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 885
+    },
+    {
+      "suite": "money-input.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 358
+    },
+    {
+      "suite": "parent-password.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1617
+    },
+    {
+      "suite": "scoring.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1116
+    },
+    {
+      "suite": "semester-resolution.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1342
+    },
+    {
+      "suite": "settings-profile-sync.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 539
+    },
+    {
+      "suite": "solving-metrics.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1032
+    },
+    {
+      "suite": "storage-recovery.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 961
+    },
+    {
+      "suite": "submit-transaction.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1160
+    },
+    {
+      "suite": "transfer-expansion-oracle.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1683
+    },
+    {
+      "suite": "transfer-registry.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 2383
+    },
+    {
+      "suite": "transfer-source-corrections.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 1277
+    },
+    {
+      "suite": "unit-question-selection.test.ts",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 765
+    }
+  ]
+}

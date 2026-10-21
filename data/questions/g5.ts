@@ -557,9 +557,9 @@ export const g5Questions: Question[] = [
   lessonType:'number_clue',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'remove_noise', 'full_solve'],
-    answerType: 'ranking',
+    answerType: 'number',
     sceneType: 'shopping',
     themeTags: ["money","shopping","playground","competition","ranking","sports"],
-    problemType: 'logic_ranking',
+    problemType: 'basic_arithmetic',
   }
 ];

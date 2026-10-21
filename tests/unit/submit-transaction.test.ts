@@ -5,21 +5,20 @@
  * Tests the ENTIRE chain: accept answer → validate → advance phase → persist → render.
  */
 
-import { allQuestions } from '@/data/questions';
-import { getDefaultPhasesForStepType, getCurrentStep } from '@/lib/lessonPlanner';
+import { getCurrentStep } from '@/lib/lessonPlanner';
 import { commitLessonTransaction, type LearningState } from '@/lib/lessonTransaction';
-import { DEFAULT_GAME_STATE, type TodayLesson, type LessonStep, type GameState, type Question } from '@/lib/types';
+import { DEFAULT_GAME_STATE, type TodayLesson, type LessonStep, type GameState } from '@/lib/types';
 
 // ========== Test helpers ==========
 
 function makeLessonStep(overrides: Partial<LessonStep> = {}): LessonStep {
   return {
     id: overrides.id || 'test-step-1',
-    type: overrides.type || 'full_solve',
+    type: overrides.type || 'answer_only',
     title: overrides.title || '测试关',
     description: overrides.description || '测试',
     questionId: overrides.questionId || 'g1ll_01',
-    phases: overrides.phases || ['read', 'find_numbers', 'find_keywords', 'choose_operation', 'build_equation', 'answer', 'explain'],
+    phases: overrides.phases || ['answer', 'explain'],
     currentPhaseIndex: overrides.currentPhaseIndex ?? 0,
     status: overrides.status || 'current',
     requiresAnswer: overrides.requiresAnswer ?? true,
@@ -28,7 +27,7 @@ function makeLessonStep(overrides: Partial<LessonStep> = {}): LessonStep {
 }
 
 function makeLesson(overrides: Partial<TodayLesson> = {}): TodayLesson {
-  const step = makeLessonStep({ currentPhaseIndex: 5 }); // Start at 'answer' phase
+  const step = makeLessonStep({ currentPhaseIndex: 0 });
   return {
     date: new Date().toISOString().slice(0, 10),
     steps: overrides.steps || [step],
@@ -71,7 +70,7 @@ console.log('\n=== test:submit-transaction ===\n');
 // ===== Test 1: Correct answer advances exactly one phase =====
 test('correct answer advances exactly one phase from answer to explain', () => {
   const lesson = makeLesson();
-  assert(lesson.steps[0].currentPhaseIndex === 5, 'should start at answer (index 5)');
+  assert(lesson.steps[0].currentPhaseIndex === 0, 'should start at answer (index 0)');
 
   const state: LearningState = {
     lesson,
@@ -90,13 +89,13 @@ test('correct answer advances exactly one phase from answer to explain', () => {
 
   assert(result.changed === true, 'result.changed should be true');
   assert(result.advanced === true, 'result.advanced should be true');
-  assert(result.fromPhaseIndex === 5, `fromPhase should be 5, got ${result.fromPhaseIndex}`);
-  assert(result.toPhaseIndex === 6, `toPhase should be 6 (explain), got ${result.toPhaseIndex}`);
+  assert(result.fromPhaseIndex === 0, `fromPhase should be 0, got ${result.fromPhaseIndex}`);
+  assert(result.toPhaseIndex === 1, `toPhase should be 1 (explain), got ${result.toPhaseIndex}`);
   assert(result.toPhase === 'explain', `toPhase should be 'explain', got ${result.toPhase}`);
 });
 
 // ===== Test 2: Submit on last phase completes step =====
-test('correct answer on last answer phase completes the step (no more phases)', () => {
+test('legacy phases migrate before a correct answer enters review', () => {
   const lesson = makeLesson();
   // Set up a step where answer IS the last phase before explain
   lesson.steps[0].phases = ['read', 'answer', 'explain'];
@@ -114,6 +113,7 @@ test('correct answer on last answer phase completes the step (no more phases)', 
   assert(result.changed === true, 'should change state');
   assert(result.advanced === true, 'should advance');
   assert(result.toPhase === 'explain', `should advance to explain, got ${result.toPhase}`);
+  assert(result.nextLesson.completed === false, 'review remains visible until the learner continues');
 });
 
 // ===== Test 3: Wrong answer does NOT advance =====
@@ -133,7 +133,7 @@ test('wrong answer does not advance phase', () => {
 
 // ===== Test 4: Step completion advances step index =====
 test('complete_step advances only after a correct answer was awarded', () => {
-  const step1 = makeLessonStep({ id: 's1', currentPhaseIndex: 6, awardedAt: new Date().toISOString() });
+  const step1 = makeLessonStep({ id: 's1', currentPhaseIndex: 1, awardedAt: new Date().toISOString() });
   const step2 = makeLessonStep({ id: 's2', currentPhaseIndex: 0, status: 'locked' });
   const lesson = makeLesson({
     steps: [step1, step2],
@@ -154,12 +154,13 @@ test('complete_step advances only after a correct answer was awarded', () => {
 });
 
 test('complete_step is blocked before an answer is awarded', () => {
-  const lesson = makeLesson({ steps: [makeLessonStep({ currentPhaseIndex: 6 }), makeLessonStep({ id: 'next', status: 'locked' })] });
+  const lesson = makeLesson({ steps: [makeLessonStep({ currentPhaseIndex: 1 }), makeLessonStep({ id: 'next', status: 'locked' })] });
   const result = commitLessonTransaction({
     state: { lesson, gameState: makeGameState() }, action: 'complete_step', payload: {}, source: 'test-unanswered',
   });
   assert(result.changed === false, 'an unanswered step cannot be marked complete');
-  assert(result.reason === 'answer gate blocked: no answer awarded', 'reports the answer gate as the reason');
+  assert(result.nextLesson.currentStepIndex === 0, 'the next question remains locked behind the answer gate');
+  assert(result.nextState.gameState.totalCompleted === 0, 'a blocked request cannot award a completion');
 });
 
 // ===== Test 5: Double submit of same answer is idempotent =====
@@ -191,7 +192,7 @@ test('second submit_answer on same phase does not re-advance (in lessonTransacti
 });
 
 // ===== Test 6: Each phase advances by exactly 1 index =====
-test('submit_answer advances exactly 1 phase index', () => {
+test('legacy tutorial phases cannot be clicked through without answering', () => {
   for (let phaseIdx = 0; phaseIdx < 5; phaseIdx++) {
     const lesson = makeLesson();
     lesson.steps[0].currentPhaseIndex = phaseIdx;
@@ -206,10 +207,9 @@ test('submit_answer advances exactly 1 phase index', () => {
       source: 'test',
     });
 
-    assert(
-      result.toPhaseIndex === phaseIdx + 1,
-      `phase ${phaseIdx} should advance to ${phaseIdx + 1}, got ${result.toPhaseIndex}`
-    );
+    assert(result.changed === false, `legacy phase ${phaseIdx} cannot bypass the answer`);
+    assert(result.nextLesson.currentStepIndex === 0, 'the original question is still current');
+    assert(!result.nextLesson.steps[0].awardedAt, 'no answer means no award');
   }
 });
 
@@ -227,13 +227,13 @@ test('state after submit has correct phases and indices', () => {
 
   const nextStep = getCurrentStep(result.nextLesson);
   assert(nextStep !== undefined, 'next step should exist');
-  assert(nextStep!.currentPhaseIndex === 6, `phase should be at explain (6), got ${nextStep!.currentPhaseIndex}`);
+  assert(nextStep!.currentPhaseIndex === 1, `phase should be at explain (1), got ${nextStep!.currentPhaseIndex}`);
 });
 
 // ===== Summary =====
 console.log(`\nResults: ${passed} passed, ${failed} failed`);
 if (failed > 0) {
-  console.log('❌ Some tests FAILED — fix before proceeding to Sub-project B');
+  console.log('❌ Submit transaction checks failed');
   process.exit(1);
 } else {
   console.log('✅ All submit-transaction tests PASSED');

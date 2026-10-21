@@ -1,0 +1,979 @@
+{
+  "files": 191,
+  "stagedApplicationSha256": "3752542db59f5b2258533622ee820766eb86d1abc051493883c19a2e1a557b59",
+  "runtimePaths": [
+    "app",
+    "components",
+    "data",
+    "hooks",
+    "lib",
+    "public",
+    "package.json",
+    "package-lock.json",
+    "next.config.ts",
+    "middleware.ts",
+    "postcss.config.mjs",
+    "tsconfig.json",
+    ".browserslistrc",
+    "eslint.config.mjs",
+    "scripts/postbuild-css.js"
+  ],
+  "inputs": [
+    {
+      "path": ".browserslistrc",
+      "mode": "100644",
+      "blob": "d72290eb5a4444de64e048503c954a27e9cf7286"
+    },
+    {
+      "path": "app/api/dev-diagnostics/route.ts",
+      "mode": "100644",
+      "blob": "62c4aa2aeecdc555c8b412a697b9a7d36c11e15e"
+    },
+    {
+      "path": "app/favicon.ico",
+      "mode": "100644",
+      "blob": "718d6fea4835ec2d246af9800eddb7ffb276240c"
+    },
+    {
+      "path": "app/globals.css",
+      "mode": "100644",
+      "blob": "9901ed85b3e738addc70c7ac08b30ca0ff3a387f"
+    },
+    {
+      "path": "app/layout.tsx",
+      "mode": "100644",
+      "blob": "7c14ddf936ba8942f729a52f46a22783a7793830"
+    },
+    {
+      "path": "app/mental-math/page.tsx",
+      "mode": "100644",
+      "blob": "322db2f3285430620d3102f094c7e0fec2fd2406"
+    },
+    {
+      "path": "app/mistakes/page.tsx",
+      "mode": "100644",
+      "blob": "12e75962f350d7aa1466818663f6aef2d65e4cc5"
+    },
+    {
+      "path": "app/page.tsx",
+      "mode": "100644",
+      "blob": "88044aed73209081fe3e58f89b6c9dcacd7d11f3"
+    },
+    {
+      "path": "app/parent-report/page.tsx",
+      "mode": "100644",
+      "blob": "86a174dd21a605f275090e4664c99ec5003a5d06"
+    },
+    {
+      "path": "app/parent/test/page.tsx",
+      "mode": "100644",
+      "blob": "0b3b26b1facf6f85a0a017028f2deca6f256d4db"
+    },
+    {
+      "path": "app/play/actions/page.tsx",
+      "mode": "100644",
+      "blob": "ec63b30f72482c4f39aaa0e210afb5dbe10f03d9"
+    },
+    {
+      "path": "app/play/clues/page.tsx",
+      "mode": "100644",
+      "blob": "ba9c34780f8808061872f4d04be4680da1531e0c"
+    },
+    {
+      "path": "app/play/noise/page.tsx",
+      "mode": "100644",
+      "blob": "228d9b61f3f2d4771bd39adf7eb178084b6ad86f"
+    },
+    {
+      "path": "app/play/page.tsx",
+      "mode": "100644",
+      "blob": "4c3ce4ec73c1695d46db7f179c04375e78e5535a"
+    },
+    {
+      "path": "app/play/solve/page.tsx",
+      "mode": "100644",
+      "blob": "ae8eac7ffe14904bfef7730a07ec8391676f2de9"
+    },
+    {
+      "path": "app/rewards/page.tsx",
+      "mode": "100644",
+      "blob": "557a05f43f93cc5dcd4f848eb68413ffc116fe05"
+    },
+    {
+      "path": "components/AnimatedItems.tsx",
+      "mode": "100644",
+      "blob": "c9457d48345ae4f72b218982d4bcc921ce90dced"
+    },
+    {
+      "path": "components/BalanceScale.tsx",
+      "mode": "100644",
+      "blob": "5b521397e146cff22d8b204d899fde0486cdbe99"
+    },
+    {
+      "path": "components/BottomNav.tsx",
+      "mode": "100644",
+      "blob": "7c7de8c176e3283929168a30c448f761ef97d1e1"
+    },
+    {
+      "path": "components/Confetti.tsx",
+      "mode": "100644",
+      "blob": "1b417e1c9b8effcff4bce798ea57032051d3102a"
+    },
+    {
+      "path": "components/CostumeShop.tsx",
+      "mode": "100644",
+      "blob": "4ad9980548d5f121e84ca6e40ce970bd0042d047"
+    },
+    {
+      "path": "components/CountingBlocks.tsx",
+      "mode": "100644",
+      "blob": "d68df26abdd175bfd8eedfab50622f718075f75a"
+    },
+    {
+      "path": "components/DataTransferPanel.tsx",
+      "mode": "100644",
+      "blob": "b07bcaf8ae37c8b536c69e306d04b78d74a75c6f"
+    },
+    {
+      "path": "components/DetectiveMascot.tsx",
+      "mode": "100644",
+      "blob": "379bf3ba4e5aa77a29a3124dd596aeb2f9a07a71"
+    },
+    {
+      "path": "components/FeedbackOverlay.tsx",
+      "mode": "100644",
+      "blob": "b67c20066a1500f05d6d1a7db8bbb8226f241ef0"
+    },
+    {
+      "path": "components/layout/BottomActionBar.tsx",
+      "mode": "100644",
+      "blob": "f6968230b8f9a3bd67196b891702463a5be31661"
+    },
+    {
+      "path": "components/layout/PageContainer.tsx",
+      "mode": "100644",
+      "blob": "35a3c779967b26a5a017b6933d3f2e80c7ad4904"
+    },
+    {
+      "path": "components/LearningSettingsPanel.tsx",
+      "mode": "100644",
+      "blob": "39ba71aa5313b67ce69780ca6650da95759bc15b"
+    },
+    {
+      "path": "components/lesson/AnswerInputRouter.tsx",
+      "mode": "100644",
+      "blob": "0d6ac44e5682e60ac7a582bcc350147197a069fc"
+    },
+    {
+      "path": "components/lesson/ChoiceInput.tsx",
+      "mode": "100644",
+      "blob": "8a01b69a620692daee7d29519eaafae7a4c8e8d1"
+    },
+    {
+      "path": "components/lesson/ComparisonSymbolInput.tsx",
+      "mode": "100644",
+      "blob": "f38c27c7f2254e3d8ba4e5a923c7b3cf72718789"
+    },
+    {
+      "path": "components/lesson/ConceptLab.tsx",
+      "mode": "100644",
+      "blob": "8519b3b44c25f13301f16de4a0126ad20bb9d8cb"
+    },
+    {
+      "path": "components/lesson/GroupingLab.tsx",
+      "mode": "100644",
+      "blob": "622156974a8fe0625ad8041d3654192ee4684c87"
+    },
+    {
+      "path": "components/lesson/HintSystem.tsx",
+      "mode": "100644",
+      "blob": "e7e779068c628ab4cd550045d88bc2b97a366cec"
+    },
+    {
+      "path": "components/lesson/IndependentQuestion.tsx",
+      "mode": "100644",
+      "blob": "c1ae35089f1e9ce8bb06c56851210c5db89fa43c"
+    },
+    {
+      "path": "components/lesson/IntegerInput.tsx",
+      "mode": "100644",
+      "blob": "3e3bc4d6e0ab04707428b3bc395a578b1e51e469"
+    },
+    {
+      "path": "components/lesson/MoneyInput.tsx",
+      "mode": "100644",
+      "blob": "096aae95bd5fb4970c2c72b16ce26b35420c7041"
+    },
+    {
+      "path": "components/lesson/MultiAnswerInput.tsx",
+      "mode": "100644",
+      "blob": "af2e17fcaf7157f4b8273225641f8df7fc68c652"
+    },
+    {
+      "path": "components/lesson/MultiFieldInput.tsx",
+      "mode": "100644",
+      "blob": "80b5a1e534dca91d1b11634b675578028cce53dc"
+    },
+    {
+      "path": "components/lesson/PercentInput.tsx",
+      "mode": "100644",
+      "blob": "92cfdfc7801ce7545e4fa2678b15adaf0a971b76"
+    },
+    {
+      "path": "components/lesson/SequencePatternGuide.tsx",
+      "mode": "100644",
+      "blob": "db87d4a538148f02c94f4616a504696b2c463ad2"
+    },
+    {
+      "path": "components/LevelBadge.tsx",
+      "mode": "100644",
+      "blob": "a9fd842d8eb402a1f32d6d4645c087c489ca12e8"
+    },
+    {
+      "path": "components/LogicRankingGuide.tsx",
+      "mode": "100644",
+      "blob": "33cc3e8a2576ff6617b9c3a724b4a37fb5c510e4"
+    },
+    {
+      "path": "components/NumberLine.tsx",
+      "mode": "100644",
+      "blob": "aaf3a3cd1d1f1baa180dc2fb554acfc61b941b60"
+    },
+    {
+      "path": "components/OfflineSupport.tsx",
+      "mode": "100644",
+      "blob": "4834228ebb9ffa520658e2acf205e110bf6dfb71"
+    },
+    {
+      "path": "components/ParentAccessBoundary.tsx",
+      "mode": "100644",
+      "blob": "411304634bde11cbd21d2146f5a5c2d09d4fc9c3"
+    },
+    {
+      "path": "components/ParentPasswordGate.tsx",
+      "mode": "100644",
+      "blob": "50f45af0f718b449859c8d8d25b8430fc39377cd"
+    },
+    {
+      "path": "components/ParentRewardForm.tsx",
+      "mode": "100644",
+      "blob": "834489bac032a61a9896378e430a4d3481ca93d5"
+    },
+    {
+      "path": "components/PolyfillScript.tsx",
+      "mode": "100644",
+      "blob": "6fea9968b46930d32312de84bf5570de191fae44"
+    },
+    {
+      "path": "components/ProgressBar.tsx",
+      "mode": "100644",
+      "blob": "353854f39a6a76416b9f8c85482e4fc3165b0541"
+    },
+    {
+      "path": "components/RedeemConfirmModal.tsx",
+      "mode": "100644",
+      "blob": "83776a89a8b8aa856bbc611f6d366cf4bf4a55cd"
+    },
+    {
+      "path": "components/rewards/AchievementMedal.tsx",
+      "mode": "100644",
+      "blob": "88e35aa78746267bc205ba3611bdca69fbefffc4"
+    },
+    {
+      "path": "components/rewards/ClaimCelebration.tsx",
+      "mode": "100644",
+      "blob": "27b42f5d58d1bc280578395b935a0bbfc017b5d2"
+    },
+    {
+      "path": "components/rewards/DetectiveStage.tsx",
+      "mode": "100644",
+      "blob": "09ff30edd51a3d6ed8f6ad193e77d5bb6bae9dec"
+    },
+    {
+      "path": "components/rewards/FamilyPointsPanel.tsx",
+      "mode": "100644",
+      "blob": "2d3c64ea9881d0ae790a07fd2d3d4ec48851b515"
+    },
+    {
+      "path": "components/rewards/FoxIllustration.tsx",
+      "mode": "100644",
+      "blob": "37b9d6ad172c0a5318955224b87bbcc18d5c8eb8"
+    },
+    {
+      "path": "components/rewards/MedalGallery.tsx",
+      "mode": "100644",
+      "blob": "2ab0b0bbe9bbe4b49628ab42f80ca690508cd32b"
+    },
+    {
+      "path": "components/rewards/WardrobePanel.tsx",
+      "mode": "100644",
+      "blob": "5b12a124e7568c20fa0db4ba644877a81562e024"
+    },
+    {
+      "path": "components/StarDisplay.tsx",
+      "mode": "100644",
+      "blob": "cba39e0d312c4a3c9e609f29e2d59c70a2f6c47e"
+    },
+    {
+      "path": "components/StreakDisplay.tsx",
+      "mode": "100644",
+      "blob": "f3649d11ccb79b6bba1a99a5b79afddf5cc0411f"
+    },
+    {
+      "path": "components/ThreeQuestionFlow.tsx",
+      "mode": "100644",
+      "blob": "04d90203c99db470e29eaf4e5d7981130705fcc3"
+    },
+    {
+      "path": "components/TomorrowPreviewCard.tsx",
+      "mode": "100644",
+      "blob": "82c195d027c4e64ab7b18cc3d709c3ce286f53e2"
+    },
+    {
+      "path": "components/ui/AppButton.tsx",
+      "mode": "100644",
+      "blob": "cbe28ccc4c029520d6a4551417ec587a1de9a54a"
+    },
+    {
+      "path": "components/ui/AppCard.tsx",
+      "mode": "100644",
+      "blob": "27232dd428e5d15602f8da380db40725867ce80d"
+    },
+    {
+      "path": "data/achievementCatalog.ts",
+      "mode": "100644",
+      "blob": "a6bc966fcf2535b567a5ec64176ea72331a7ecec"
+    },
+    {
+      "path": "data/avatarItems.ts",
+      "mode": "100644",
+      "blob": "81a7c0a4fd8591c3f95ae7c6cce0a55967092b5f"
+    },
+    {
+      "path": "data/badges.ts",
+      "mode": "100644",
+      "blob": "000d86ef2716ea3f6127d0e405e94a512412d86f"
+    },
+    {
+      "path": "data/decorations.ts",
+      "mode": "100644",
+      "blob": "dcaebc6d171ceb3f10a926564a23b818236bb855"
+    },
+    {
+      "path": "data/interactiveHelp.ts",
+      "mode": "100644",
+      "blob": "f721635fc0b908307113a9d391cdf556bb711dbc"
+    },
+    {
+      "path": "data/keywordRules.ts",
+      "mode": "100644",
+      "blob": "a392ef9c26f644399b54df43228f6a3e4e263e9a"
+    },
+    {
+      "path": "data/levels.ts",
+      "mode": "100644",
+      "blob": "67fb527b6685d0b5ee4746389e3bf6eb27972a84"
+    },
+    {
+      "path": "data/questions.ts",
+      "mode": "100644",
+      "blob": "4d500a2ac0942e7dd7db5103536caf2455f6d2b0"
+    },
+    {
+      "path": "data/questions/annotations/g1-annotations.ts",
+      "mode": "100644",
+      "blob": "349ac7c3ae79d788d9dc4b6a5fc24d40d1b8d32b"
+    },
+    {
+      "path": "data/questions/annotations/index.ts",
+      "mode": "100644",
+      "blob": "61377dd8776a30384ddd9ff19d29dde696697cd5"
+    },
+    {
+      "path": "data/questions/extra-info.ts",
+      "mode": "100644",
+      "blob": "d96a99000f34c577f968d5e529dba9531620c128"
+    },
+    {
+      "path": "data/questions/g1-lower-late.ts",
+      "mode": "100644",
+      "blob": "b154df11fb75888036c0668e35e1dc9aaa28f00c"
+    },
+    {
+      "path": "data/questions/g1-thinking.ts",
+      "mode": "100644",
+      "blob": "2a3d0e3e7503a2ada087bed6a347751f0cd28637"
+    },
+    {
+      "path": "data/questions/g1.ts",
+      "mode": "100644",
+      "blob": "4af361afd8d841d3a875182eb28e66f1e40004f1"
+    },
+    {
+      "path": "data/questions/g2-olympiad.ts",
+      "mode": "100644",
+      "blob": "9919aad40e521b2511995dd2ac27671a29e1e34c"
+    },
+    {
+      "path": "data/questions/g2.ts",
+      "mode": "100644",
+      "blob": "9916e626e050ce7965e40572bd567d59d52fadbd"
+    },
+    {
+      "path": "data/questions/g3-multiplication.ts",
+      "mode": "100644",
+      "blob": "ab99f60c8b0a71481c55be55b810ed2253d3ced1"
+    },
+    {
+      "path": "data/questions/g3-olympiad.ts",
+      "mode": "100644",
+      "blob": "a520cc8cb4f247b22c2cad4e2f6c23fe48dbadb8"
+    },
+    {
+      "path": "data/questions/g3.ts",
+      "mode": "100644",
+      "blob": "91b4448065f2ed2107dcc260aba3b737439e620d"
+    },
+    {
+      "path": "data/questions/g4-olympiad.ts",
+      "mode": "100644",
+      "blob": "e45de0e7d2e8ffa309c3432a7e79a0c175515234"
+    },
+    {
+      "path": "data/questions/g4.ts",
+      "mode": "100644",
+      "blob": "5e507b12d66b6e01ce633851fdc9b9ee61e04b68"
+    },
+    {
+      "path": "data/questions/g5-olympiad.ts",
+      "mode": "100644",
+      "blob": "ab28155217f6204a44be3eae28056d5df822e2f3"
+    },
+    {
+      "path": "data/questions/g5.ts",
+      "mode": "100644",
+      "blob": "c67651aec4f6f35efb1874fe1387c212ec8b30fe"
+    },
+    {
+      "path": "data/questions/g6.ts",
+      "mode": "100644",
+      "blob": "27e4e6d6892f9fc5e4e93fb10d2d5747c7b9b3ba"
+    },
+    {
+      "path": "data/questions/index.ts",
+      "mode": "100644",
+      "blob": "9ec0d49939227873e3d91bab26a439922b298919"
+    },
+    {
+      "path": "data/questions/missing-info.ts",
+      "mode": "100644",
+      "blob": "3508de25054b4c52904c8f1ca5650dd4e7d2dd96"
+    },
+    {
+      "path": "data/questions/olympiadIntro.ts",
+      "mode": "100644",
+      "blob": "331e1d87639c699db4c5b6d35aa2ff3ffa7a792e"
+    },
+    {
+      "path": "data/questions/progression.ts",
+      "mode": "100644",
+      "blob": "380c2596fef68ebe86b95d30e6c10d5e3c8ee509"
+    },
+    {
+      "path": "data/questions/progression/grade1.ts",
+      "mode": "100644",
+      "blob": "c75a9541f21594f70594aeb57e027c95d1099a4b"
+    },
+    {
+      "path": "data/questions/progression/grade2.ts",
+      "mode": "100644",
+      "blob": "ab230a1bca8ab3b89bcb74e9a10ddae4d381cdba"
+    },
+    {
+      "path": "data/questions/progression/grade3.ts",
+      "mode": "100644",
+      "blob": "429095e17bd8a33575f08ffe88cdaecbfe87f6f4"
+    },
+    {
+      "path": "data/questions/progression/grade4.ts",
+      "mode": "100644",
+      "blob": "e4bfbb1331116a1c65c50516a73b640d5d69c31e"
+    },
+    {
+      "path": "data/questions/progression/grade5.ts",
+      "mode": "100644",
+      "blob": "e9f4d7422f3b83449a155b4e94dc973aeecbb7be"
+    },
+    {
+      "path": "data/questions/progression/grade6.ts",
+      "mode": "100644",
+      "blob": "94e9befd5b7b7c308008d69db28bca5b2596aaf7"
+    },
+    {
+      "path": "data/questions/progression/helpers.ts",
+      "mode": "100644",
+      "blob": "68902a51960f5a545bee1bd21988e1dca2ffcfe7"
+    },
+    {
+      "path": "data/questions/transfers/helpers.ts",
+      "mode": "100644",
+      "blob": "55503c319ab69aa750270b15bb2c2ad75beda569"
+    },
+    {
+      "path": "data/questions/transfers/index.ts",
+      "mode": "100644",
+      "blob": "21f920639fdf92a36f02b8d3d78386fe42d754a8"
+    },
+    {
+      "path": "data/questions/transfers/legacy-grade1-extra.ts",
+      "mode": "100644",
+      "blob": "1009e81a778550ce8c2c5a0119bcfa7113276e83"
+    },
+    {
+      "path": "data/questions/transfers/legacy-grade1.ts",
+      "mode": "100644",
+      "blob": "73c0f49d5a0697a34cc0a4fbceeb8c04abfe55df"
+    },
+    {
+      "path": "data/questions/transfers/legacy-grade2.ts",
+      "mode": "100644",
+      "blob": "e7b8ed17e0444f43e91a584a773ff40f1b5e9b73"
+    },
+    {
+      "path": "data/questions/transfers/legacy-grade3.ts",
+      "mode": "100644",
+      "blob": "5ee4fd0776bf254e2947ec0433dfb25a859d43a4"
+    },
+    {
+      "path": "data/questions/transfers/legacy-grade4.ts",
+      "mode": "100644",
+      "blob": "bfad9815e7ec8c9e750b273c8dd92c8ddd4d0272"
+    },
+    {
+      "path": "data/questions/transfers/legacy-grade5.ts",
+      "mode": "100644",
+      "blob": "5d4ace86eec2199cd42f1c11da6ea1030a48cd0a"
+    },
+    {
+      "path": "data/questions/transfers/legacy-grade6.ts",
+      "mode": "100644",
+      "blob": "a2836795e7b8e706cf10f06728e6eaa886d05626"
+    },
+    {
+      "path": "data/questions/transfers/legacy-upper.ts",
+      "mode": "100644",
+      "blob": "9bdabebd5c084b1731fba59920d81afa0b40d53f"
+    },
+    {
+      "path": "data/questions/transfers/legacy.ts",
+      "mode": "100644",
+      "blob": "1ae9def4356d1b5bce13a52bb611e0953c061912"
+    },
+    {
+      "path": "data/questions/transfers/progression.ts",
+      "mode": "100644",
+      "blob": "d753dec8f4d23d4cb57c36178e6db7fd016af80a"
+    },
+    {
+      "path": "data/questions/transfers/types.ts",
+      "mode": "100644",
+      "blob": "4cb811267390a9f57af45b1ec709da32c6086b99"
+    },
+    {
+      "path": "data/rewards.ts",
+      "mode": "100644",
+      "blob": "5a00b01f8dbd679debaf889660b4fc10f9fc3bd6"
+    },
+    {
+      "path": "data/stories.ts",
+      "mode": "100644",
+      "blob": "8461f36d0fbb125f240552a3f510f25e2798bc2f"
+    },
+    {
+      "path": "data/visualItems.ts",
+      "mode": "100644",
+      "blob": "03ea4804599e6a94ee0292ce53efd5bc069ea148"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "mode": "100644",
+      "blob": "4902a9df1e8aaa41a78920f6783a71e41aaa552b"
+    },
+    {
+      "path": "hooks/useGameState.ts",
+      "mode": "100644",
+      "blob": "828d3aa80161357e5354252c560b433f5194ea2e"
+    },
+    {
+      "path": "hooks/useParentAccess.ts",
+      "mode": "100644",
+      "blob": "b89a08080f333641140d18c5b5beb0034a2ebcf3"
+    },
+    {
+      "path": "lib/achievements.ts",
+      "mode": "100644",
+      "blob": "788dc16877fe7510113acf59c68f90cfb33c6dba"
+    },
+    {
+      "path": "lib/adaptiveDifficulty.ts",
+      "mode": "100644",
+      "blob": "42c7d7f61f773c248065c9262db75eed1f901743"
+    },
+    {
+      "path": "lib/answerChecker.ts",
+      "mode": "100644",
+      "blob": "1922897df1ff16393255d87a22325f157d7a6f6a"
+    },
+    {
+      "path": "lib/answerSchema.ts",
+      "mode": "100644",
+      "blob": "69132a0effa48b7f9c00f4ccd1c6be0671035f7a"
+    },
+    {
+      "path": "lib/answerSubmission.ts",
+      "mode": "100644",
+      "blob": "296552b3445950f57b17349d5136d390b5e5f478"
+    },
+    {
+      "path": "lib/appVersion.ts",
+      "mode": "100644",
+      "blob": "42b5866844320dc83a16112ab9528be230818c2e"
+    },
+    {
+      "path": "lib/curriculum/curriculumMap.ts",
+      "mode": "100644",
+      "blob": "2e3e5c3e214c76d0cd1d7e8e384b77e47fb46d3c"
+    },
+    {
+      "path": "lib/curriculum/index.ts",
+      "mode": "100644",
+      "blob": "f9ad8e90062c3b04e3578a520bec5d4a333a9d04"
+    },
+    {
+      "path": "lib/curriculum/learningPath.ts",
+      "mode": "100644",
+      "blob": "6a722107649adc8d22de2a35bb4e22d1cbe7be22"
+    },
+    {
+      "path": "lib/curriculum/semesterDetector.ts",
+      "mode": "100644",
+      "blob": "5f2ba4f708af84e3bdf8af523cc028f471c3be4e"
+    },
+    {
+      "path": "lib/curriculum/types.ts",
+      "mode": "100644",
+      "blob": "7806d13950a803f726dde32376954bd9b642dfd2"
+    },
+    {
+      "path": "lib/curriculum/unitCoverage.ts",
+      "mode": "100644",
+      "blob": "c526a629c3e3bc1a29a604e94a8299214283f3a1"
+    },
+    {
+      "path": "lib/curriculum/unitQuestionSelection.ts",
+      "mode": "100644",
+      "blob": "1e2273a081719a2d7d243da1b6eeefe998bc81b1"
+    },
+    {
+      "path": "lib/dataExport.ts",
+      "mode": "100644",
+      "blob": "97841e3ed350daca4fbe539027ea0b1ae4d22492"
+    },
+    {
+      "path": "lib/dataTransfer.ts",
+      "mode": "100644",
+      "blob": "b89435f12a1754f8bd25f87cc9d84ea40597252d"
+    },
+    {
+      "path": "lib/decorationManager.ts",
+      "mode": "100644",
+      "blob": "2ec2257f00e35961cdcb139b698ee8226822b2c8"
+    },
+    {
+      "path": "lib/familyPoints.ts",
+      "mode": "100644",
+      "blob": "152bc72010578404c5015e9beb35189f8df42dd0"
+    },
+    {
+      "path": "lib/hintSafety.ts",
+      "mode": "100644",
+      "blob": "458bbfb80572d148ff5afb9cad22785c30feb16a"
+    },
+    {
+      "path": "lib/independentSolving.ts",
+      "mode": "100644",
+      "blob": "3a8ee50eadaa319f10cc61f23489fb9713194ef1"
+    },
+    {
+      "path": "lib/learnerProfile.ts",
+      "mode": "100644",
+      "blob": "bc227146280e9cddca86df4275cfd023c58480fd"
+    },
+    {
+      "path": "lib/learningEvents.ts",
+      "mode": "100644",
+      "blob": "8877c7761d210f8c868c61b486a6888f3436f659"
+    },
+    {
+      "path": "lib/learningLabels.ts",
+      "mode": "100644",
+      "blob": "a29563ff1aab830a004a572346878235f17d9d23"
+    },
+    {
+      "path": "lib/learningMetrics.ts",
+      "mode": "100644",
+      "blob": "49efc2cca9d86a1a8bbd551118c0db66c7d24f5f"
+    },
+    {
+      "path": "lib/learningSettings.ts",
+      "mode": "100644",
+      "blob": "eb3ea294ab596c86641dd1b8d8eb77c154ef046a"
+    },
+    {
+      "path": "lib/lessonPlanner.ts",
+      "mode": "100644",
+      "blob": "0dbec86dddcace94e716f2ab85be044489725bc6"
+    },
+    {
+      "path": "lib/lessonTransaction.ts",
+      "mode": "100644",
+      "blob": "c8fd123e64ccf591f7f63f09a18ef48d2b0332f5"
+    },
+    {
+      "path": "lib/mentalMath.ts",
+      "mode": "100644",
+      "blob": "0a52aa07f367cc284875914895cd6fc565368624"
+    },
+    {
+      "path": "lib/migrations.ts",
+      "mode": "100644",
+      "blob": "65e5f7add4f4ac6f2f56688d344488bb20c14c4a"
+    },
+    {
+      "path": "lib/mistakeReinforce.ts",
+      "mode": "100644",
+      "blob": "015659ff1e21d47fd34cb889605036c657a29d30"
+    },
+    {
+      "path": "lib/mistakeReview.ts",
+      "mode": "100644",
+      "blob": "03b9306984843c3a99552efee21a9a9e7cde4bed"
+    },
+    {
+      "path": "lib/parentPassword.ts",
+      "mode": "100644",
+      "blob": "4a639a587b67d1c266dc9513c9589da712ee8593"
+    },
+    {
+      "path": "lib/questionGuards.ts",
+      "mode": "100644",
+      "blob": "c57479df5e3048e726ef31638ed50baee7c95893"
+    },
+    {
+      "path": "lib/questionSafety.ts",
+      "mode": "100644",
+      "blob": "0fec128464f16e600e5d5c907256c40ff15ed356"
+    },
+    {
+      "path": "lib/questionValidation.ts",
+      "mode": "100644",
+      "blob": "8ecbf2e37e36ed76c84e6660589dd703e11baf39"
+    },
+    {
+      "path": "lib/rewardSystem.ts",
+      "mode": "100644",
+      "blob": "2da3f2654e850d6a8e054427b2cd45b4f6717b3e"
+    },
+    {
+      "path": "lib/runtime.ts",
+      "mode": "100644",
+      "blob": "86fceffa284c8390cc3192ef5fb12a6be4e18b3b"
+    },
+    {
+      "path": "lib/solvingMetrics.ts",
+      "mode": "100644",
+      "blob": "3c26703eaada5210c8ac5fc34ca142be57a5a518"
+    },
+    {
+      "path": "lib/solvingValidation.ts",
+      "mode": "100644",
+      "blob": "ac5d00c46c8230390a2d51527372b6573d5b4778"
+    },
+    {
+      "path": "lib/storage.ts",
+      "mode": "100644",
+      "blob": "86fa7788720e8f4f170407dbbac3e6139aa98ba0"
+    },
+    {
+      "path": "lib/storySystem.ts",
+      "mode": "100644",
+      "blob": "27ecacc03106729919ce27a9739b97cc740ac155"
+    },
+    {
+      "path": "lib/taxonomy.ts",
+      "mode": "100644",
+      "blob": "df37def16e6e4ec2d9c7a1342069900f46c48cff"
+    },
+    {
+      "path": "lib/transferContract.ts",
+      "mode": "100644",
+      "blob": "004d3bd37f26582e221f57c6b71aa9e868cb3704"
+    },
+    {
+      "path": "lib/types.ts",
+      "mode": "100644",
+      "blob": "1fe65ce620204e404260e2bb4d19bb3b4411a1ec"
+    },
+    {
+      "path": "lib/validateQuestions.ts",
+      "mode": "100644",
+      "blob": "621e5a42459bb31e9089b566ffa41617ccf50d3a"
+    },
+    {
+      "path": "lib/versionUpgrade.ts",
+      "mode": "100644",
+      "blob": "73b1baf0fc82ae38bd96515d1b5237870e5dce26"
+    },
+    {
+      "path": "middleware.ts",
+      "mode": "100644",
+      "blob": "1b8614ac7ff1f3337e601809226ed3755c6e1742"
+    },
+    {
+      "path": "next.config.ts",
+      "mode": "100644",
+      "blob": "521a0cbfa9f76c4622d7e63b1c4e43777a69f01e"
+    },
+    {
+      "path": "package-lock.json",
+      "mode": "100644",
+      "blob": "03898a24c051c00295e80f49f9630c5b15a032bb"
+    },
+    {
+      "path": "package.json",
+      "mode": "100644",
+      "blob": "a194b687b130814ad58e5966258485c081dd89dd"
+    },
+    {
+      "path": "postcss.config.mjs",
+      "mode": "100644",
+      "blob": "61e36849cf7cfa9f1f71b4a3964a4953e3e243d3"
+    },
+    {
+      "path": "public/characters/card-artist.png",
+      "mode": "100644",
+      "blob": "4b5fd06dd860f956ed75b34594d2bc4b4d43f51c"
+    },
+    {
+      "path": "public/characters/card-chef.png",
+      "mode": "100644",
+      "blob": "e80b78fc9863f8556856bf30a8aa71d48cd42d94"
+    },
+    {
+      "path": "public/characters/card-jungle.png",
+      "mode": "100644",
+      "blob": "d867c50e9dc1250e4e2b7ab3065d413610545bf3"
+    },
+    {
+      "path": "public/characters/card-legend.png",
+      "mode": "100644",
+      "blob": "8558b9dff499ba45fbf754089f78b64b24327b10"
+    },
+    {
+      "path": "public/characters/card-ninja.png",
+      "mode": "100644",
+      "blob": "5a971a9f39c2d23e067b4d41e890b28591c21151"
+    },
+    {
+      "path": "public/characters/card-ocean.png",
+      "mode": "100644",
+      "blob": "ab82841fd4c9b97962ebb59adaafafbc4ec892b5"
+    },
+    {
+      "path": "public/characters/card-space.png",
+      "mode": "100644",
+      "blob": "412f9d1955c6539e31616954e4fedf49932db825"
+    },
+    {
+      "path": "public/characters/card-winter.png",
+      "mode": "100644",
+      "blob": "77af73a5535016d16a8f44a92c7996962be574d4"
+    },
+    {
+      "path": "public/characters/ChatGPT Image 2026年5月29日 11_09_37.png",
+      "mode": "100644",
+      "blob": "bba9f5fc36ba9fc693784edf1cb40c7ddebe703c"
+    },
+    {
+      "path": "public/characters/ChatGPT Image 2026年5月29日 11_09_47.png",
+      "mode": "100644",
+      "blob": "292580861dfb63f728c4a7febfbe321b56efdf96"
+    },
+    {
+      "path": "public/characters/detective-encourage.png",
+      "mode": "100644",
+      "blob": "0f27e455ef2cada663697a99375aa56cc394b3f3"
+    },
+    {
+      "path": "public/characters/detective-excited.png",
+      "mode": "100644",
+      "blob": "e7d552bf8a07b752986860febaa861d33000a51c"
+    },
+    {
+      "path": "public/characters/detective-happy.png",
+      "mode": "100644",
+      "blob": "913b83d309367486e59bc204019a34be37b343c4"
+    },
+    {
+      "path": "public/characters/detective-thinking.png",
+      "mode": "100644",
+      "blob": "dc9816d435fede5387a1ac09f8f84869db360fc1"
+    },
+    {
+      "path": "public/characters/PROMPTS.md",
+      "mode": "100644",
+      "blob": "8e55f6bdfd573d34fc128ece32ac9887b22c480e"
+    },
+    {
+      "path": "public/file.svg",
+      "mode": "100644",
+      "blob": "004145cddf3f9db91b57b9cb596683c8eb420862"
+    },
+    {
+      "path": "public/globe.svg",
+      "mode": "100644",
+      "blob": "567f17b0d7c7fb662c16d4357dd74830caf2dccb"
+    },
+    {
+      "path": "public/next.svg",
+      "mode": "100644",
+      "blob": "5174b28c565c285e3e312ec5178be64fbeca8398"
+    },
+    {
+      "path": "public/sw.js",
+      "mode": "100644",
+      "blob": "0be84204f40d4e818d33f5698186bc8aa0854a5a"
+    },
+    {
+      "path": "public/vercel.svg",
+      "mode": "100644",
+      "blob": "77053960334e2e34dc584dea8019925c3b4ccca9"
+    },
+    {
+      "path": "public/window.svg",
+      "mode": "100644",
+      "blob": "b2b2a44f6ebc70c450043c05a002e7a93ba5d651"
+    },
+    {
+      "path": "scripts/postbuild-css.js",
+      "mode": "100644",
+      "blob": "a43d02eee6b8baa0b7718ceeba26c86eae469fe8"
+    },
+    {
+      "path": "tsconfig.json",
+      "mode": "100644",
+      "blob": "3cc4681557ce9bdd9003851413106a3e1196a1ef"
+    }
+  ],
+  "note": "Exact staged Git blobs of the tested application; report-only changes do not change this digest."
+}

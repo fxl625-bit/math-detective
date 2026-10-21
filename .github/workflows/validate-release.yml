@@ -42,23 +42,24 @@ jobs:
       - name: Validate child UI
         run: npm run validate:child-ui
 
-      - name: State machine tests
-        run: npm run test:state-machine
+      - name: All unit suites including state, rewards, transfer mathematics, and history
+        run: npm run test:unit -- --output reports/unit-ci
 
-      - name: Scoring and export tests
+      - name: Verify all transfer sources, registry, and independent mathematics
         run: |
-          npm run test:scoring
-          npm run test:data-export
+          npm run test:real-curriculum-generation
+          npm run audit:transfer-expansion -- --output reports/transfer-expansion-ci.json
 
-      - name: Parent password and question meaning tests
-        run: |
-          npm run test:parent-password
-          npm run test:direct-meaning
-          npm run test:completion-reward
-          npm run test:independent-content
-          npm run test:independent-runtime
-          npm run test:solving-metrics
-          npm run test:mistake-explanation
+      - name: Upload independent mathematics audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transfer-mathematics-audit
+          path: |
+            reports/transfer-expansion-ci.json
+            reports/unit-ci/
+          if-no-files-found: warn
+          retention-days: 14
 
   playwright:
     name: Release E2E (${{ matrix.shard }}/4)

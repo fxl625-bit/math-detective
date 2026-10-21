@@ -5,6 +5,7 @@ export {
   safeQuestions,
   unsafeQuestionIds,
   isQuestionSafeForNewLesson,
+  transferCatalog,
   allQuestions as questions,
   questionsByGrade,
   getQuestionsByFilter,

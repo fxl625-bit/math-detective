@@ -875,7 +875,8 @@ export function getTodayLesson(): TodayLesson {
   // 生成新课程
   const state = loadState();
   const profile = getLearningProfile();
-  const lesson = buildDailyLesson(profile, state.completedQuestions, state.mistakes);
+  const generated = buildDailyLesson(profile, state.completedQuestions, state.mistakes);
+  const lesson = safeNormalizeLesson(generated) || generated;
   saveTodayLesson(lesson);
   return lesson;
 }

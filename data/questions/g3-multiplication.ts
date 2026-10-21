@@ -114,7 +114,7 @@ export const g3MultiplicationQuestions: Question[] = [
   {
     id: 'g3_mul_06', gradeBand: 'G3', domain: 'multiplication_division',
     cognitiveSkills: ['find_numbers', 'find_compare_numbers', 'choose_operation'],
-    text: '运动会拔河比赛，每队需要10人参加，三年级有4个班参加，一共有多少人参加拔河？',
+    text: '运动会拔河比赛，每队需要10人参加，三年级有4个班参加，每个班各出1队，一共有多少人参加拔河？',
     numbers: [10, 4],
     keywords: [{ word: '每队', type: 'multiply' }, { word: '一共', type: 'add' }],
     noisePhrases: ['运动会开幕式很热闹'], usefulPhrases: ['每队需要10人', '有4个班参加', '一共有多少人'],
@@ -128,10 +128,10 @@ export const g3MultiplicationQuestions: Question[] = [
   lessonType:'equal_groups_intro',
   keywordType:'add_action',
     stepCompatibility: ['find_numbers', 'find_action_words', 'full_solve', 'find_compare_numbers'],
-    answerType: 'ranking',
+    answerType: 'number',
     sceneType: 'competition',
     themeTags: ["competition","ranking"],
-    problemType: 'logic_ranking',
+    problemType: 'basic_arithmetic',
   },
   {
     id: 'g3_mul_07', gradeBand: 'G3', domain: 'multiplication_division',

@@ -186,9 +186,9 @@ function checkRankingAnswer(input: string, question: Question): AnswerCheckResul
     }
   }
 
-  // 方式2: 逗号分隔
-  if (trimmed.includes(',')) {
-    const inputOrder = trimmed.split(/[,，]+/).map(s => s.trim()).filter(Boolean);
+  // Accept the form's comma notation and the ordered answer's displayed > notation.
+  if (/[,，>＞]/.test(trimmed)) {
+    const inputOrder = trimmed.split(/[,，>＞]/).map(s => s.trim());
     if (isOrderMatch(inputOrder, expectedOrder)) {
       return { correct: true };
     }
@@ -235,13 +235,15 @@ export function checkMultiAnswer(
     const fieldSchema = resolvedSchema.kind === 'multi_field'
       ? resolvedSchema.fields.find(field => field.id === sub.id)
       : undefined;
+    const expectedPercent = typeof sub.answer === 'number' && sub.unit === '%'
+      ? `${sub.answer}%` : String(sub.answer);
     const isCorrect = fieldSchema?.kind === 'text'
       ? normalizeText(userVal) === normalizeText(String(sub.answer))
       : fieldSchema?.kind === 'ratio'
         ? compareRatios(userVal, String(sub.answer))
         : fieldSchema?.kind === 'percent'
-          ? Boolean(parsePercentOrFraction(userVal) && parsePercentOrFraction(String(sub.answer))
-            && equalRational(parsePercentOrFraction(userVal)!, parsePercentOrFraction(String(sub.answer))!))
+          ? Boolean(parsePercentOrFraction(userVal) && parsePercentOrFraction(expectedPercent)
+            && equalRational(parsePercentOrFraction(userVal)!, parsePercentOrFraction(expectedPercent)!))
           : compareValues(userVal, sub.answer);
     fieldResults[sub.id] = {
       correct: isCorrect,

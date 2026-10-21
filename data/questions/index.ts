@@ -17,6 +17,7 @@ import { extraInfoQuestions } from './extra-info';
 import { missingInfoQuestions } from './missing-info';
 import { allG1Annotations } from './annotations';
 import { progressionQuestions } from './progression';
+import { buildTransferCatalog } from './transfers';
 
 // ========== v2.9.0: Annotation merge ==========
 
@@ -84,6 +85,8 @@ export function isQuestionSafeForNewLesson(question: Question): boolean {
   return question.qualityStatus !== 'fail' && question.qualityStatus !== 'unsafe' && !unsafeQuestionIds.has(question.id);
 }
 export const safeQuestions = allQuestions.filter(isQuestionSafeForNewLesson);
+/** Reviewed transfer-only content is never part of a normal lesson or its coverage denominator. */
+export const transferCatalog = buildTransferCatalog(allQuestions, isQuestionSafeForNewLesson);
 
 // ========== 按年级分组（使用标注后的 allQuestions） ==========
 
@@ -137,7 +140,7 @@ export function getQuestionsByFilter(options: {
 // ========== 按 ID 查找 ==========
 
 export function getQuestionById(id: string): Question | undefined {
-  return allQuestions.find(q => q.id === id);
+  return allQuestions.find(q => q.id === id) || transferCatalog.byId.get(id);
 }
 
 // ========== 获取年级对应的默认领域 ==========

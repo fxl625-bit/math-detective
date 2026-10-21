@@ -1,0 +1,29 @@
+🔍 数学侦探题库全面扫描 (v2.6 P0修复)
+
+📊 扫描结果：
+   总题数：655
+   通过：655 ✅
+   失败：0 ❌
+
+📈 按年级统计：
+  ✅ G1: 147/147 (0 失败)
+  ✅ G2: 91/91 (0 失败)
+  ✅ G3: 107/107 (0 失败)
+  ✅ G4: 105/105 (0 失败)
+  ✅ G5: 106/106 (0 失败)
+  ✅ G6: 69/69 (0 失败)
+  ✅ OlympiadIntro: 30/30 (0 失败)
+
+📊 按 lessonType 分布：
+  number_clue: 297 题
+  logic_reasoning: 154 题
+  add_sub_action: 78 题
+  geometry_count: 43 题
+  equal_groups_intro: 35 题
+  compare_more_less: 23 题
+  irrelevant_info: 8 题
+  unknown: 8 题
+  planting_interval: 6 题
+  times_intro: 3 题
+
+✅ 所有题目校验通过！

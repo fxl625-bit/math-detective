@@ -86,7 +86,7 @@ const independentAnswerFailures = audit.flatMap(row => row.tasks.filter(task => 
 const anyOptionAnswerFailures = audit.flatMap(row => row.tasks.filter(task => !task.optionAnswerCheckPassed)
   .map(task => ({ questionId: row.id, taskId: task.id })));
 const output = {
-  scope: 'allQuestions G1-G6 and OlympiadIntro; source question bank unchanged',
+  scope: 'allQuestions G1-G6 and OlympiadIntro; original IDs remain the coverage denominator; transfer-only variants are excluded',
   total: gradeQuestions.length,
   allQuestionBankCount: allQuestions.length,
   safeNewLessonCount: audit.filter(row => row.safe).length,
@@ -100,7 +100,9 @@ const output = {
   grades,
   questions: audit,
 };
-const outputPath = 'reports/2026-10-21-independent-solving/content-audit.json';
+const outputPath = process.argv.includes('--output')
+  ? process.argv[process.argv.indexOf('--output') + 1]
+  : 'reports/2026-10-21-transfer-expansion/independent-content-audit.json';
 writeFileSync(outputPath, `${JSON.stringify(output, null, 2)}\n`, 'utf8');
 console.log(JSON.stringify({
   outputPath,

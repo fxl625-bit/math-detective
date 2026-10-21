@@ -40,10 +40,7 @@ const gradeSixProgression = allQuestions.find(q => q.id.startsWith('prog_g6_') &
 assert.ok(gradeSixProgression, 'G6 progression fallback fixture missing');
 assert.ok(buildReasoningTasks(gradeSixProgression).some(task => task.skill === 'condition'), 'progression fallback should use a source-grounded numeric condition');
 const g6PercentTransfer = selectTransferQuestion(allQuestions.find(q => q.id === 'g6_06')!, allQuestions);
-assert.deepEqual(g6PercentTransfer, {
-  kind: 'matched', questionId: 'g6_21',
-  reason: '年级、兼容学期、知识点、运算、答案类型和结构化数量关系一致，题目数字及答案不同。',
-});
+assert.equal(g6PercentTransfer.kind, 'matched', 'G6 retains a reviewed percentage transfer');
 const money = allQuestions.find(q => q.domain === 'money' && q.questionMeaningOptions.length >= 2);
 assert.ok(money, 'money representative question missing');
 assert.ok(buildReasoningTasks(money).length > 0, 'money representative should retain a safe microtask');
@@ -123,7 +120,7 @@ assert.ok(buildReasoningTasks(byId('prog_g4_u3_06')).some(task => task.options.s
 
 const curatedTransferPairs = [
   ['g2_01', 'g2_09'], ['g3_04', 'g3_11'], ['g4_19', 'g4_25'],
-  ['g5_01', 'g5_21'], ['g6_06', 'g6_21'],
+  ['g6_06', 'g6_21'],
 ] as const;
 for (const [from, to] of curatedTransferPairs) {
   const a = byId(from), b = byId(to);
@@ -133,8 +130,7 @@ for (const [from, to] of curatedTransferPairs) {
   assert.notDeepEqual(a.numbers, b.numbers);
   assert.notEqual(String(a.answer), String(b.answer));
   const match = selectTransferQuestion(a, [b]);
-  assert.equal(match.kind, 'matched', `${from} should match real same-relation transfer ${to}`);
-  if (match.kind === 'matched') assert.equal(match.questionId, to);
+  assert.equal(match.kind, 'unavailable', `${from}/${to}: an arbitrary legacy pool is not a reviewed source-bound transfer catalog`);
 }
 const verifiedTransferPairs = [
   ['g1_01', 'g1_06', [6, 3], 9, [5, 3], 8],
@@ -162,12 +158,13 @@ for (const [from, to, sourceNumbers, sourceAnswer, transferNumbers, transferAnsw
     assert.match(b.text, /平均放在4个盒子里，每个盒子放几颗/);
   }
   const match = selectTransferQuestion(a, [b]);
-  assert.equal(match.kind, 'matched', `${from} should match its verified same-structure transfer ${to}`);
-  if (match.kind === 'matched') assert.equal(match.questionId, to);
+  assert.equal(match.kind, 'unavailable', `${from}: the dedicated variant must come from its reviewed catalog entry`);
 }
 for (const [a, b] of [['g1ll_18', 'g1ll_22'], ['g1ll_48', 'g1ll_50'], ['g1ll_64', 'g1ll_61'], ['g1ll_69', 'g1ll_74'], ['g1ll_75', 'g1ll_79']]) {
   assert.equal(selectTransferQuestion(byId(a), [byId(b)]).kind, 'unavailable', `${a}/${b} must not be called a transfer pair`);
 }
+assert.equal(selectTransferQuestion(byId('g5_01'), [byId('g5_21')]).kind, 'unavailable',
+  'a decimal result and an integer result must not be merged into a generic numeric schema');
 assert.equal(allQuestions.filter(q => /^G[1-6]$/.test(q.gradeBand) || q.gradeBand === 'OlympiadIntro').length, 655);
 
 const candidate = {
@@ -181,7 +178,7 @@ const candidate = {
     knownFacts: reverseQuestion.reasoningFrame!.knownFacts.map(f => ({ ...f, quantity: typeof f.quantity === 'number' ? f.quantity + 37 : f.quantity })),
   },
 };
-assert.equal(selectTransferQuestion(reverseQuestion, [candidate]).kind, 'matched');
+assert.equal(selectTransferQuestion(reverseQuestion, [candidate]).kind, 'unavailable', 'a fabricated RF and arbitrary answer do not establish a mathematical transfer');
 const inverse = {
   ...candidate,
   id: `${candidate.id}_inverse`,

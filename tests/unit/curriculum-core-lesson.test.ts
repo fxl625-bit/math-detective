@@ -5,6 +5,7 @@ import { checkAnswer } from '@/lib/answerChecker';
 import { normalizeLearningSettings } from '@/lib/learningSettings';
 import { commitLessonTransaction } from '@/lib/lessonTransaction';
 import { DEFAULT_GAME_STATE, type GameState, type LearningEvent, type LearningProfile, type TodayLesson } from '@/lib/types';
+import { createSolvingEvidence } from '@/lib/independentSolving';
 
 const profile: LearningProfile = {
   gradeBand: 'G1', streakDays: 0, recentAccuracy: 100, weakSkills: [], dailyQuestionCount: 0, skillLevel: 1,
@@ -41,6 +42,8 @@ grade3State.learningEvents = Array.from({ length: 7 }, (_, index): LearningEvent
   actionId: `prior-action-${index}`, attemptId: `prior-attempt-${index}`,
   timestamp: `2026-09-${String(10 + index).padStart(2, '0')}T00:00:00.000Z`,
   hintLevel: 'none', completionMode: 'independent', result: 'correct', firstAttemptKnown: true,
+  solvingEvidence: { ...createSolvingEvidence(), phase: 'review', attemptCount: 1, firstAttemptCorrect: true,
+    independentCorrect: true, finalCorrect: true, masteryStatus: 'independent', outcome: 'first_independent' },
 }));
 const tierTwoQuestion = getQuestionById('prog_g3_u3_07');
 assert.ok(tierTwoQuestion);

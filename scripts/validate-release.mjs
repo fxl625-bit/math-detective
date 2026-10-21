@@ -19,21 +19,13 @@ const STEPS = [
   { name: 'validate:themes', cmd: 'npm run validate:themes' },
   { name: 'validate:hints', cmd: 'npm run validate:hints' },
   { name: 'validate:child-ui', cmd: 'npm run validate:child-ui' },
-  { name: 'test:state-machine', cmd: 'npm run test:state-machine' },
-  { name: 'test:scoring', cmd: 'npm run test:scoring' },
-  { name: 'test:data-export', cmd: 'npm run test:data-export' },
-  { name: 'test:parent-password', cmd: 'npm run test:parent-password' },
-  { name: 'test:direct-meaning', cmd: 'npm run test:direct-meaning' },
-  { name: 'test:completion-reward', cmd: 'npm run test:completion-reward' },
-  { name: 'test:independent-content', cmd: 'npm run test:independent-content' },
-  { name: 'test:independent-runtime', cmd: 'npm run test:independent-runtime' },
-  { name: 'test:solving-metrics', cmd: 'npm run test:solving-metrics' },
-  { name: 'test:mistake-explanation', cmd: 'npm run test:mistake-explanation' },
+  { name: 'test:unit', cmd: 'npm run test:unit' },
+  { name: 'test:real-curriculum-generation', cmd: 'npm run test:real-curriculum-generation' },
   { name: 'test:e2e', cmd: 'npm run test:e2e' },
 ];
 
 console.log('========================================');
-console.log('  Math Detective validate:release v2.8.4');
+console.log('  Math Detective complete release checks');
 console.log('========================================');
 console.log('');
 

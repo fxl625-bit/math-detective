@@ -139,7 +139,7 @@ export const g3OlympiadQuestions: Question[] = [
     problemType: 'multi_step',
   },
   // ====== 数字谜 1题 ======
-  { id: 'g3o_20', gradeBand: 'G3', domain: 'addition_subtraction', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '竖式谜：AB+BA=88。A和B是两个不同的数字，A>B。A和B各是几？', numbers: [88], keywords: [], noisePhrases:[], usefulPhrases:['AB+BA=88','A>B','A和B'], questionMeaningOptions:['A=5,B=3','A=6,B=2','A=7,B=1'], correctMeaning:'A=5,B=3', operation:'mixed', equation:'(10A+B)+(10B+A)=11(A+B)=88,A+B=8', answer:'A=5,B=3', answerSentence:'A=5，B=3。验证:53+35=88。', explanation:'AB+BA=(10A+B)+(10B+A)=11A+11B=11(A+B)=88。所以A+B=8。A>B且不同→(7,1)(6,2)(5,3)。53+35=88,62+26=88,71+17=88都成立。取中间值5和3。', solutionSteps:['(10A+B)+(10B+A)=11A+11B=11(A+B)','11(A+B)=88→A+B=8','A>B→A=5,B=3'], hints:['把两位数拆成10A+B，合并同类项！'], difficulty:3, category:'mixed', visualKey:'book', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['full_solve'],
+  { id: 'g3o_20', gradeBand: 'G3', domain: 'addition_subtraction', cognitiveSkills: ['build_model','multi_step_reasoning'], text: '竖式谜：AB+BA=88。A和B是两个不同的数字，A比B大2。A和B各是几？', numbers: [88, 2], keywords: [], noisePhrases:[], usefulPhrases:['AB+BA=88','A比B大2','A和B'], questionMeaningOptions:['A=5,B=3','A=6,B=2','A=7,B=1'], correctMeaning:'A=5,B=3', operation:'mixed', equation:'(10A+B)+(10B+A)=11(A+B)=88→A+B=8；A−B=2', answer:'A=5,B=3', answerSentence:'A=5，B=3。验证：53+35=88，且5−3=2。', explanation:'AB+BA=(10A+B)+(10B+A)=11(A+B)=88，所以A+B=8。再结合A比B大2，即A−B=2，两式相加得2A=10，A=5；于是B=3。两个条件都满足，因此答案唯一。', solutionSteps:['拆开两位数：AB+BA=11(A+B)=88','得到A+B=8，并由题意得A−B=2','两式相加：2A=10→A=5，B=3','验算：53+35=88，5−3=2'], hints:['先把AB和BA都写成十位数与个位数，再同时使用和与差的条件。'], difficulty:3, category:'mixed', visualKey:'book', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['full_solve'],
     answerType: 'number',
     sceneType: 'generic',
     themeTags: ["generic"],
@@ -173,11 +173,11 @@ export const g3OlympiadQuestions: Question[] = [
     problemType: 'multi_step',
   },
   // ====== 周期进阶 1题 ======
-  { id: 'g3o_25', gradeBand: 'G3', domain: 'pattern', cognitiveSkills: ['find_numbers','build_model','choose_operation'], text: '一周有7天。2026年6月1日周一。这年的6月28日是周几？6月有几个周一？', numbers: [28,7,1], keywords: [], noisePhrases:[], usefulPhrases:['6月1日周一','28日周几','几个周一'], questionMeaningOptions:['周日,4个','周日,5个','周一,4个'], correctMeaning:'周日,4个', operation:'mixed', equation:'(28-1)÷7=3余6, 周一+6=周日', answer:'周日,4个', answerSentence:'6月28日是周日，6月有4个周一。', explanation:'1到28日过27天，27÷7=3周余6天。周一+6=周日。6月30天，1号周一→8,15,22,29号是周一，共4个。', solutionSteps:['过27天:27÷7=3余6','周一+6=周日','周一:1,8,15,22,29→4个'], hints:['从周一开始数，每7天一循环。'], difficulty:2, category:'mixed', visualKey:'book', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['find_numbers','full_solve'],
+  { id: 'g3o_25', gradeBand: 'G3', domain: 'pattern', cognitiveSkills: ['find_numbers','build_model','choose_operation'], text: '一周有7天。2026年6月1日周一。这年的6月28日是周几？6月有几个周一？', numbers: [28,7,1], keywords: [], noisePhrases:[], usefulPhrases:['6月1日周一','28日周几','6月有几个周一'], questionMeaningOptions:['周日,5个','周日,4个','周一,5个'], correctMeaning:'周日,5个', operation:'mixed', equation:'(28−1)÷7=3余6，周一往后6天是周日；周一日期为1+7k≤30，即1、8、15、22、29，共5个', answer:'周日,5个', answerSentence:'6月28日是周日，6月有5个周一。', explanation:'从6月1日到6月28日经过27天，27÷7=3余6，所以6月28日是周一往后6天，即周日。6月的周一是1、8、15、22、29日，共5个。', solutionSteps:['经过27天：27÷7=3余6','周一往后6天：周日','周一日期：1、8、15、22、29，共5个'], hints:['先数6月1日到28日经过几天，再从1日开始每隔7天找一个周一。'], difficulty:2, category:'mixed', visualKey:'book', requiresAnswer:true,lessonType:'number_clue',keywordType:'number_extract', stepCompatibility:['find_numbers','full_solve'],
     sceneType: 'generic',
     themeTags: ["generic"],
     problemType: 'multi_step',
   answerType: 'multi_answer',
-  subAnswers: [{"id":"weekday","label":"周几","answer":"周日"},{"id":"count","label":"周一数","answer":4}],
+  subAnswers: [{"id":"weekday","label":"周几","answer":"周日"},{"id":"count","label":"周一数","answer":5}],
   },
 ];

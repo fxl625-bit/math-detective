@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { questions } from '../../data/questions';
+import { questions, getQuestionById } from '../../data/questions';
 import { inferAnswerSchema } from '../../lib/answerSchema';
 import { selectTransferQuestion } from '../../lib/independentSolving';
 import { openIndependentFixture, readIndependentGame, readIndependentLesson, submitFixtureAnswer } from './helpers/independent-lesson';
@@ -35,7 +35,7 @@ test('a transfer attempt stays separate when the learner first answers wrong and
   const selection = selectTransferQuestion(source!, questions);
   expect(selection.kind).toBe('matched');
   if (selection.kind !== 'matched') throw new Error('Expected the fixed G1 source to have a reviewed transfer variant');
-  const transferQuestion = questions.find(question => question.id === selection.questionId)!;
+  const transferQuestion = getQuestionById(selection.questionId)!;
   expect(transferQuestion).toBeDefined();
   await openIndependentFixture(page, source!.id);
   await expect(page.getByTestId('lesson-question-prompt')).toHaveText(source!.text);
@@ -127,7 +127,7 @@ for (const { grade, questionId } of gradeTransferSources) {
     const selection = selectTransferQuestion(source!, questions);
     expect(selection.kind, `${questionId} has a reviewed matched variant`).toBe('matched');
     if (selection.kind !== 'matched') throw new Error(`${questionId} no longer has a matched transfer fixture`);
-    const target = questions.find(question => question.id === selection.questionId);
+    const target = getQuestionById(selection.questionId);
     expect(target, `matched transfer ${selection.questionId} exists`).toBeDefined();
     expect(target!.gradeBand).toBe(grade);
     expect(target!.text).not.toBe(source!.text);

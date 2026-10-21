@@ -1,0 +1,3255 @@
+{
+  "passed": true,
+  "tests": 324,
+  "stats": {
+    "startTime": "2026-10-21T11:35:05.158Z",
+    "duration": 766595.063,
+    "expected": 324,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "reportSha256": "457f4624cc5346280dc146d632b1081301d0291fa88b4bf872643db0e92a6178",
+  "results": [
+    {
+      "file": "answer-reveal-gate.spec.ts",
+      "title": "viewing the full lesson ends the original attempt permanently, including after reload",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "answer-reveal-gate.spec.ts",
+      "title": "a failed persistence write never exposes the full solution",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "answer-reveal-gate.spec.ts",
+      "title": "six explained questions can finish the lesson without fabricated correct answers or points",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "answer-reveal-gate.spec.ts",
+      "title": "viewing the full lesson ends the original attempt permanently, including after reload",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "answer-reveal-gate.spec.ts",
+      "title": "a failed persistence write never exposes the full solution",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "answer-reveal-gate.spec.ts",
+      "title": "six explained questions can finish the lesson without fabricated correct answers or points",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "answer-schema-router.spec.ts",
+      "title": "v2.11.0-schema: Answer phase never renders blank page",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "answer-schema-router.spec.ts",
+      "title": "v2.11.0-schema: Schema router does not fallback to hardcoded input",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "answer-schema-router.spec.ts",
+      "title": "v2.11.0-schema: Answer phase never renders blank page",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "answer-schema-router.spec.ts",
+      "title": "v2.11.0-schema: Schema router does not fallback to hardcoded input",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "data-transfer-offline.spec.ts",
+      "title": "an uncached page explains offline preparation instead of showing a blank page",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "data-transfer-offline.spec.ts",
+      "title": "backup file round-trips between isolated synthetic browser contexts",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "data-transfer-offline.spec.ts",
+      "title": "prepared core documents open directly and survive refresh offline",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "data-transfer-offline.spec.ts",
+      "title": "an uncached page explains offline preparation instead of showing a blank page",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "data-transfer-offline.spec.ts",
+      "title": "backup file round-trips between isolated synthetic browser contexts",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "data-transfer-offline.spec.ts",
+      "title": "prepared core documents open directly and survive refresh offline",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "diag-input.spec.ts",
+      "title": "diag: inspect input element",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "diag-input.spec.ts",
+      "title": "diag: inspect input element",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "diag-page-load.spec.ts",
+      "title": "diag: quick page load check",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "diag-page-load.spec.ts",
+      "title": "diag: quick page load check",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "direct-meaning.spec.ts",
+      "title": "direct questions hide answer choices and resume cached phase 0",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "direct-meaning.spec.ts",
+      "title": "direct questions hide answer choices and resume cached phase 1",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "direct-meaning.spec.ts",
+      "title": "direct questions hide answer choices and resume cached phase 2",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "direct-meaning.spec.ts",
+      "title": "direct questions hide answer choices and resume cached phase 0",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "direct-meaning.spec.ts",
+      "title": "direct questions hide answer choices and resume cached phase 1",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "direct-meaning.spec.ts",
+      "title": "direct questions hide answer choices and resume cached phase 2",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "full-lesson-playthrough.spec.ts",
+      "title": "completes a real 6-step lesson from /play",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "full-lesson-playthrough.spec.ts",
+      "title": "does not redirect away from /play while idle",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "full-lesson-playthrough.spec.ts",
+      "title": "completes a real 6-step lesson from /play",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "full-lesson-playthrough.spec.ts",
+      "title": "does not redirect away from /play while idle",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "guided-solving.spec.ts",
+      "title": "completing reasoning tasks still requires answering the original question",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "guided-solving.spec.ts",
+      "title": "help followed by six genuine first correct submissions still earns exactly one perfect-lesson point",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "guided-solving.spec.ts",
+      "title": "completing reasoning tasks still requires answering the original question",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "guided-solving.spec.ts",
+      "title": "help followed by six genuine first correct submissions still earns exactly one perfect-lesson point",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "independent-solving.spec.ts",
+      "title": "a child can answer immediately, then review; one Enter records one independent attempt",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "independent-solving.spec.ts",
+      "title": "the enabled review control can be focused and activated with Enter",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "independent-solving.spec.ts",
+      "title": "an awarded legacy cache restores review without inventing new independent evidence",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "independent-solving.spec.ts",
+      "title": "a child can answer immediately, then review; one Enter records one independent attempt",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "independent-solving.spec.ts",
+      "title": "the enabled review control can be focused and activated with Enter",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "independent-solving.spec.ts",
+      "title": "an awarded legacy cache restores review without inventing new independent evidence",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "mastery-tracking.spec.ts",
+      "title": "a retry can finish a question without rewriting its first wrong attempt as independent mastery",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "mastery-tracking.spec.ts",
+      "title": "a retry can finish a question without rewriting its first wrong attempt as independent mastery",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "mistake-explanation-gate.spec.ts",
+      "title": "viewing a mistake solution locks correction and reward until the next day, including after reload",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "mistake-explanation-gate.spec.ts",
+      "title": "viewing a mistake solution locks correction and reward until the next day, including after reload",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "money-answer-input.spec.ts",
+      "title": "v2.11.0-money: No 1-4 number stepper on money questions",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "money-answer-input.spec.ts",
+      "title": "v2.11.0-money: Yuan-jiao input accepts money values",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "money-answer-input.spec.ts",
+      "title": "v2.11.0-money: Money answers accept equivalent formats",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "money-answer-input.spec.ts",
+      "title": "v2.11.0-money: No 1-4 number stepper on money questions",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "money-answer-input.spec.ts",
+      "title": "v2.11.0-money: Yuan-jiao input accepts money values",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "money-answer-input.spec.ts",
+      "title": "v2.11.0-money: Money answers accept equivalent formats",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "multi-field-answer.spec.ts",
+      "title": "retains both structured fields through rerender and wrong-answer retry",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "multi-field-answer.spec.ts",
+      "title": "keeps a regular integer answer input as a single value",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "multi-field-answer.spec.ts",
+      "title": "keeps yuan and jiao money input working",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "multi-field-answer.spec.ts",
+      "title": "serializes the real multi-field profit rate as a percentage",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "multi-field-answer.spec.ts",
+      "title": "retains both structured fields through rerender and wrong-answer retry",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "multi-field-answer.spec.ts",
+      "title": "keeps a regular integer answer input as a single value",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "multi-field-answer.spec.ts",
+      "title": "keeps yuan and jiao money input working",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "multi-field-answer.spec.ts",
+      "title": "serializes the real multi-field profit rate as a percentage",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "next-day-reinforcement.spec.ts",
+      "title": "a real non-foundation explanation is first in the next-day G2 unit lesson",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "next-day-reinforcement.spec.ts",
+      "title": "a real non-foundation explanation is first in the next-day G2 unit lesson",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "no-irrelevant-number-step.spec.ts",
+      "title": "spot_extra_info step with no extraNumbers gets rebuilt",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "no-irrelevant-number-step.spec.ts",
+      "title": "spot_extra_info step with no extraNumbers gets rebuilt",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "operation-semantic-label.spec.ts",
+      "title": "v2.11.0-semantic: Operation label matches equation for each question in lesson",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "operation-semantic-label.spec.ts",
+      "title": "v2.11.0-semantic: Money subtraction shows correct domain-aware text",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "operation-semantic-label.spec.ts",
+      "title": "v2.11.0-semantic: Operation label matches equation for each question in lesson",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "operation-semantic-label.spec.ts",
+      "title": "v2.11.0-semantic: Money subtraction shows correct domain-aware text",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-full-diagnosis.spec.ts",
+      "title": "auto-invalidates old lesson and preserves data",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-full-diagnosis.spec.ts",
+      "title": "auto-invalidates old lesson and preserves data",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-full-diagnosis.spec.ts",
+      "title": "auto-invalidates old lesson and preserves data",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-full-diagnosis.spec.ts",
+      "title": "auto-invalidates old lesson and preserves data",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-full-diagnosis.spec.ts",
+      "title": "auto-invalidates old lesson and preserves data",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-full-diagnosis.spec.ts",
+      "title": "auto-invalidates old lesson and preserves data",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-full-diagnosis.spec.ts",
+      "title": "auto-invalidates old lesson and preserves data",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-full-diagnosis.spec.ts",
+      "title": "auto-invalidates old lesson and preserves data",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-full-diagnosis.spec.ts",
+      "title": "submit advances on first click — digit input",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-full-diagnosis.spec.ts",
+      "title": "submit advances on first click — digit input",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-phase-bc.spec.ts",
+      "title": "all 6 levels advance on first correct submit click",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-phase-bc.spec.ts",
+      "title": "all 6 levels advance on first correct submit click",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-phase-bc.spec.ts",
+      "title": "no single-digit questions for experienced user",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-phase-bc.spec.ts",
+      "title": "no single-digit questions for experienced user",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-submit-diagnosis.spec.ts",
+      "title": "captures build info and lesson structure",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "p0-submit-diagnosis.spec.ts",
+      "title": "captures build info and lesson structure",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "parent-password.spec.ts",
+      "title": "fixed password survives reload, rejects wrong answers, and change requires current password",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "parent-password.spec.ts",
+      "title": "five failures stay locked after reload and expire after 60 seconds",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "parent-password.spec.ts",
+      "title": "settings and import are locked while learning and report remain available",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "parent-password.spec.ts",
+      "title": "expired sessions close reward editors and tab hiding revokes access",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "parent-password.spec.ts",
+      "title": "fixed password survives reload, rejects wrong answers, and change requires current password",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "parent-password.spec.ts",
+      "title": "five failures stay locked after reload and expire after 60 seconds",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "parent-password.spec.ts",
+      "title": "settings and import are locked while learning and report remain available",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "parent-password.spec.ts",
+      "title": "expired sessions close reward editors and tab hiding revokes access",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "pattern-step-loop.spec.ts",
+      "title": "pattern question in pond duck theme does not cause loop",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "pattern-step-loop.spec.ts",
+      "title": "pattern question does not enter find_action_words step",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "pattern-step-loop.spec.ts",
+      "title": "full 6-step lesson with pattern question can complete",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "pattern-step-loop.spec.ts",
+      "title": "pattern question in pond duck theme does not cause loop",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "pattern-step-loop.spec.ts",
+      "title": "pattern question does not enter find_action_words step",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "pattern-step-loop.spec.ts",
+      "title": "full 6-step lesson with pattern question can complete",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "play-no-home-redirect.spec.ts",
+      "title": "opens and remains on /play",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "play-no-home-redirect.spec.ts",
+      "title": "bad legacy lesson is rebuilt without redirecting home",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "play-no-home-redirect.spec.ts",
+      "title": "opens and remains on /play",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "play-no-home-redirect.spec.ts",
+      "title": "bad legacy lesson is rebuilt without redirecting home",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "progressive-hints.spec.ts",
+      "title": "help requires a real judgment; wrong choices do not unlock the next task or reveal the answer",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "progressive-hints.spec.ts",
+      "title": "returning to a wrong original answer preserves the same help task across resume and refresh",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "progressive-hints.spec.ts",
+      "title": "help requires a real judgment; wrong choices do not unlock the next task or reveal the answer",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "progressive-hints.spec.ts",
+      "title": "returning to a wrong original answer preserves the same help task across resume and refresh",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "question-five-single-submit.spec.ts",
+      "title": "v2.11.0-single-submit: One submit button click shows correct feedback immediately",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "question-five-single-submit.spec.ts",
+      "title": "v2.11.0-single-submit: No duplicate submit handlers — only one transaction per click",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "question-five-single-submit.spec.ts",
+      "title": "v2.11.0-single-submit: Enter key submits exactly once (no double-fire)",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "question-five-single-submit.spec.ts",
+      "title": "v2.11.0-single-submit: Submit button has explicit type=submit",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "question-five-single-submit.spec.ts",
+      "title": "v2.11.0-single-submit: One submit button click shows correct feedback immediately",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "question-five-single-submit.spec.ts",
+      "title": "v2.11.0-single-submit: No duplicate submit handlers — only one transaction per click",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "question-five-single-submit.spec.ts",
+      "title": "v2.11.0-single-submit: Enter key submits exactly once (no double-fire)",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "question-five-single-submit.spec.ts",
+      "title": "v2.11.0-single-submit: Submit button has explicit type=submit",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-action-word-semantic-choice.spec.ts",
+      "title": "v2.11.3-action-word-semantic: keyword \"加\" must select increase",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-action-word-semantic-choice.spec.ts",
+      "title": "v2.11.3-action-word-semantic: keyword \"飞走了\" must select decrease",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-action-word-semantic-choice.spec.ts",
+      "title": "v2.11.3-action-word-semantic: reverse problem distinguishes action from solution",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-action-word-semantic-choice.spec.ts",
+      "title": "v2.11.3-action-word-semantic: keyword \"加\" must select increase",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-action-word-semantic-choice.spec.ts",
+      "title": "v2.11.3-action-word-semantic: keyword \"飞走了\" must select decrease",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-action-word-semantic-choice.spec.ts",
+      "title": "v2.11.3-action-word-semantic: reverse problem distinguishes action from solution",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-full-six-question-run.spec.ts",
+      "title": "v2.11.2-full-six-question-flow: All 6 questions progress to completion",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-full-six-question-run.spec.ts",
+      "title": "v2.11.2-full-six-question-flow: All 6 questions progress to completion",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q2-answer-page-and-q6-finish.spec.ts",
+      "title": "v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit button",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q2-answer-page-and-q6-finish.spec.ts",
+      "title": "v2.11.2-q6-finish-button-hit-test: Button receives pointer/click events",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q2-answer-page-and-q6-finish.spec.ts",
+      "title": "v2.11.2-full-flow-q2-answer-page: Q2 has visible answer input and submit button",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q2-answer-page-and-q6-finish.spec.ts",
+      "title": "v2.11.2-q6-finish-button-hit-test: Button receives pointer/click events",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q5-q6-consecutive-answer-only.spec.ts",
+      "title": "v2.11.1-q5-immediate-answer: Q5 answer_only shows answer input immediately",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q5-q6-consecutive-answer-only.spec.ts",
+      "title": "v2.11.1-q5-single-submit: Q5 single click shows correct feedback",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q5-q6-consecutive-answer-only.spec.ts",
+      "title": "v2.11.1-q5-to-q6-transition: Continue from Q5 enters Q6 with fresh state",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q5-q6-consecutive-answer-only.spec.ts",
+      "title": "v2.11.1-q6-single-submit: Q6 single submit shows correct feedback",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q5-q6-consecutive-answer-only.spec.ts",
+      "title": "v2.11.1-diagnostic-trace: Record full click chain for Q5 and Q6",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q5-q6-consecutive-answer-only.spec.ts",
+      "title": "v2.11.1-q5-immediate-answer: Q5 answer_only shows answer input immediately",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q5-q6-consecutive-answer-only.spec.ts",
+      "title": "v2.11.1-q5-single-submit: Q5 single click shows correct feedback",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q5-q6-consecutive-answer-only.spec.ts",
+      "title": "v2.11.1-q5-to-q6-transition: Continue from Q5 enters Q6 with fresh state",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q5-q6-consecutive-answer-only.spec.ts",
+      "title": "v2.11.1-q6-single-submit: Q6 single submit shows correct feedback",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-q5-q6-consecutive-answer-only.spec.ts",
+      "title": "v2.11.1-diagnostic-trace: Record full click chain for Q5 and Q6",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-question-five-double-submit-regression.spec.ts",
+      "title": "v2.11.3-q5-single-submit: one click submits and shows correct feedback",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "real-question-five-double-submit-regression.spec.ts",
+      "title": "v2.11.3-q5-single-submit: one click submits and shows correct feedback",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "regression-known-bugs.spec.ts",
+      "title": "pattern question does not enter action words and answer 10 passes once",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "regression-known-bugs.spec.ts",
+      "title": "apple exchange question does not enter action words or repair",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "regression-known-bugs.spec.ts",
+      "title": "noise question does not ask useful numbers as extra numbers",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "regression-known-bugs.spec.ts",
+      "title": "pattern question does not enter action words and answer 10 passes once",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "regression-known-bugs.spec.ts",
+      "title": "apple exchange question does not enter action words or repair",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "regression-known-bugs.spec.ts",
+      "title": "noise question does not ask useful numbers as extra numbers",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "repair-loop.spec.ts",
+      "title": "坏 lesson 不造成死循环",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "repair-loop.spec.ts",
+      "title": "无多余信息题不进入 spot_extra_info",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "repair-loop.spec.ts",
+      "title": "坏 lesson 不造成死循环",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "repair-loop.spec.ts",
+      "title": "无多余信息题不进入 spot_extra_info",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "reward-once.spec.ts",
+      "title": "completion reward flags remain stable across navigation and reload",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "reward-once.spec.ts",
+      "title": "completion reward flags remain stable across navigation and reload",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-layout.spec.ts",
+      "title": "rewards, medals and wardrobe fit 360x800",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-layout.spec.ts",
+      "title": "rewards, medals and wardrobe fit 390x844",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-layout.spec.ts",
+      "title": "rewards, medals and wardrobe fit 768x1024",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-layout.spec.ts",
+      "title": "rewards, medals and wardrobe fit 1440x900",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-layout.spec.ts",
+      "title": "rewards, medals and wardrobe fit 844x390",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-layout.spec.ts",
+      "title": "rewards, medals and wardrobe fit 360x800",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-layout.spec.ts",
+      "title": "rewards, medals and wardrobe fit 390x844",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-layout.spec.ts",
+      "title": "rewards, medals and wardrobe fit 768x1024",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-layout.spec.ts",
+      "title": "rewards, medals and wardrobe fit 1440x900",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-layout.spec.ts",
+      "title": "rewards, medals and wardrobe fit 844x390",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "home check-in credits 0.5 points once per local day",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "legacy stars reset to zero while learning, acquired items and old medals survive",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "two first-answer errors remain mistakes and the report shows 4/6, with no perfect-lesson point",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "a six-for-six first-answer lesson grants one point and a refresh does not grant it again",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "mistake correction supports Enter and a structured schema, and awards once only after saved correction",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "parent points reach 15, request then cancel refunds once, and locked try-on does not equip",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "HTTP-style missing crypto.randomUUID and storage failure do not show a false success",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "home check-in credits 0.5 points once per local day",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "legacy stars reset to zero while learning, acquired items and old medals survive",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "two first-answer errors remain mistakes and the report shows 4/6, with no perfect-lesson point",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "a six-for-six first-answer lesson grants one point and a refresh does not grant it again",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "mistake correction supports Enter and a structured schema, and awards once only after saved correction",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "parent points reach 15, request then cancel refunds once, and locked try-on does not equip",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "rewards-points-upgrade.spec.ts",
+      "title": "HTTP-style missing crypto.randomUUID and storage failure do not show a false success",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "semester-cache-stability.spec.ts",
+      "title": "uses detected semester over legacy fields and keeps a stale in-progress course stable",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "semester-cache-stability.spec.ts",
+      "title": "uses explicit override and returns to date detection when override is removed",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "semester-cache-stability.spec.ts",
+      "title": "uses the detected lower semester in March despite an old upper setting",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "semester-cache-stability.spec.ts",
+      "title": "uses detected semester over legacy fields and keeps a stale in-progress course stable",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "semester-cache-stability.spec.ts",
+      "title": "uses explicit override and returns to date detection when override is removed",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "semester-cache-stability.spec.ts",
+      "title": "uses the detected lower semester in March despite an old upper setting",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "source-identity.spec.ts",
+      "title": "uses the configured production origin and version",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "source-identity.spec.ts",
+      "title": "uses the configured production origin and version",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "theme-generation.spec.ts",
+      "title": "generated lesson questions do not obviously mismatch active theme",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "theme-generation.spec.ts",
+      "title": "generated lesson questions do not obviously mismatch active theme",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G1 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G2 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G3 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G4 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G5 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G6 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer choice uses its real answer form",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer comparison_symbol uses its real answer form",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer decimal uses its real answer form",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer fraction uses its real answer form",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer integer uses its real answer form",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer money uses its real answer form",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer multi_field uses its real answer form",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer ordering uses its real answer form",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer percent uses its real answer form",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer ratio uses its real answer form",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer text uses its real answer form",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "changing a comparison selection does not submit stale or premature answers",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G1 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G2 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G3 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G4 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G5 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "G6 new transfer survives reload and preserves original accuracy and rewards",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer choice uses its real answer form",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer comparison_symbol uses its real answer form",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer decimal uses its real answer form",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer fraction uses its real answer form",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer integer uses its real answer form",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer money uses its real answer form",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer multi_field uses its real answer form",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer ordering uses its real answer form",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer percent uses its real answer form",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer ratio uses its real answer form",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "expanded transfer text uses its real answer form",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-expansion.spec.ts",
+      "title": "changing a comparison selection does not submit stale or premature answers",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "a transfer question has a separate identity and cannot erase the original explanation record",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "a transfer attempt stays separate when the learner first answers wrong and then solves the real variation",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G1 matched transfer is independently solved without changing original-question records",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G2 matched transfer is independently solved without changing original-question records",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G3 matched transfer is independently solved without changing original-question records",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G4 matched transfer is independently solved without changing original-question records",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G5 matched transfer is independently solved without changing original-question records",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G6 matched transfer is independently solved without changing original-question records",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "a transfer question has a separate identity and cannot erase the original explanation record",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "a transfer attempt stays separate when the learner first answers wrong and then solves the real variation",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G1 matched transfer is independently solved without changing original-question records",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G2 matched transfer is independently solved without changing original-question records",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G3 matched transfer is independently solved without changing original-question records",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G4 matched transfer is independently solved without changing original-question records",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G5 matched transfer is independently solved without changing original-question records",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "transfer-question.spec.ts",
+      "title": "G6 matched transfer is independently solved without changing original-question records",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-concept-lab.spec.ts",
+      "title": "all nine concept tools remain interactive without answering or awarding",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-concept-lab.spec.ts",
+      "title": "all nine concept tools remain interactive without answering or awarding",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-grouping-actions.spec.ts",
+      "title": "grouping lesson helper is reversible and conserves items at 390px",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-grouping-actions.spec.ts",
+      "title": "grouping lesson helper is reversible and conserves items at 768px",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-grouping-actions.spec.ts",
+      "title": "grouping lesson helper is reversible and conserves items at 390px",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-grouping-actions.spec.ts",
+      "title": "grouping lesson helper is reversible and conserves items at 768px",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 360x800",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 390x844",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 768x1024",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 1024x768",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 1440x900",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 844x390",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 360x800",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 390x844",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 768x1024",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 1024x768",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 1440x900",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-layout.spec.ts",
+      "title": "home, settings and learning fit 844x390",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-learning-continuity.spec.ts",
+      "title": "a begun grade-one course keeps its identity across grade changes and midnight",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-learning-continuity.spec.ts",
+      "title": "full hints do not submit an answer and remain assisted after refresh",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-learning-continuity.spec.ts",
+      "title": "a begun grade-one course keeps its identity across grade changes and midnight",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-learning-continuity.spec.ts",
+      "title": "full hints do not submit an answer and remain assisted after refresh",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "G1 oral practice supports retry, two variants and a clear exit",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "G2 oral practice supports retry, two variants and a clear exit",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "G3 oral practice supports retry, two variants and a clear exit",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "G4 oral practice supports retry, two variants and a clear exit",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "G5 oral practice supports retry, two variants and a clear exit",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "sixth-grade fractions accept keyboard input, preserve wrong first attempts and save once",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "G1 oral practice supports retry, two variants and a clear exit",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "G2 oral practice supports retry, two variants and a clear exit",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "G3 oral practice supports retry, two variants and a clear exit",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "G4 oral practice supports retry, two variants and a clear exit",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "G5 oral practice supports retry, two variants and a clear exit",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-mental-math.spec.ts",
+      "title": "sixth-grade fractions accept keyboard input, preserve wrong first attempts and save once",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-percent-answer.spec.ts",
+      "title": "g6_21 percent control serializes a bare value and submits by click",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-percent-answer.spec.ts",
+      "title": "g6_21 percent control serializes a bare value and submits by enter",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-percent-answer.spec.ts",
+      "title": "g6_21 percent control serializes a bare value and submits by click",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-percent-answer.spec.ts",
+      "title": "g6_21 percent control serializes a bare value and submits by enter",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G1 upper g1-u1: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G1 lower g1-u1: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G1 upper g1-u2: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G1 upper g1-u5: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G2 upper g2-u1: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G2 upper g2-u3: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G2 lower g2-u3: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G3 upper g3-u3: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G3 lower g3-u3: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G3 upper g3-u5: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G4 upper g4-u4: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G4 lower g4-u4: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G5 upper g5-u3: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G5 lower g5-u3: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G6 upper g6-u4: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G6 lower g6-u4: real settings and all six questions, reload and one reward",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G1 upper g1-u1: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G1 lower g1-u1: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G1 upper g1-u2: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G1 upper g1-u5: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G2 upper g2-u1: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G2 upper g2-u3: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G2 lower g2-u3: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G3 upper g3-u3: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G3 lower g3-u3: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G3 upper g3-u5: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G4 upper g4-u4: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G4 lower g4-u4: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G5 upper g5-u3: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G5 lower g5-u3: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G6 upper g6-u4: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-real-learning.spec.ts",
+      "title": "G6 lower g6-u4: real settings and all six questions, reload and one reward",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-storage-failures.spec.ts",
+      "title": "failed answer save stays pending, retries the same action and survives refresh",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-storage-failures.spec.ts",
+      "title": "corrupt saved data is retained and reported without a blank screen",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-storage-failures.spec.ts",
+      "title": "unavailable browser storage shows an actionable message instead of crashing",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-storage-failures.spec.ts",
+      "title": "failed answer save stays pending, retries the same action and survives refresh",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-storage-failures.spec.ts",
+      "title": "corrupt saved data is retained and reported without a blank screen",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "upgrade-storage-failures.spec.ts",
+      "title": "unavailable browser storage shows an actionable message instead of crashing",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-api-test.spec.ts",
+      "title": "v2.11.0: Full lesson - advance all phases with answer submission",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-api-test.spec.ts",
+      "title": "v2.11.0: Answer gate - cannot complete step 6 without answering",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-api-test.spec.ts",
+      "title": "v2.11.0: Full lesson - advance all phases with answer submission",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-api-test.spec.ts",
+      "title": "v2.11.0: Answer gate - cannot complete step 6 without answering",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-real-state.spec.ts",
+      "title": "v2.11.0-real: answer_only steps render (not blank page)",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-real-state.spec.ts",
+      "title": "v2.11.0-real: single-click submit per step (no double-advance)",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-real-state.spec.ts",
+      "title": "v2.11.0-real: last question (step 6) requires answer — cannot bypass",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-real-state.spec.ts",
+      "title": "v2.11.0-real: answer_only steps render (not blank page)",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-real-state.spec.ts",
+      "title": "v2.11.0-real: single-click submit per step (no double-advance)",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-real-state.spec.ts",
+      "title": "v2.11.0-real: last question (step 6) requires answer — cannot bypass",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-runtime.spec.ts",
+      "title": "v2.11.0: Complete full lesson - 6 questions",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-runtime.spec.ts",
+      "title": "v2.11.0: Last question requires answer",
+      "project": "chromium",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-runtime.spec.ts",
+      "title": "v2.11.0: Complete full lesson - 6 questions",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    },
+    {
+      "file": "v2110-runtime.spec.ts",
+      "title": "v2.11.0: Last question requires answer",
+      "project": "mobile-chrome",
+      "outcome": "expected",
+      "attempts": 1,
+      "results": [
+        "passed"
+      ]
+    }
+  ]
+}

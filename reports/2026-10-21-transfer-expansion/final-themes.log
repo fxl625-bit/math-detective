@@ -1,0 +1,57 @@
+=== Math Detective 全主题一致性验证 (v2.6.12) ===
+
+Stories: 20
+Questions: 356
+
+--- forest_shop_theft: 森林商店失窃案 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- pond_duckling_mystery: 池塘小鸭失踪事件 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- bunny_carrot_garden: 兔子庄园胡萝卜疑案 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- ocean_shell_treasure: 海底贝壳宝藏 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- crab_sandcastle: 螃蟹先生的沙堡谜案 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- school_canteen_mystery: 食堂点心失踪案 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- playground_ball_mystery: 操场上的球去哪了 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- candy_shop_inventory: 糖果店库存谜案 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- toy_store_puzzle: 玩具店整理大作战 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- birthday_party_math: 生日派对数学谜 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- pet_shop_adventure: 宠物店大冒险 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- supermarket_price_puzzle: 超市购物价格谜案 ---
+  ✅ PASS | 题数: 42 | 类型: basic_arithmetic:19, multi_step:5, (未标注):11, pattern:6, age_problem:1
+--- science_lab_data: 科学实验室数据疑案 ---
+  ✅ PASS | 题数: 41 | 类型: basic_arithmetic:11, multi_step:24, ratio_distribution:4, logic_ranking:1, pattern:1
+--- charity_sale_ledger: 校园义卖账目谜案 ---
+  ✅ PASS | 题数: 41 | 类型: basic_arithmetic:11, multi_step:24, ratio_distribution:4, logic_ranking:1, pattern:1
+--- library_overdue_research: 图书馆借阅谜踪 ---
+  ✅ PASS | 题数: 41 | 类型: basic_arithmetic:11, multi_step:24, ratio_distribution:4, logic_ranking:1, pattern:1
+--- sports_day_scoring: 运动会计分迷局 ---
+  ✅ PASS | 题数: 41 | 类型: basic_arithmetic:11, multi_step:24, ratio_distribution:4, logic_ranking:1, pattern:1
+--- observatory_data_cloud: 天文台数据疑云 ---
+  ✅ PASS | 题数: 37 | 类型: basic_arithmetic:8, multi_step:28, ratio_distribution:1
+--- city_planning_ratio: 城市规划比例谜案 ---
+  ✅ PASS | 题数: 37 | 类型: basic_arithmetic:8, multi_step:28, ratio_distribution:1
+--- bank_interest_case: 银行利率计算案 ---
+  ✅ PASS | 题数: 37 | 类型: basic_arithmetic:8, multi_step:28, ratio_distribution:1
+--- map_scale_mystery: 藏宝图比例之谜 ---
+  ✅ PASS | 题数: 37 | 类型: basic_arithmetic:8, multi_step:28, ratio_distribution:1
+
+=== 汇总 ===
+总 Story: 20
+通过: 20
+失败: 0
+
+题库标注状态:
+  缺少 sceneType: 14/356
+  缺少 themeTags: 14/356
+  缺少 problemType: 14/356
+
+✅ 所有 Story 通过一致性验证。

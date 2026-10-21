@@ -6107,6 +6107,7 @@ export const g1LowerLateQuestions: Question[] = [
     operation: 'comparison',
     equation: '130 > 100 > 90',
     answer: '小鹿 > 小熊 > 小猴',
+    correctRanking: { first: '小鹿', second: '小熊', third: '小猴', order: ['小鹿', '小熊', '小猴'] },
     answerSentence: '从高到矮：小鹿 > 小熊 > 小猴。',
     explanation: '1 米 30 厘米 > 1 米 > 90 厘米（90 厘米=9 分米<1 米）。',
     solutionSteps: ['统一为厘米：小熊 100, 小鹿 130, 小猴 90', '从大到小：130>100>90'],

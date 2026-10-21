@@ -1,11 +1,14 @@
 import type { NextConfig } from "next";
 import { execSync } from "child_process";
 
-let commitHash = 'unknown';
+const releaseCommit = process.env.RELEASE_COMMIT_SHA || process.env.VERCEL_GIT_COMMIT_SHA;
+let commitHash = releaseCommit && /^[a-f0-9]{40}$/i.test(releaseCommit) ? releaseCommit.slice(0, 7) : 'unknown';
 try {
-  commitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
-  if (execSync('git status --porcelain', { encoding: 'utf-8' }).trim()) {
-    commitHash += '-working-tree';
+  if (commitHash === 'unknown') {
+    commitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+    if (execSync('git status --porcelain', { encoding: 'utf-8' }).trim()) {
+      commitHash += '-working-tree';
+    }
   }
 } catch {
   // Not a git repo or git not available

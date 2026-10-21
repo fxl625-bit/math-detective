@@ -1,0 +1,53 @@
+{
+  "sourceCount": 625,
+  "allowedSafeSources": 620,
+  "unsafeSourceCount": 5,
+  "unsafeSourceIds": [
+    "g1ll_65",
+    "g1ll_67",
+    "g2_24",
+    "g5o_13",
+    "g5o_32"
+  ],
+  "entries": 595,
+  "numericDistinctCount": 578,
+  "structuralCount": 17,
+  "gaps": 30,
+  "grades": {
+    "G1": {
+      "total": 147,
+      "matched": 139,
+      "unavailable": 8
+    },
+    "G2": {
+      "total": 91,
+      "matched": 88,
+      "unavailable": 3
+    },
+    "G3": {
+      "total": 107,
+      "matched": 101,
+      "unavailable": 6
+    },
+    "G4": {
+      "total": 105,
+      "matched": 100,
+      "unavailable": 5
+    },
+    "G5": {
+      "total": 106,
+      "matched": 100,
+      "unavailable": 6
+    },
+    "G6": {
+      "total": 69,
+      "matched": 67,
+      "unavailable": 2
+    }
+  },
+  "coverageRows": "625 rows saved in the output JSON",
+  "issues": [],
+  "passed": true,
+  "registeredCount": 595,
+  "registryErrors": []
+}

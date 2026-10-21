@@ -25,6 +25,23 @@ const helpQuestion = allQuestions.find(q => buildReasoningTasks(q).length > 0)!;
 assert.ok(helpQuestion, 'fixture needs a question with at least one generated reasoning task');
 
 {
+  const sourceId = 'prog_g2_u1_03';
+  const settings = { schemaVersion: 1 as const, grade: 'G2' as const, semester: 'upper' as const,
+    semesterSource: 'manual' as const, textbookEdition: 'generic_cn' as const,
+    unitId: 'g2-u1', learnedTableRange: [3, 5], dailyGoal: 6, challengePreference: 'balanced' as const };
+  for (const manualUnit of [true, false]) for (const [rows, expected] of [[[3, 5], 'deferred'], [[2, 4], 'pending']] as const) {
+    const gameState = { ...DEFAULT_GAME_STATE, parentSettings: { ...DEFAULT_GAME_STATE.parentSettings,
+      gradeBand: 'G2' as const, learningSettings: { ...settings, unitId: manualUnit ? settings.unitId : null, learnedTableRange: [...rows] } } };
+    const lesson = makeLesson(sourceId, `table-scope-${expected}`);
+    lesson.settingSnapshot = { ...settings, learnedTableRange: [...rows] };
+    const reveal = act(lesson, gameState, 'reveal_explanation', { questionId: sourceId, actionId: `table-reveal-${expected}` });
+    const start = act(reveal.nextLesson, reveal.nextState.gameState, 'start_transfer', { questionId: sourceId, actionId: `table-start-${expected}` });
+    assert.equal(start.nextLesson.steps[0].transfer?.status, expected, 'the actual transaction must enforce the variant factors against the current parent settings');
+    assert.equal(start.nextLesson.steps[0].solving?.independentCorrect, false);
+  }
+}
+
+{
   const lesson = makeLesson(helpQuestion.id, 'answer-gate');
   const skipped = act(lesson, DEFAULT_GAME_STATE, 'go_next', { questionId: helpQuestion.id });
   assert.equal(skipped.changed, false);

@@ -1,6 +1,6 @@
 {
   "name": "math-detective",
-  "version": "2.14.0",
+  "version": "2.15.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -19,6 +19,7 @@
     "validate:reasoning-frame": "tsx -r tsconfig-paths/register scripts/validate-reasoning-frame.ts",
     "validate:v291": "npm run validate:numeric-skill-labels && npm run validate:semantic-skills && npm run validate:reasoning-frame",
     "test:submit-transaction": "tsx -r tsconfig-paths/register tests/unit/submit-transaction.test.ts",
+    "test:unit": "node scripts/run-unit-tests.mjs",
     "test:state-machine": "tsx -r tsconfig-paths/register tests/unit/lesson-state-machine.test.ts",
     "test:three-question-render": "tsx -r tsconfig-paths/register tests/component/three-question-flow.test.ts",
     "test:scoring": "tsx -r tsconfig-paths/register tests/unit/scoring.test.ts",
@@ -43,7 +44,11 @@
     "test:independent-runtime": "tsx -r tsconfig-paths/register tests/unit/independent-solving-runtime.test.ts",
     "test:solving-metrics": "tsx -r tsconfig-paths/register tests/unit/solving-metrics.test.ts",
     "test:mistake-explanation": "tsx -r tsconfig-paths/register tests/unit/mistake-explanation-gate.test.ts",
-    "audit:independent-solving": "tsx -r tsconfig-paths/register scripts/audit-independent-solving.ts"
+    "audit:independent-solving": "tsx -r tsconfig-paths/register scripts/audit-independent-solving.ts",
+    "test:transfer-sources": "tsx -r tsconfig-paths/register tests/unit/transfer-source-corrections.test.ts",
+    "test:transfer-registry": "tsx -r tsconfig-paths/register tests/unit/transfer-registry.test.ts",
+    "test:transfer-oracle": "tsx -r tsconfig-paths/register tests/unit/transfer-expansion-oracle.test.ts",
+    "audit:transfer-expansion": "tsx -r tsconfig-paths/register scripts/audit-transfer-expansion.ts"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",

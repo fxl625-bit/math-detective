@@ -1,0 +1,32 @@
+[
+  {
+    "gate": "questions",
+    "passed": true,
+    "exitCode": 0
+  },
+  {
+    "gate": "themes",
+    "passed": true,
+    "exitCode": 0
+  },
+  {
+    "gate": "hints",
+    "passed": true,
+    "exitCode": 0
+  },
+  {
+    "gate": "child-ui",
+    "passed": true,
+    "exitCode": 0
+  },
+  {
+    "gate": "real-curriculum",
+    "passed": true,
+    "exitCode": 0
+  },
+  {
+    "gate": "lesson-generation",
+    "passed": true,
+    "exitCode": 0
+  }
+]

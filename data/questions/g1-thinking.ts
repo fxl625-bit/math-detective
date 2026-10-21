@@ -554,10 +554,10 @@ export const g1ThinkingQuestions: Question[] = [
   {
     id: 'g1t_25', gradeBand: 'G1', domain: 'geometry',
     cognitiveSkills: ['build_model', 'choose_operation'],
-    text: '用火柴棒拼了一个大三角形，里面又画了两条线，分成了3个小三角形。图中一共有几个三角形？提示：别漏了大三角形！',
+    text: '在一个大三角形内部取一点，分别连到三个顶点，分成3个小三角形，线段不延长。包含大三角形共几个三角形？',
     numbers: [3, 1],
     keywords: [],
-    noisePhrases: [], usefulPhrases: ['3个小三角形', '一共有几个三角形', '别漏了大三角形'],
+    noisePhrases: [], usefulPhrases: ['大三角形内部取一点', '分别连到三个顶点', '分成3个小三角形', '线段不延长', '包含大三角形共几个'],
     questionMeaningOptions: ['4个', '3个', '5个'],
     correctMeaning: '4个', operation: 'addition', equation: '3 + 1 = ?', answer: 4,
     answerSentence: '一共有4个三角形。',

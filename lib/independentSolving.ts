@@ -1,7 +1,10 @@
-import type { GradeBand, Question } from './types';
+import type { GradeBand, LearningSettings, Question } from './types';
+import type { TransferEntry, TransferExpression } from '@/data/questions/transfers/types';
+import { questionLearningMetadata } from '@/data/questions/progression';
 import { textRevealsAnswer } from './hintSafety';
-import { inferAnswerSchema } from './answerSchema';
 import { INTERACTIVE_HELP_OVERRIDES } from '@/data/interactiveHelp';
+import { allQuestions, isQuestionSafeForNewLesson, transferCatalog } from '@/data/questions';
+import { transferFingerprint } from '@/data/questions/transfers/helpers';
 
 export interface SolvingEvidence {
   phase: 'attempt' | 'help' | 'review' | 'explanation' | 'transfer' | 'complete';
@@ -246,107 +249,75 @@ export function evaluateReasoningTask(
     : { correct: false, feedback: '再对照题目中的目标和条件想一想。', scaffold: task.scaffold };
 }
 
-function skillKeys(q: Question): string[] {
-  const curated = curatedTransferIdentity[q.id]?.skill;
-  if (curated) return [curated];
-  return [...new Set([...(q.curriculumSkillIds || []), ...(q.skillIds || []), ...(q.curriculumSkillIds ? [] : q.skillIds || [])])].sort();
-}
-
-function semester(q: Question): string | undefined {
-  return q.curriculumSemester;
-}
-
-function relationSignature(q: Question): string | undefined {
-  const curated = curatedTransferIdentity[q.id]?.relation;
-  if (curated) return curated;
-  const frame = q.reasoningFrame;
-  if (!frame?.targetQuestion?.questionType || !frame.knownFacts?.length) return undefined;
-  const roleFamily = frame.knownFacts.map(f => {
-    const role = f.role;
-    if (/减少|用掉|吃掉|离开|飞走/.test(role)) return 'decrease';
-    if (/增加|加入|后来|又来/.test(role)) return 'increase';
-    if (/初始|原来|开始/.test(role)) return 'initial';
-    if (/每份|每组|单价|每个/.test(role)) return 'per_unit';
-    if (/份数|组数|数量/.test(role)) return 'groups';
-    if (/总数|全部|合计/.test(role)) return 'total';
-    return `role:${role}`;
-  });
-  return `${frame.targetQuestion.questionType}|${frame.targetQuestion.targetQuantity}|${frame.targetQuestion.targetUnit || ''}|${roleFamily.join(',')}|two:${q.isTwoStep === true}`;
-}
-
-// Hand-audited legacy G6 pair: both ask for a percentage from a part and whole
-// (part ÷ whole × 100%), with different counts and results.
-const curatedTransferIdentity: Record<string, { skill: string; relation: string }> = {
-  g1_01: { skill: 'G1:addition-increase-to-total', relation: 'addition|initial+increase=total|single' },
-  g1_06: { skill: 'G1:addition-increase-to-total', relation: 'addition|initial+increase=total|single' },
-  g1_08: { skill: 'G1:addition-increase-to-total', relation: 'addition|initial+increase=total|single' },
-  g2_05: { skill: 'G2:equal-sharing-per-recipient', relation: 'equal-sharing|total÷recipient-count=per-recipient|single' },
-  prog_g2_u2_01: { skill: 'G2:equal-sharing-per-recipient', relation: 'equal-sharing|total÷recipient-count=per-recipient|single' },
-  g2_01: { skill: 'G2:equal-groups-total', relation: 'equal-groups-total|per-unit×group-count|single' },
-  g2_09: { skill: 'G2:equal-groups-total', relation: 'equal-groups-total|per-unit×group-count|single' },
-  g3_04: { skill: 'G3:total-divided-by-per-group', relation: 'group-count|total÷per-group|single' },
-  g3_11: { skill: 'G3:total-divided-by-per-group', relation: 'group-count|total÷per-group|single' },
-  g4_19: { skill: 'G4:constant-rate-times-time', relation: 'total-quantity|rate×time|single' },
-  g4_25: { skill: 'G4:constant-rate-times-time', relation: 'total-quantity|rate×time|single' },
-  g5_01: { skill: 'G5:decimal-equal-groups-total', relation: 'equal-groups-total|per-unit×group-count|single' },
-  g5_21: { skill: 'G5:decimal-equal-groups-total', relation: 'equal-groups-total|per-unit×group-count|single' },
-  g6_06: { skill: 'G6:rate-from-part-and-whole', relation: 'percent-from-part-and-whole|single' },
-  g6_21: { skill: 'G6:rate-from-part-and-whole', relation: 'percent-from-part-and-whole|single' },
-};
-
-const blockedTransferPairs = new Set([
-  'g1ll_18|g1ll_22', 'g1ll_22|g1ll_18', // comparison sides occupy different roles
-  'g1ll_48|g1ll_50', 'g1ll_50|g1ll_48', // currency units require different borrowing
-  'g1ll_64|g1ll_61', 'g1ll_61|g1ll_64', // missing middle term versus next term
-  'g1ll_69|g1ll_74', 'g1ll_74|g1ll_69', // operation order is reversed
-  'g1ll_75|g1ll_79', 'g1ll_79|g1ll_75', // repeated equal factor degeneracy
-]);
-
-function answerSchemaFamily(q: Question): string {
-  const schema = inferAnswerSchema(q);
-  const kind = schema.kind;
-  if (kind === 'integer' || kind === 'decimal') return 'numeric';
-  if (kind === 'multi_field') return `multi_field:${schema.fields.map(field => field.kind).join(',')}`;
-  return kind;
-}
-
-function differentNumbers(a: Question, b: Question): boolean {
-  const numsA = (a.numbers || []).map(String).sort().join(',');
-  const numsB = (b.numbers || []).map(String).sort().join(',');
-  return numsA !== numsB && String(a.answer) !== String(b.answer);
-}
-
-export function selectTransferQuestion(original: Question, pool: Question[]): TransferSelection {
-  const originalSkills = skillKeys(original);
-  const originalRelation = relationSignature(original);
-  if (!originalSkills.length || !originalRelation) {
-    return { kind: 'unavailable', reason: '原题缺少可验证的知识点或结构化数量关系，无法确认同构变式。' };
-  }
-  const candidates = pool.filter(candidate => {
-    if (candidate.id === original.id || candidate.gradeBand !== original.gradeBand) return false;
-    if (blockedTransferPairs.has(`${original.id}|${candidate.id}`)) return false;
-    const aSemester = semester(original), bSemester = semester(candidate);
-    if (aSemester && bSemester && aSemester !== 'both' && bSemester !== 'both' && aSemester !== bSemester) return false;
-    if (!originalSkills.some(skill => skillKeys(candidate).includes(skill))) return false;
-    if (candidate.operation !== original.operation || candidate.domain !== original.domain) return false;
-    if (answerSchemaFamily(candidate) !== answerSchemaFamily(original)) return false;
-    if (relationSignature(candidate) !== originalRelation) return false;
-    if (!differentNumbers(original, candidate)) return false;
-    return true;
-  });
-  if (candidates.length) return {
-    kind: 'matched', questionId: candidates[0].id,
-    reason: '年级、兼容学期、知识点、运算、答案类型和结构化数量关系一致，题目数字及答案不同。',
+function transferWithinLearnedTables(entry: TransferEntry, settings?: Pick<LearningSettings, 'grade' | 'unitId' | 'learnedTableRange'>): boolean {
+  if (settings?.grade !== 'G2' || !['g2-u1', 'g2-u2'].includes(settings.unitId || '')) return true;
+  const metadata = questionLearningMetadata.find(item => item.questionId === entry.sourceId);
+  if (metadata?.tableRequirement === 'concept') return true;
+  if (metadata?.tableRequirement !== 'facts' || !settings.learnedTableRange?.length) return false;
+  const learned = new Set(settings.learnedTableRange);
+  let pairCount = 0;
+  const checkPair = (a: number, b: number) => {
+    pairCount++;
+    if (![a, b].every(value => Number.isInteger(value) && value >= 1 && value <= 9) || !learned.has(a) && !learned.has(b)) throw new Error('unlearned multiplication fact');
   };
+  if (entry.witness.kind !== 'arithmetic') {
+    if (!['progression-g2-max-product-plus-unused-v1', 'progression-g2-max-product-minus-unused-v1'].includes(entry.witness.model)) return false;
+    const digits = entry.witness.variant.digits;
+    if (!Array.isArray(digits) || digits.length !== 3 || !digits.every(value => typeof value === 'number')) return false;
+    try {
+      for (let i = 0; i < digits.length; i++) for (let j = i + 1; j < digits.length; j++) checkPair(Number(digits[i]), Number(digits[j]));
+      return true;
+    } catch { return false; }
+  }
+  const facts = entry.witness.variant.facts;
+  const evaluate = (node: TransferExpression, rounding?: 'floor' | 'ceil'): number => {
+    if (typeof node === 'number') return node;
+    if ('fact' in node) return facts[node.fact];
+    if (node.op === 'floor' || node.op === 'ceil') return Math[node.op](evaluate(node.args[0], node.op));
+    const values = node.args.map(child => evaluate(child));
+    switch (node.op) {
+      case 'add': return values.reduce((a, b) => a + b, 0);
+      case 'sub': return values[0] - values[1];
+      case 'mul': return values.slice(1).reduce((a, b) => { checkPair(a, b); return a * b; }, values[0]);
+      case 'div': {
+        const quotient = values[0] / values[1];
+        checkPair(values[1], rounding ? Math[rounding](quotient) : quotient);
+        return quotient;
+      }
+      case 'pow': return values[0] ** values[1];
+      case 'min': return Math.min(...values);
+      case 'max': return Math.max(...values);
+    }
+  };
+  try {
+    const tree = entry.witness.variant.result;
+    if (typeof tree === 'number' || 'fact' in tree || 'op' in tree) evaluate(tree as TransferExpression);
+    else for (const node of Object.values(tree)) evaluate(node);
+    return pairCount > 0;
+  } catch { return false; }
+}
 
-  const followup = pool.find(candidate => candidate.id !== original.id
-    && candidate.gradeBand === original.gradeBand
-    && originalSkills.some(skill => skillKeys(candidate).includes(skill))
-    && candidate.operation === original.operation && candidate.domain === original.domain);
+export function selectTransferQuestion(original: Question, pool: Question[], settings?: Pick<LearningSettings, 'grade' | 'unitId' | 'learnedTableRange'>): TransferSelection {
+  const canonical = allQuestions.find(question => question.id === original.id);
+  if (!canonical || original.id.startsWith('transfer_') || !isQuestionSafeForNewLesson(original)
+    || original.qualityStatus === 'needs_review' || transferFingerprint(original) !== transferFingerprint(canonical)) {
+    return { kind: 'unavailable', reason: '原题内容未通过安全复核，暂不提供变式。' };
+  }
+  const reviewed = (transferCatalog.bySourceId.get(original.id) || []).find(entry => pool.some(question =>
+    question.id === original.id && transferFingerprint(question) === entry.sourceFingerprint
+    || question.id === entry.variant.id && transferFingerprint(question) === transferFingerprint(entry.variant)));
+  if (reviewed && !transferWithinLearnedTables(reviewed, settings)) return {
+    kind: 'unavailable', reason: '这道变式需要的乘除口诀尚未确认学过，先保留到相应单元再练习。',
+  };
+  if (reviewed) return {
+    kind: 'matched', questionId: reviewed.variant.id,
+    reason: reviewed.verificationMode === 'numeric-distinct'
+      ? '已核验原题与变式的数量关系、求解目标、答案类型和难度；数字及答案不同。'
+      : '已通过独立结构证明，保留原题的约束关系、求解目标和难度。',
+  };
   return {
     kind: 'unavailable',
-    reason: '这题暂时没有确认过的同结构变式。',
-    ...(followup ? { followupQuestionId: followup.id } : {}),
+    reason: '这道题暂时没有合适的同类练习，先继续下一题，之后再回来巩固。',
   };
 }
 
