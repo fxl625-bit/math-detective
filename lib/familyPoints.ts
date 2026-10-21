@@ -237,7 +237,7 @@ export function isPerfectFirstAnswerLesson(state: GameState, lesson: TodayLesson
   if (coreSteps.some((step) => step.status !== 'completed' || !step.questionInstanceId)) return false;
   const firstAttempts = new Map<string, boolean>();
   const answerEvents = (base.learningEvents || []).map((event, index) => ({ event, index }))
-    .filter(({ event }) => event.eventType === 'attempt_submitted' && Boolean(event.questionInstanceId))
+    .filter(({ event }) => event.eventType === 'attempt_submitted' && event.source !== 'transfer' && Boolean(event.questionInstanceId))
     .sort((left, right) => left.event.timestamp.localeCompare(right.event.timestamp) || left.index - right.index)
     .map(({ event }) => event);
   for (const event of answerEvents) {

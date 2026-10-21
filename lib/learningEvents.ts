@@ -1,4 +1,5 @@
 import type { AttemptRecord, LearningEvent, LearningEventType } from './types';
+import { isSolvingEvidence } from './solvingValidation';
 
 export interface EventIdentity {
   childProfileId: string;
@@ -26,7 +27,7 @@ function samePayload(left: LearningEvent, right: LearningEvent): boolean {
 }
 
 function isEventType(value: unknown): value is LearningEventType {
-  return ['attempt_submitted', 'hint_used', 'support_used', 'mistake_review_submitted', 'question_completed', 'lesson_completed', 'legacy_snapshot'].includes(String(value));
+  return ['attempt_submitted', 'hint_used', 'support_used', 'mistake_review_submitted', 'question_completed', 'lesson_completed', 'legacy_snapshot', 'explanation_viewed', 'help_task_submitted', 'transfer_completed'].includes(String(value));
 }
 
 export function createLearningEvent(input: LearningEventInput): LearningEvent | null {
@@ -36,7 +37,12 @@ export function createLearningEvent(input: LearningEventInput): LearningEvent | 
     || !isEventType(event.eventType) || !Number.isFinite(Date.parse(event.timestamp))
     || !Array.isArray(event.skillIds) || event.skillIds.some(skill => typeof skill !== 'string')
     || !['none', 'light', 'medium', 'full'].includes(event.hintLevel)
-    || !['independent', 'assisted', 'legacy_unknown'].includes(event.completionMode)
+    || !['independent', 'assisted', 'needs_reinforcement', 'legacy_unknown'].includes(event.completionMode)
+    || (event.source !== undefined && !['original', 'transfer'].includes(event.source))
+    || (event.parentQuestionInstanceId !== undefined && (typeof event.parentQuestionInstanceId !== 'string' || !event.parentQuestionInstanceId.trim()))
+    || (event.source === 'transfer' && !event.parentQuestionInstanceId)
+    || (event.solvingEvidence !== undefined && !isSolvingEvidence(event.solvingEvidence))
+    || (event.helpTaskSkill !== undefined && !['target', 'condition', 'relation', 'intermediate'].includes(event.helpTaskSkill))
     || (event.grade !== undefined && !/^G[1-6]$/.test(event.grade) && event.grade !== 'unknown')
     || (event.semester !== undefined && !['upper', 'lower', 'unknown'].includes(event.semester))
     || (event.durationMs !== undefined && (!Number.isFinite(event.durationMs) || event.durationMs < 0))) return null;

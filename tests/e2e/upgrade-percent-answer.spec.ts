@@ -22,7 +22,8 @@ test(`g6_21 percent control serializes a bare value and submits by ${submitMode}
     });
   });
 
-  await page.getByTestId('read-question-next').click();
+  expect((await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST.getState())).currentPhase).toBe('answer');
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
   await expect(page.getByTestId('lesson-question-prompt')).toContainText('达标率是多少');
   const input = page.getByTestId('lesson-answer-input');
   await expect(input).toHaveValue('');

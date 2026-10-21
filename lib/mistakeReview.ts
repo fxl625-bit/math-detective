@@ -14,6 +14,10 @@ export interface MistakeReviewResult extends PointsResult {
   correct: boolean;
 }
 
+export interface MistakeExplanationResult extends PointsResult {
+  ok: boolean;
+}
+
 export function getReviewRecordId(record: MistakeRecord): string {
   if (record.instanceId) return `${record.questionId}:${record.instanceId}`;
   const raw = `${record.questionId}|${record.date}|${String(record.myAnswer)}|${record.errorType}`;
@@ -57,6 +61,22 @@ export function getReviewQuestion(record: MistakeRecord): Question | undefined {
   } as unknown as Question;
 }
 
+export function hasViewedMistakeExplanation(state: GameState, recordId: string, now: Date = new Date()): boolean {
+  const viewedAt = state.reviewExplanationViews?.[recordId];
+  return typeof viewedAt === 'string' && localDate(new Date(viewedAt)) === localDate(now);
+}
+
+/** Persist the explanation reveal before the UI renders its answer and explanation. */
+export function revealMistakeExplanation(state: GameState, recordId: string, now: Date = new Date()): MistakeExplanationResult {
+  const base = state;
+  const mistake = (base.mistakes || []).find(record => getReviewRecordId(record) === recordId);
+  if (!mistake || !getReviewQuestion(mistake)) return { state: base, ok: false, message: '没有找到可查看的错题解析。', pointsDelta: 0 };
+  if (hasViewedMistakeExplanation(base, recordId, now))
+    return { state: base, ok: true, message: '今天已记录查看解析。', pointsDelta: 0 };
+  return { state: { ...base, reviewExplanationViews: { ...(base.reviewExplanationViews || {}), [recordId]: now.toISOString() } },
+    ok: true, message: '查看解析已保存。', pointsDelta: 0 };
+}
+
 export function submitMistakeReview(
   state: GameState,
   input: MistakeReviewInput,
@@ -74,6 +94,9 @@ export function submitMistakeReview(
       ? { state: base, ok: true, correct: previous.correct, message: '这次提交已经记录。', pointsDelta: 0 }
       : failure(base, '操作编号已用于不同答案，未重复提交。');
   }
+
+  if (hasViewedMistakeExplanation(state, input.recordId, now))
+    return failure(state, '今天已经查看过这道题的解析，明天可以重新订正。');
 
   const question = getReviewQuestion(mistake);
   if (!question) return failure(base, '这道历史错题的题目已不可用，无法练习。');

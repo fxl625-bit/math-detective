@@ -31,8 +31,9 @@ async function setQuestion(page: Page, questionId: string) {
     questionId,
     { timeout: 10000 },
   );
-  // Enter the answer phase through the learner-facing flow, not the test API.
-  await page.getByTestId('read-question-next').click();
+  // Normalized legacy fixtures now enter the answer phase directly.
+  expect((await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST.getState())).currentPhase).toBe('answer');
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
   await expect(page.getByTestId('lesson-question-prompt')).toBeVisible();
 }
 
@@ -51,7 +52,7 @@ test('retains both structured fields through rerender and wrong-answer retry', a
   await inputs.nth(0).fill('99');
   await inputs.nth(1).fill('5');
   await page.getByRole('button', { name: '提交答案' }).click();
-  await expect(page.locator('body')).toContainText(/再想想|💡/);
+  await expect(page.locator('body')).toContainText(/还不对|换个方法/);
   await expect(inputs.nth(0)).toHaveValue('99');
   await expect(inputs.nth(1)).toHaveValue('5');
   const attemptsAfterWrong = await readAnswerAttempts(page);

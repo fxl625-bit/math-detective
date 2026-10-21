@@ -28,41 +28,41 @@ function buildFullLessonFixture() {
   const steps = [
     {
       id: `${lessonDate}_find_numbers_0_g1ll_02`,
-      type: 'find_numbers' as const,
+      type: 'answer_only' as const,
       questionId: 'g1ll_02',
-      title: '找数字线索',
-      description: '从题目中找到数字',
-      phases: ['read', 'find_numbers', 'answer', 'explain'],
+      title: '独立作答',
+      description: '先自己读题并作答，需要时可以求助',
+      phases: ['answer', 'explain'],
       currentPhaseIndex: 0,
       status: 'active' as const,
     },
     {
       id: `${lessonDate}_find_action_words_1_g1ll_03`,
-      type: 'find_action_words' as const,
+      type: 'answer_only' as const,
       questionId: 'g1ll_03',
-      title: '找动作词',
-      description: '找到加减动作词',
-      phases: ['read', 'find_keywords', 'choose_operation', 'answer', 'explain'],
+      title: '独立作答',
+      description: '先自己读题并作答，需要时可以求助',
+      phases: ['answer', 'explain'],
       currentPhaseIndex: 0,
       status: 'locked' as const,
     },
     {
       id: `${lessonDate}_simulation_2_g1ll_29`,
-      type: 'simulation' as const,
+      type: 'answer_only' as const,
       questionId: 'g1ll_29',
-      title: '模拟场景',
-      description: '模拟题目场景',
-      phases: ['read', 'choose_operation', 'answer', 'explain'],
+      title: '独立作答',
+      description: '先自己读题并作答，需要时可以求助',
+      phases: ['answer', 'explain'],
       currentPhaseIndex: 0,
       status: 'locked' as const,
     },
     {
       id: `${lessonDate}_remove_noise_3_g1ll_07`,
-      type: 'remove_noise' as const,
+      type: 'answer_only' as const,
       questionId: 'g1ll_07',
-      title: '擦掉没用的信息',
-      description: '去掉多余信息',
-      phases: ['read', 'remove_noise', 'answer', 'explain'],
+      title: '独立作答',
+      description: '先自己读题并作答，需要时可以求助',
+      phases: ['answer', 'explain'],
       currentPhaseIndex: 0,
       status: 'locked' as const,
     },
@@ -147,22 +147,15 @@ async function getState(page: Page): Promise<any> {
 }
 
 async function dismissOverlay(page: Page) {
-  await page.waitForTimeout(500);
-  try {
-    const backdrop = page.locator('.fixed.inset-0.z-40').first();
-    if (await backdrop.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await backdrop.click({ position: { x: 10, y: 10 } });
-      await page.waitForTimeout(500);
-    }
-  } catch { /* no overlay */ }
-  try {
-    const closeBtn = page.locator('.fixed.inset-0.z-40 button').first();
-    if (await closeBtn.isVisible({ timeout: 500 }).catch(() => false)) {
-      await closeBtn.click();
-      await page.waitForTimeout(300);
-    }
-  } catch { /* no close button */ }
-  await page.waitForTimeout(300);
+  const dialog = page.getByRole('dialog');
+  if (!(await dialog.isVisible().catch(() => false))) return;
+  const continueLearning = dialog.getByRole('button', { name: '继续学习', exact: true });
+  if (await continueLearning.isVisible().catch(() => false)) await continueLearning.click();
+  else {
+    const close = dialog.getByRole('button', { name: '关闭反馈', exact: true });
+    if (await close.isVisible().catch(() => false)) await close.click();
+  }
+  await expect(dialog).toHaveCount(0);
 }
 
 // ========== Test: Full six-question real flow ==========
@@ -182,26 +175,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   // =====================================================================
   console.log('=== Q1: find_numbers (g1ll_02) ===');
 
-  // Read phase → "读完了，开始找数字 →"
-  const q1ReadBtn = page.locator('button:has-text("读完了")').first();
-  await q1ReadBtn.click();
-  await page.waitForTimeout(300);
-
-  // Find numbers: click 13 and 7
-  for (const n of [13, 7]) {
-    const numBtn = page.locator(`button:has-text("${n}")`).first();
-    if (await numBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await numBtn.click();
-      await page.waitForTimeout(150);
-    }
-  }
-  await page.waitForTimeout(200);
-
-  // Advance to answer
-  const q1Advance = page.locator('button:has-text("数字找齐了"), button:has-text("去列算式"), button:has-text("去算答案")').first();
-  await expect(q1Advance, 'Q1 advance button must be visible').toBeVisible({ timeout: 3000 });
-  await q1Advance.click();
-  await page.waitForTimeout(300);
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
 
   // Submit answer
   const q1Input = page.locator('input[name="answer"]').first();
@@ -211,7 +185,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   report.steps.push({ question: 'Q1-g1ll_02', answer: q1Result.answer, attemptDelta: q1Result.afterAttempts - q1Result.beforeAttempts, phase: q1Result.afterState.currentPhase });
 
   // Continue → Q2
-  await page.locator('button:has-text("继续"), button:has-text("下一关")').first().click();
+  await page.getByTestId('continue-feedback').click();
   await page.waitForTimeout(1500);
   await dismissOverlay(page);
 
@@ -220,38 +194,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   // =====================================================================
   console.log('=== Q2: find_action_words (g1ll_03) ===');
 
-  // Read phase
-  await page.locator('button:has-text("读完了")').first().click();
-  await page.waitForTimeout(300);
-
-  // Find keywords: click "送给" and "还剩"
-  for (const kw of ['送给', '还剩']) {
-    const kwBtn = page.locator(`button:has-text("${kw}")`).first();
-    if (await kwBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await kwBtn.click();
-      await page.waitForTimeout(200);
-    }
-  }
-
-  // Click "关键词找到了，判断运算 →"
-  const kwAdvance = page.locator('button:has-text("关键词找到了")').first();
-  if (await kwAdvance.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await kwAdvance.click();
-    await page.waitForTimeout(300);
-  }
-
-  // Choose operation: subtraction
-  await page.waitForTimeout(300);
-  const subtractBtn = page.locator('button:has-text("变少了"), button:has-text("用减法")').first();
-  if (await subtractBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await subtractBtn.click();
-    await page.waitForTimeout(200);
-  }
-
-  // Advance to answer
-  const q2Advance = page.locator('button:has-text("判断完毕"), button:has-text("去算答案")').first();
-  await q2Advance.click();
-  await page.waitForTimeout(500);
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
 
   // Verify answer page
   const q2Input = page.locator('input[name="answer"]').first();
@@ -265,7 +208,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   report.steps.push({ question: 'Q2-g1ll_03', answer: q2Result.answer, inputVisible: true, submitVisible: true, attemptDelta: q2Result.afterAttempts - q2Result.beforeAttempts, phase: q2Result.afterState.currentPhase });
 
   // Continue → Q3
-  await page.locator('button:has-text("继续"), button:has-text("下一关")').first().click();
+  await page.getByTestId('continue-feedback').click();
   await page.waitForTimeout(1500);
   await dismissOverlay(page);
 
@@ -274,21 +217,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   // =====================================================================
   console.log('=== Q3: simulation (g1ll_29) ===');
 
-  // Read phase
-  await page.locator('button:has-text("读完了")').first().click();
-  await page.waitForTimeout(300);
-
-  // Choose operation: addition (变多了)
-  const addBtn = page.locator('button:has-text("变多了")').first();
-  if (await addBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await addBtn.click();
-    await page.waitForTimeout(200);
-  }
-
-  // Advance to answer
-  const q3Advance = page.locator('button:has-text("判断完毕"), button:has-text("去算答案")').first();
-  await q3Advance.click();
-  await page.waitForTimeout(300);
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
 
   // Submit answer
   const q3Input = page.locator('input[name="answer"]').first();
@@ -298,7 +227,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   report.steps.push({ question: 'Q3-g1ll_29', answer: q3Result.answer, attemptDelta: q3Result.afterAttempts - q3Result.beforeAttempts, phase: q3Result.afterState.currentPhase });
 
   // Continue → Q4
-  await page.locator('button:has-text("继续"), button:has-text("下一关")').first().click();
+  await page.getByTestId('continue-feedback').click();
   await page.waitForTimeout(1500);
   await dismissOverlay(page);
 
@@ -307,27 +236,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   // =====================================================================
   console.log('=== Q4: remove_noise (g1ll_07) ===');
 
-  // Read phase
-  await page.locator('button:has-text("读完了")').first().click();
-  await page.waitForTimeout(300);
-
-  // Click noise phrases to remove them (they are <span> elements)
-  const noiseSegments = page.locator('span:has-text("星期天"), span:has-text("妈妈带小明去公园玩")');
-  const noiseCount = await noiseSegments.count();
-  for (let i = 0; i < noiseCount; i++) {
-    const seg = noiseSegments.nth(i);
-    if (await seg.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await seg.click();
-      await page.waitForTimeout(200);
-    }
-  }
-
-  // Advance to answer
-  const q4Advance = page.locator('button:has-text("废话擦干净了"), button:has-text("去算答案")').first();
-  if (await q4Advance.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await q4Advance.click();
-    await page.waitForTimeout(300);
-  }
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
 
   // Submit answer
   const q4Input = page.locator('input[name="answer"]').first();
@@ -337,7 +246,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   report.steps.push({ question: 'Q4-g1ll_07', answer: q4Result.answer, attemptDelta: q4Result.afterAttempts - q4Result.beforeAttempts, phase: q4Result.afterState.currentPhase });
 
   // Continue → Q5
-  await page.locator('button:has-text("继续"), button:has-text("下一关")').first().click();
+  await page.getByTestId('continue-feedback').click();
   await page.waitForTimeout(1500);
   await dismissOverlay(page);
 
@@ -356,7 +265,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   report.steps.push({ question: 'Q5-g1ll_32', answer: q5Result.answer, attemptDelta: q5Result.afterAttempts - q5Result.beforeAttempts, phase: q5Result.afterState.currentPhase });
 
   await dismissOverlay(page);
-  await page.locator('button:has-text("下一关"), button:has-text("完成"), button:has-text("继续"), button:has-text("学会了")').first().click();
+  await page.getByTestId('continue-feedback').click();
   await page.waitForTimeout(1500);
   await dismissOverlay(page);
 
@@ -382,7 +291,7 @@ test('v2.11.2-full-six-question-flow: All 6 questions progress to completion', a
   expect((await getState(page))?.currentPhase, 'Q6 must reach its explanation phase').toBe('explain');
 
   // Find and verify the finish button
-  const finishBtn = page.locator('button:has-text("学会"), button:has-text("继续破案"), button:has-text("完成")').first();
+  const finishBtn = page.getByTestId('continue-feedback');
   await expect(finishBtn, 'Q6 finish button must be visible').toBeVisible({ timeout: 3000 });
 
   // Verify button is not disabled

@@ -30,8 +30,29 @@ const migrated = normalizeStep({
   phases: ['read', 'find_numbers', 'choose_operation', 'build_equation', 'answer'],
   currentPhaseIndex: 2,
 }, cachedQuestion);
-assert.deepEqual(migrated.phases, ['read', 'find_numbers', 'build_equation', 'answer']);
-assert.equal(migrated.currentPhaseIndex, 2, 'old current choose_operation phase advances to the next phase');
+assert.deepEqual(migrated.phases, ['answer', 'explain']);
+assert.equal(migrated.currentPhaseIndex, 0, 'legacy teaching phases return to direct answer');
+for (const oldIndex of [0, 2, 4]) {
+  const awaitingAnswer = normalizeStep({
+    id: `legacy-awaiting-${oldIndex}`, type: 'full_solve', title: 'cached', description: 'cached',
+    questionId: cachedQuestion.id, status: 'current', requiresAnswer: true,
+    phases: ['read', 'find_numbers', 'choose_operation', 'build_equation', 'answer'],
+    currentPhaseIndex: oldIndex,
+  }, cachedQuestion);
+  assert.deepEqual(awaitingAnswer.phases, ['answer', 'explain']);
+  assert.equal(awaitingAnswer.currentPhaseIndex, 0, `legacy phase ${oldIndex} must map to answer`);
+  assert.equal(awaitingAnswer.solving?.firstAttemptCorrect, null, 'unknown history must remain unknown');
+  assert.equal(awaitingAnswer.solving?.independentCorrect, false, 'migration must not invent independent mastery');
+}
+const awardedLegacy = normalizeStep({
+  id: 'legacy-awarded', type: 'full_solve', title: 'cached', description: 'cached',
+  questionId: cachedQuestion.id, status: 'current', requiresAnswer: true,
+  phases: ['read', 'find_numbers', 'choose_operation', 'build_equation', 'answer'],
+  currentPhaseIndex: 4, awardedAt: '2026-10-20T10:00:00.000Z',
+}, cachedQuestion);
+assert.deepEqual(awardedLegacy.phases, ['answer', 'explain']);
+assert.equal(awardedLegacy.currentPhaseIndex, 1, 'awarded legacy steps resume in review');
+assert.equal(Boolean(awardedLegacy.solving?.independentCorrect), false, 'legacy awards do not prove independent mastery');
 const allSkipped = normalizeStep({
   id: 'cached-direct-empty', type: 'simulation', title: 'cached', description: 'cached',
   questionId: cachedQuestion.id, status: 'current', requiresAnswer: true,

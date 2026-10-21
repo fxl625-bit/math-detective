@@ -457,18 +457,15 @@ export type LessonStepType =
   | 'answer_only';  // v2.11.0: Simple answer step, replaces full_solve degradation
 
 export const STEP_DEFAULT_PHASES: Record<LessonStepType, StepPhase[]> = {
-  // Sub-project A (v2.10.0): Use component-compatible phase names only.
-  // Three-question method phases (identify_known_facts/identify_target/plan_solution/check_answer)
-  // will be added in Sub-project B with proper render components.
-  find_numbers: ['read', 'find_numbers', 'answer', 'explain', 'completed'],
-  find_action_words: ['read', 'find_keywords', 'choose_operation', 'answer', 'explain', 'completed'],
-  simulation: ['read', 'choose_operation', 'answer', 'explain', 'completed'],
-  remove_noise: ['read', 'remove_noise', 'answer', 'explain', 'completed'],
-  full_solve: ['read', 'find_numbers', 'find_keywords', 'choose_operation', 'build_equation', 'answer', 'explain', 'completed'],
-  find_compare_numbers: ['read', 'find_numbers', 'find_compare_numbers', 'choose_operation', 'answer', 'explain', 'completed'],
-  spot_extra_info: ['read', 'find_numbers', 'spot_extra_info', 'answer', 'explain', 'completed'],
-  spot_missing_info: ['read', 'spot_missing_info', 'answer', 'explain', 'completed'],
-  answer_only: ['read', 'answer', 'explain', 'completed'],
+  find_numbers: ['answer', 'explain'],
+  find_action_words: ['answer', 'explain'],
+  simulation: ['answer', 'explain'],
+  remove_noise: ['answer', 'explain'],
+  full_solve: ['answer', 'explain'],
+  find_compare_numbers: ['answer', 'explain'],
+  spot_extra_info: ['answer', 'explain'],
+  spot_missing_info: ['answer', 'explain'],
+  answer_only: ['answer', 'explain'],
 };
 
 export interface LessonStep {
@@ -490,6 +487,18 @@ export interface LessonStep {
   tier?: 'tier1' | 'tier2' | 'tier3';
   questionInstanceId?: string;
   settingSnapshot?: Partial<LearningSettings>;
+  solving?: import('./independentSolving').SolvingEvidence;
+  transfer?: {
+    questionId: string;
+    questionInstanceId: string;
+    parentQuestionInstanceId: string;
+    status: 'pending' | 'answering' | 'correct' | 'deferred';
+    solving: import('./independentSolving').SolvingEvidence;
+    unavailableReason?: string;
+  };
+  resolvedAt?: string;
+  nextReviewAt?: string;
+  helpFeedback?: { taskId: string; feedback: string; scaffold?: string; correct: boolean };
 }
 
 export interface TodayLesson {
@@ -788,8 +797,8 @@ export interface AttemptRecord {
   attemptType: 'final_answer' | 'step_answer';
 }
 
-export type LearningEventType = 'attempt_submitted' | 'hint_used' | 'support_used' | 'mistake_review_submitted' | 'question_completed' | 'lesson_completed' | 'legacy_snapshot';
-export type LearningCompletionMode = 'independent' | 'assisted' | 'legacy_unknown';
+export type LearningEventType = 'attempt_submitted' | 'hint_used' | 'support_used' | 'mistake_review_submitted' | 'question_completed' | 'lesson_completed' | 'legacy_snapshot' | 'explanation_viewed' | 'help_task_submitted' | 'transfer_completed';
+export type LearningCompletionMode = 'independent' | 'assisted' | 'needs_reinforcement' | 'legacy_unknown';
 
 export interface LearningEvent {
   eventId: string;
@@ -816,6 +825,10 @@ export interface LearningEvent {
   result?: 'correct' | 'incorrect' | 'completed';
   durationMs?: number;
   firstAttemptKnown?: boolean;
+  solvingEvidence?: import('./independentSolving').SolvingEvidence;
+  source?: 'original' | 'transfer';
+  parentQuestionInstanceId?: string;
+  helpTaskSkill?: 'target' | 'condition' | 'relation' | 'intermediate';
 }
 
 // ========== 正确率统计结果 ==========
@@ -880,6 +893,8 @@ export interface GameState {
     consumedEventIds: string[];
     consumedWindowIds: string[];
   }>;
+  needsReinforcementQueue?: Array<{ questionId: string; questionInstanceId: string; lessonId: string; dueAt: string }>;
+  reviewExplanationViews?: Record<string, string>;
   childProfileId?: string;
   deviceId?: string;
   /** Recoverable same-snapshot course state if the separate lesson key fails to persist. */

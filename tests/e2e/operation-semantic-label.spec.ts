@@ -1,4 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
+import { submitCurrentAnswerThroughUi } from './helpers/legacy-lesson';
+import { getQuestionById } from '../../data/questions';
 
 const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
@@ -47,10 +49,6 @@ async function getState(page: Page): Promise<any> {
   return await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.getState());
 }
 
-async function advancePhase(page: Page): Promise<boolean> {
-  return await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.goNext());
-}
-
 /**
  * Semantic categories to test:
  * - Direct addition (一共, 合起来)
@@ -64,59 +62,68 @@ test('v2.11.0-semantic: Operation label matches equation for each question in le
   test.setTimeout(120000);
   await setupFreshUser(page);
 
-  const operationLabels: string[] = [];
-
-  for (let step = 0; step < 6; step++) {
-    // Advance to answer/explain phase for this step
-    for (let i = 0; i < 30; i++) {
-      const state = await getState(page);
-      if (state?.completed || state?.currentStepIndex > step) break;
-
-      const bodyText = await page.locator('body').innerText();
-
-      // Check for operation-related text
-      if (bodyText.includes('加法')) {
-        operationLabels.push(`step${step}:addition`);
-      } else if (bodyText.includes('减法')) {
-        operationLabels.push(`step${step}:subtraction`);
-      } else if (bodyText.includes('乘法')) {
-        operationLabels.push(`step${step}:multiplication`);
-      }
-
-      const phase = state?.currentPhase;
-      if (phase === 'answer' || phase === 'build_equation') {
-        // Submit correct answer to move on
-        await page.evaluate(() => {
-          const api = (window as any).MATH_DETECTIVE_TEST;
-          if (api) api.submitAnswer();
-        });
-        await page.waitForTimeout(800);
-      }
-      await advancePhase(page);
-      await page.waitForTimeout(300);
+  const reviewedQuestionIds: string[] = [];
+  for (let stepIndex = 0; stepIndex < 6; stepIndex += 1) {
+    const feedbackDialog = page.getByRole('dialog');
+    if (await feedbackDialog.isVisible().catch(() => false)) {
+      const continueLearning = feedbackDialog.getByRole('button', { name: '继续学习', exact: true });
+      if (await continueLearning.isVisible().catch(() => false)) await continueLearning.click();
     }
-  }
+    const state = await getState(page);
+    expect(state?.currentStepIndex).toBe(stepIndex);
+    expect(state?.currentPhase).toBe('answer');
+    const questionId = String(state.questionId);
+    const question = getQuestionById(questionId);
+    expect(question, `question ${questionId} is registered`).toBeDefined();
 
-  console.log('Operation labels observed:', operationLabels);
-  // At minimum, we should see some operation labels
-  expect(operationLabels.length).toBeGreaterThan(0);
+    await submitCurrentAnswerThroughUi(page);
+    await expect(page.getByTestId('question-review')).toBeVisible();
+    const reviewText = await page.locator('body').innerText();
+    expect(reviewText, `${questionId} review shows the original explanation`).toContain(question!.explanation);
+    expect(reviewText, `${questionId} review shows the answer sentence`).toContain(question!.answerSentence);
+
+    const operationLabels = [
+      { label: '加法', operation: 'addition', symbol: '+' },
+      { label: '减法', operation: 'subtraction', symbol: '-' },
+      { label: '乘法', operation: 'multiplication', symbol: '×' },
+      { label: '除法', operation: 'division', symbol: '÷' },
+    ].filter(item => reviewText.includes(item.label));
+    for (const item of operationLabels) {
+      expect(question!.operation, `${questionId} ${item.label} label matches the question operation`).toBe(item.operation);
+      expect(question!.equation, `${questionId} equation uses ${item.symbol}`).toContain(item.symbol);
+    }
+    if (operationLabels.length === 0 && question!.equation) {
+      const solution = `${question!.explanation} ${(question!.solutionSteps || []).join(' ')}`;
+      const operator = question!.equation.match(/[+\-×÷]/)?.[0];
+      if (operator) expect(solution, `${questionId} solution contains its equation operation`).toContain(operator);
+    }
+    reviewedQuestionIds.push(questionId);
+    await page.getByTestId('continue-feedback').click();
+    if (stepIndex < 5) await expect.poll(async () => (await getState(page))?.currentStepIndex).toBe(stepIndex + 1);
+    else await expect.poll(async () => (await getState(page))?.completed).toBe(true);
+  }
+  expect(reviewedQuestionIds).toHaveLength(6);
+  expect((await getState(page))?.completed).toBe(true);
 });
 
 test('v2.11.0-semantic: Money subtraction shows correct domain-aware text', async ({ page }) => {
   test.setTimeout(60000);
-  await page.goto(`${BASE}/play?e2e=1`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-
-  // Check that the ClueSummary map includes domain-aware money text
-  const hasMoneySubtractionText = await page.evaluate(() => {
-    // The getOperationLabel function should handle money domain
-    // Check the module exports or inline logic
-    const body = document.body.innerText;
-    return {
-      hasText: body.length > 0,
-      bodySnippet: body.slice(0, 200),
-    };
+  await setupFreshUser(page);
+  await page.evaluate(() => {
+    const api = (window as any).MATH_DETECTIVE_TEST;
+    const now = new Date();
+    const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    api.setLesson({ date, currentStepIndex: 0, completed: false, steps: [{
+      id: `${date}_money_semantic_g1ll_50`, type: 'answer_only', title: '金额变化', description: '',
+      questionId: 'g1ll_50', phases: ['answer', 'explain'], currentPhaseIndex: 0, status: 'current', requiresAnswer: true,
+    }] });
   });
-
-  console.log('Page content:', hasMoneySubtractionText);
-  expect(hasMoneySubtractionText.hasText).toBe(true);
+  await expect(page.getByTestId('lesson-question-prompt')).toContainText('应找回多少钱');
+  await submitCurrentAnswerThroughUi(page, 'click', '1元5角');
+  const question = getQuestionById('g1ll_50')!;
+  const reviewText = await page.locator('body').innerText();
+  expect(reviewText).toContain(question.explanation);
+  expect(reviewText).toContain(question.answerSentence);
+  expect(reviewText).toContain('10元');
+  expect(reviewText).toContain('8元5角');
 });

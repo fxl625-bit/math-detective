@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { submitCurrentAnswerThroughUi } from './helpers/legacy-lesson';
 
 const BASE = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:3000';
 
@@ -40,6 +41,13 @@ async function setupAndGo(page: Page) {
 }
 
 async function advancePhase(page: Page): Promise<boolean> {
+  const state = await getState(page);
+  if (state?.currentPhase === 'explain') {
+    const continuation = page.getByTestId('continue-feedback');
+    await expect(continuation).toBeVisible();
+    await continuation.click();
+    return true;
+  }
   return await page.evaluate(() => {
     const api = (window as any).MATH_DETECTIVE_TEST;
     if (!api) return false;
@@ -50,11 +58,10 @@ async function advancePhase(page: Page): Promise<boolean> {
 }
 
 async function submitCorrectAnswer(page: Page): Promise<boolean> {
-  return await page.evaluate(() => {
-    const api = (window as any).MATH_DETECTIVE_TEST;
-    if (!api) return false;
-    return api.submitAnswer();
-  });
+  const state = await getState(page);
+  if (state?.currentPhase !== 'answer' && state?.currentPhase !== 'build_equation') return false;
+  await submitCurrentAnswerThroughUi(page);
+  return true;
 }
 
 async function getState(page: Page): Promise<any> {

@@ -21,11 +21,11 @@ function buildFixture(questionId: string, stepIndex: number) {
   const steps = [
     {
       id: `${today}_find_action_words_${stepIndex}_${questionId}`,
-      type: 'find_action_words' as const,
+      type: 'answer_only' as const,
       questionId,
-      title: '找动作词',
-      description: '找到加减动作词',
-      phases: ['read', 'find_keywords', 'choose_operation', 'answer', 'explain'],
+      title: '独立作答与互动帮助',
+      description: '判断动作方向后仍需独立回答原题',
+      phases: ['answer', 'explain'],
       currentPhaseIndex: 0,
       status: 'active' as const,
     },
@@ -85,6 +85,52 @@ async function setup(page: Page, questionId: string) {
   await page.waitForTimeout(500);
 }
 
+async function submitDirectionTask(page: Page, questionId: string, correctLabel: string, wrongLabel: string, oracleAnswer: string) {
+  await expect(page.getByTestId('lesson-question-prompt')).toBeVisible();
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
+  const oracle = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST.getCorrectAnswer());
+  expect(String(oracle), `fixed answer oracle for ${questionId}`).toBe(oracleAnswer);
+
+  await page.getByTestId('request-help').click();
+  await expect(page.getByTestId('help-task')).toBeVisible();
+  await expect(page.getByTestId('help-task')).toContainText(questionId === 'g1t_29' ? '“加”' : questionId === 'g1_17' ? '飞走了' : '又给了');
+  const correctOption = page.getByTestId('help-option-correct');
+  const wrongOption = page.getByTestId('help-option-other-0');
+  await expect(correctOption).toContainText(correctLabel);
+  await expect(wrongOption).toContainText(wrongLabel);
+
+  // Confirming the wrong direction must preserve the same task and original question.
+  await wrongOption.click();
+  await page.getByTestId('submit-help-task').click();
+  await expect.poll(async () => page.evaluate(() => {
+    const lesson = (window as any).MATH_DETECTIVE_TEST.getLesson();
+    const step = lesson.steps[lesson.currentStepIndex];
+    return { taskIndex: step.solving.helpTaskIndex, feedbackCorrect: step.helpFeedback?.correct, questionId: step.questionId, currentStepIndex: lesson.currentStepIndex };
+  })).toEqual({ taskIndex: 0, feedbackCorrect: false, questionId, currentStepIndex: 0 });
+  await expect(page.getByTestId('help-task')).toBeVisible();
+  await expect(page.getByTestId('help-task')).toContainText(questionId === 'g1t_29' ? '“加”' : questionId === 'g1_17' ? '飞走了' : '又给了');
+  const failedHelp = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST.getLesson().steps[0].helpFeedback);
+  expect(failedHelp).toMatchObject({ correct: false });
+  expect(await page.evaluate((id) => JSON.parse(localStorage.getItem('math-detective-state') || '{}').learningEvents.filter((event: any) => event.eventType === 'attempt_submitted' && event.questionId === id), questionId)).toHaveLength(0);
+  expect((await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST.getState())).currentStepIndex).toBe(0);
+
+  await correctOption.click();
+  await page.getByTestId('submit-help-task').click();
+  await expect.poll(async () => page.evaluate(() => {
+    const lesson = (window as any).MATH_DETECTIVE_TEST.getLesson();
+    return lesson.steps[lesson.currentStepIndex].solving.completedTaskIds;
+  })).toContain(`${questionId}:curated-1`);
+
+  // A completed reasoning task does not answer the original question.
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
+  expect((await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST.getLesson())).steps[0].solving.finalCorrect).toBe(false);
+  await page.getByTestId('lesson-answer-input').fill(oracleAnswer);
+  await page.getByTestId('submit-answer').click();
+  await expect(page.getByTestId('question-review')).toBeVisible();
+  const result = await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST.getLesson().steps[0]);
+  expect(result.solving).toMatchObject({ finalCorrect: true, masteryStatus: 'assisted', outcome: 'hint_correct' });
+}
+
 // ================================================================
 // Test 1: Keyword "加" — must select "increase" NOT "decrease"
 // g1t_29: 5 + ⭐ = 12, keyword: "加" type:'add', operation:'subtraction'
@@ -92,65 +138,7 @@ async function setup(page: Page, questionId: string) {
 test('v2.11.3-action-word-semantic: keyword "加" must select increase', async ({ page }) => {
   test.setTimeout(120000);
   await setup(page, 'g1t_29');
-
-  // Read phase → click "读完了"
-  await page.locator('button:has-text("读完了")').first().click();
-  await page.waitForTimeout(300);
-
-  // Find keywords phase — click keyword "加"
-  const kwAddBtn = page.locator('button:has-text("加")').first();
-  await expect(kwAddBtn, 'Keyword "加" button must be visible').toBeVisible({ timeout: 3000 });
-  await kwAddBtn.click();
-  await page.waitForTimeout(200);
-
-  // Click "关键词找到了，判断运算 →"
-  const advanceBtn = page.locator('button:has-text("关键词找到了")').first();
-  await advanceBtn.click();
-  await page.waitForTimeout(300);
-
-  // Choose operation phase
-  // Options should be: "数量变多，用加法" (increase) and "数量变少，用减法" (decrease)
-  const increaseBtn = page.locator('button:has-text("变多")').first();
-  const decreaseBtn = page.locator('button:has-text("变少")').first();
-
-  await expect(increaseBtn, 'Increase option must be visible').toBeVisible({ timeout: 3000 });
-  await expect(decreaseBtn, 'Decrease option must be visible').toBeVisible({ timeout: 3000 });
-
-  // === CRITICAL ASSERTION: clicking increase should show GREEN (correct) ===
-  console.log('=== Test: clicking INCREASE option ===');
-  await increaseBtn.click();
-  await page.waitForTimeout(500);
-
-  // Check if the button turned green (bg-green-100)
-  const increaseClasses = await increaseBtn.getAttribute('class');
-  console.log('Increase button classes after click:', increaseClasses);
-  const isIncreaseGreen = increaseClasses?.includes('bg-green-100') || increaseClasses?.includes('green');
-
-  // Take screenshot
-  await page.screenshot({ path: test.info().outputPath('action-word-increase.png') });
-
-  // If increase is marked as CORRECT (green), the fix works
-  expect(isIncreaseGreen,
-    'Keyword "加" (increase) must be the CORRECT choice. Got: ' + (increaseClasses || 'null')
-  ).toBe(true);
-
-  // === CRITICAL ASSERTION: clicking decrease should show RED (incorrect) ===
-  console.log('=== Test: clicking DECREASE option ===');
-  await page.waitForTimeout(300);
-  // Reset: click increase again to get back to initial, then click decrease
-  // Actually, clicking decrease directly should show it as wrong
-  await decreaseBtn.click();
-  await page.waitForTimeout(500);
-
-  const decreaseClasses = await decreaseBtn.getAttribute('class');
-  console.log('Decrease button classes after click:', decreaseClasses);
-  const isDecreaseRed = decreaseClasses?.includes('bg-red-100') || decreaseClasses?.includes('red');
-
-  await page.screenshot({ path: test.info().outputPath('action-word-decrease-wrong.png') });
-
-  expect(isDecreaseRed,
-    'Keyword "加" → "数量变少，用减法" must be WRONG. Got: ' + (decreaseClasses || 'null')
-  ).toBe(true);
+  await submitDirectionTask(page, 'g1t_29', '数量变多', '数量变少', '7');
 });
 
 // ================================================================
@@ -161,38 +149,7 @@ test('v2.11.3-action-word-semantic: keyword "加" must select increase', async (
 test('v2.11.3-action-word-semantic: keyword "飞走了" must select decrease', async ({ page }) => {
   test.setTimeout(120000);
   await setup(page, 'g1_17');
-
-  // Read phase
-  await page.locator('button:has-text("读完了")').first().click();
-  await page.waitForTimeout(300);
-
-  // Find keywords — g1_17 has only ONE keyword: "飞走了"
-  const kwBtn = page.locator('button:has-text("飞走了")').first();
-  await expect(kwBtn, 'Keyword "飞走了" button must be visible').toBeVisible({ timeout: 3000 });
-  await kwBtn.click();
-  await page.waitForTimeout(200);
-
-  // Advance
-  const advanceBtn = page.locator('button:has-text("关键词找到了")').first();
-  await advanceBtn.click();
-  await page.waitForTimeout(300);
-
-  // Choose operation
-  const decreaseBtn = page.locator('button:has-text("变少")').first();
-  await expect(decreaseBtn, 'Decrease option must be visible').toBeVisible({ timeout: 3000 });
-
-  // Click decrease
-  await decreaseBtn.click();
-  await page.waitForTimeout(500);
-
-  const decreaseClasses = await decreaseBtn.getAttribute('class');
-  const isDecreaseCorrect = decreaseClasses?.includes('bg-green-100') || decreaseClasses?.includes('green');
-
-  await page.screenshot({ path: test.info().outputPath('action-word-flyaway-correct.png') });
-
-  expect(isDecreaseCorrect,
-    'Keyword "飞走" (decrease) must be the CORRECT choice'
-  ).toBe(true);
+  await submitDirectionTask(page, 'g1_17', '数量变少', '数量变多', '5');
 });
 
 // ================================================================
@@ -202,40 +159,8 @@ test('v2.11.3-action-word-semantic: keyword "飞走了" must select decrease', a
 test('v2.11.3-action-word-semantic: reverse problem distinguishes action from solution', async ({ page }) => {
   test.setTimeout(120000);
   await setup(page, 'g1ll_10');
-
-  // Read phase
-  await page.locator('button:has-text("读完了")').first().click();
-  await page.waitForTimeout(300);
-
-  // Find keywords
-  const kwBtn = page.locator('button:has-text("又给了")').first();
-  await expect(kwBtn, '"又给了" keyword must be visible').toBeVisible({ timeout: 3000 });
-  await kwBtn.click();
-  await page.waitForTimeout(200);
-
-  // Advance
-  const advanceBtn = page.locator('button:has-text("关键词找到了")').first();
-  await advanceBtn.click();
-  await page.waitForTimeout(300);
-
-  // Choose operation phase
-  const increaseBtn = page.locator('button:has-text("变多")').first();
-  const decreaseBtn = page.locator('button:has-text("变少")').first();
-
-  await expect(increaseBtn, 'Increase option must be visible').toBeVisible({ timeout: 3000 });
-
-  // "又给了" means INCREASE even though the solution uses subtraction (20-11=9)
-  await increaseBtn.click();
-  await page.waitForTimeout(500);
-
-  const increaseClasses = await increaseBtn.getAttribute('class');
-  const isIncreaseCorrect = increaseClasses?.includes('bg-green-100') || increaseClasses?.includes('green');
-
-  await page.screenshot({ path: test.info().outputPath('action-word-reverse-correct.png') });
-
-  expect(isIncreaseCorrect,
-    'Reverse problem: "又给了" means increase, must be correct. Solution is subtraction but action direction is increase.'
-  ).toBe(true);
+  // "又给了" is an increase action, while the unknown amount is found by subtraction.
+  await submitDirectionTask(page, 'g1ll_10', '数量变多', '数量变少', '9');
 });
 
 // ================================================================
@@ -250,8 +175,8 @@ test.afterAll(async () => {
       { id: 'test2', keyword: '飞走', expected: 'decrease', status: 'run' },
       { id: 'test3', keyword: '又给了', expected: 'increase (reverse)', status: 'run' },
     ],
-    rootCause: 'checkOk in FindActionWordsPhased used question.operation instead of keyword direction',
-    fix: 'checkOk now derives action direction from classifyKeyword() with keyword.type fallback',
+    rootCause: 'Action direction and the arithmetic operation used to find an unknown quantity are separate reasoning facts.',
+    fix: 'Curated help tasks verify action direction; the learner must still submit the original answer through its answer schema.',
   };
   const reportPath = path.join(__dirname, '..', '..', 'reports', 'action-word-choice-audit.json');
   fs.mkdirSync(path.dirname(reportPath), { recursive: true });

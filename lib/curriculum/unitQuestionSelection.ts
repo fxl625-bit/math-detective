@@ -47,7 +47,9 @@ export function selectDistinctCoreCandidates(
   const candidates = slots.map(slot => {
     const seen = new Set<string>();
     return candidatesBySlot[slot].filter(candidate => {
-      if (candidate.role !== roleBySlot[slot] || seen.has(candidate.questionId)) return false;
+      // Review revisits the original teaching role, including applications and
+      // challenges. New-learning slots still enforce their declared role.
+      if ((slot !== 'due_review' && candidate.role !== roleBySlot[slot]) || seen.has(candidate.questionId)) return false;
       seen.add(candidate.questionId);
       return true;
     });

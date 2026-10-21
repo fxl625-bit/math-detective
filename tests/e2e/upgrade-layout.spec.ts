@@ -28,8 +28,7 @@ for (const [width, height] of [[360, 800], [390, 844], [768, 1024], [1024, 768],
     await page.getByTestId('save-learning-settings').click();
     await expect(page.getByRole('status').filter({ hasText: '设置已保存' })).toBeVisible();
     await page.getByTestId('start-lesson').click();
-    await expect(page.getByRole('button', { name: /读完了/ })).toBeVisible();
-    await page.getByRole('button', { name: /读完了/ }).click();
+    await expect(page.getByTestId('submit-answer')).toBeVisible();
     await expect(page.getByTestId('submit-answer')).toBeVisible();
     expect(await page.getByRole('navigation').count()).toBe(0);
     expect(await overflow()).toBeLessThanOrEqual(1);

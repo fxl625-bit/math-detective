@@ -333,9 +333,7 @@ test('v2.11.1-q6-single-submit: Q6 single submit shows correct feedback', async 
   }));
 
   if (state?.questionId !== 'g1ll_68') {
-    // Might need to advance once more
-    await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.goNext());
-    await page.waitForTimeout(500);
+    throw new Error(`Expected Q6 to be active after completing Q5, got ${state?.questionId}`);
   }
 
   const q6Result = await submitCurrentAnswerThroughUi(page, 'click', '8');

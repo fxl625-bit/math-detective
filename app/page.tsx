@@ -8,7 +8,7 @@ import LevelBadge from '@/components/LevelBadge';
 import PageContainer from '@/components/layout/PageContainer';
 import LearningSettingsPanel from '@/components/LearningSettingsPanel';
 import { getLevelInfo, getStorageRecoveryStatus, getWeekStreakStatus } from '@/lib/storage';
-import { getTodayLesson, getCurrentStep } from '@/lib/lessonPlanner';
+import { getTodayLesson, getCurrentStep, hasLessonStarted } from '@/lib/lessonPlanner';
 import { normalizeLearningSettingsFromParent } from '@/lib/learningSettings';
 import { learningUnits } from '@/lib/curriculum/learningPath';
 import { getPointsBalance } from '@/lib/familyPoints';
@@ -74,7 +74,7 @@ export default function DashboardPage() {
   const lessonScopeKnown = Boolean(lesson.settingSnapshot || (lesson as TodayLesson & { curriculumSnapshot?: { grade?: number } }).curriculumSnapshot?.grade);
   const completedCount = lesson.steps.filter((step) => step.status === 'completed').length;
   const lessonDone = lesson.completed || (lesson.steps.length > 0 && completedCount === lesson.steps.length);
-  const courseStarted = lesson.currentStepIndex > 0 || lesson.steps.some((step, index) => step.status === 'completed' || step.awardedAt != null || (index === lesson.currentStepIndex && step.currentPhaseIndex > 0));
+  const courseStarted = hasLessonStarted(lesson);
   const courseStatus = lessonDone ? 'completed' : courseStarted ? 'in-progress' : 'not-started';
   const weekStatus = getWeekStreakStatus(state);
   const storageRecovery = getStorageRecoveryStatus();

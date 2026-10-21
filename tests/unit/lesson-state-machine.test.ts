@@ -11,7 +11,7 @@ import { commitLessonTransaction } from '@/lib/lessonTransaction';
 import { getQuestionById } from '@/data/questions';
 import { DEFAULT_GAME_STATE, type LessonStep, type TodayLesson } from '@/lib/types';
 
-function lessonFor(questionId: string, type: LessonStep['type'], phases = ['read', 'answer', 'explain'] as const): TodayLesson {
+function lessonFor(questionId: string, type: LessonStep['type'], phases: LessonStep['phases'] = ['answer', 'explain']): TodayLesson {
   return {
     date: '2026-06-05',
     currentStepIndex: 0,
@@ -25,7 +25,7 @@ function lessonFor(questionId: string, type: LessonStep['type'], phases = ['read
       description: 'test step',
       questionId,
       phases: [...phases],
-      currentPhaseIndex: 1,
+      currentPhaseIndex: 0,
       status: 'current',
       requiresAnswer: true,
     }],
@@ -42,7 +42,7 @@ function run(name: string, fn: () => void) {
   }
 }
 
-run('submit_answer correct advances exactly once', () => {
+run('submit_answer awards once and opens review before next step', () => {
   const q = getQuestionById('g1_01')!;
   const lesson = lessonFor(q.id, 'full_solve');
   const result = commitLessonTransaction({
@@ -52,8 +52,10 @@ run('submit_answer correct advances exactly once', () => {
     source: 'unit',
   });
   assert.equal(result.advanced, true);
-  assert.equal(result.fromPhaseIndex, 1);
-  assert.equal(result.toPhaseIndex, 2);
+  assert.equal(result.fromPhaseIndex, 0);
+  assert.equal(result.toPhaseIndex, 1);
+  assert.equal(result.nextState.lesson.steps[0].phases[result.toPhaseIndex], 'explain');
+  assert.ok(result.nextState.lesson.steps[0].awardedAt);
   assert.equal(result.nextState.gameState.answerAttempts, 1);
   assert.equal(result.nextState.gameState.learningEvents?.filter(event => event.eventType === 'attempt_submitted').length, 1);
   assert.equal(result.nextState.gameState.learningEvents?.filter(event => event.eventType === 'question_completed').length, 1);
@@ -75,7 +77,7 @@ run('submit_answer wrong does not advance', () => {
     source: 'unit',
   });
   assert.equal(result.advanced, false);
-  assert.equal(result.toPhaseIndex, 1);
+  assert.equal(result.toPhaseIndex, 0);
   assert.equal(result.nextState.gameState.answerAttempts, 1);
   assert.equal(result.nextState.gameState.learningEvents?.[0]?.result, 'incorrect');
 });
@@ -95,7 +97,7 @@ run('remove_noise with noise phrases can validate', () => {
 run('pattern question never uses find_action_words phases', () => {
   const q = getQuestionById('g1t_03')!;
   assert.equal(validateStepQuestionCompatibility({ type: 'find_action_words', questionId: q.id } as LessonStep, q) !== null, true);
-  assert.deepEqual(getDefaultPhasesForStepType('full_solve', q), ['read', 'find_numbers', 'understand_clues', 'answer', 'explain']);
+  assert.deepEqual(getDefaultPhasesForStepType('full_solve', q), ['answer', 'explain']);
 });
 
 run('multiplicative comparison does not enter find_action_words', () => {
@@ -115,10 +117,10 @@ run('safe fallback lesson has playable steps', () => {
 run('legacy invalid step without unit provenance is surfaced without an unsafe cross-unit replacement', () => {
   const q = getQuestionById('g1t_03')!;
   assert.equal(checkAnswer(String(q.answer), q).correct, true);
-  const bad = lessonFor(q.id, 'find_action_words');
+  const bad = lessonFor(q.id, 'find_action_words', ['read', 'answer', 'explain']);
   const normalized = safeNormalizeLesson(bad);
-  assert.equal(normalized?.steps[0]?.type, 'find_action_words');
-  assert.ok(normalized?.coreGapReasons?.length);
+  assert.ok(!normalized || normalized.steps[0]?.questionId !== q.id, 'unsafe legacy current questions must not be returned as playable');
+  if (normalized) assert.ok(normalized.coreGapReasons?.length);
 });
 
 run('lesson normalization preserves generation metadata and reward gates', () => {
@@ -141,6 +143,7 @@ run('lesson normalization preserves generation metadata and reward gates', () =>
     futureSignature: 'kept-for-forward-compatibility',
     steps: [{
       ...lessonFor('g1_01', 'full_solve').steps[0],
+      currentPhaseIndex: 1,
       role: 'application',
       skill: 'g1-u2:add-subtract-100',
       method: 'inverse',
@@ -178,10 +181,18 @@ run('lesson normalization preserves generation metadata and reward gates', () =>
   assert.equal(completed?.rewardClaimed, true);
 });
 
+run('go_next cannot bypass an unanswered question', () => {
+  const lesson = lessonFor('g1_01', 'full_solve');
+  const result = commitLessonTransaction({ state: { lesson, gameState: DEFAULT_GAME_STATE }, action: 'go_next', source: 'unit' });
+  assert.equal(result.advanced, false);
+  assert.equal(result.nextState.gameState.answerAttempts, 0);
+  assert.equal(result.nextState.lesson.currentStepIndex, 0);
+});
+
 run('legacy bad current question without unit provenance is surfaced rather than cross-unit substituted', () => {
   const q = getQuestionById('g1t_03')!;
   const original = lessonFor('g1_01', 'answer_only');
-  const badCurrent = { ...lessonFor(q.id, 'find_action_words').steps[0], status: 'current' as const };
+  const badCurrent = { ...lessonFor(q.id, 'find_action_words', ['read', 'answer', 'explain']).steps[0], status: 'current' as const };
   const halfCourse: TodayLesson = {
     ...original,
     currentStepIndex: 1,

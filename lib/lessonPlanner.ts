@@ -1,8 +1,10 @@
 import { Question, MistakeRecord, GradeBand, CognitiveSkill, LessonStepType, StepPhase, LessonStep, TodayLesson, LearningProfile, TomorrowLessonPreview, VirtualReward, GameState, type AssessmentTier } from './types';
+import { createSolvingEvidence } from './independentSolving';
+import { summarizeSolving } from './solvingMetrics';
 import type { Semester, LearnerProfile as CurriculumLearnerProfile, UsageStage } from './curriculum/types';
 import { resolveEffectiveSemester } from './curriculum/semesterDetector';
 import { getQuestionById, allQuestions, safeQuestions, questionsByGrade, getQuestionsByFilter, isQuestionSafeForNewLesson } from '@/data/questions';
-import { loadState, saveState, getAccuracyStats } from './storage';
+import { loadState, saveState } from './storage';
 import { allStories } from '@/data/stories';
 import { getCaseStoryForDate, getRecentStoryIds, saveRecentStoryId, isQuestionCompatibleWithTheme, type CaseStory } from './storySystem';
 import { classifyKeyword } from '@/data/keywordRules';
@@ -215,7 +217,15 @@ function buildUnitCoreLesson(params: {
     if (qualifiedTierTwo.length) return [...qualifiedTierTwo, ...safeTierOne];
     return rotated;
   };
-  const dueReviewCandidates = foundation.filter(({ question }) => isDueForReview(question.id, params.state));
+  const dueQueue = new Map((params.state.needsReinforcementQueue || [])
+    .filter(item => Number.isFinite(Date.parse(item.dueAt)) && Date.parse(item.dueAt) <= Date.now())
+    .map(item => [item.questionId, Date.parse(item.dueAt)]));
+  // A reviewed application/challenge is still due; its teaching role must not
+  // silently remove it from the review queue. The parent's selected unit stays
+  // authoritative, so other units remain queued until that scope is selected.
+  const reviewPool = [...foundation, ...availableCandidates('application'), ...availableCandidates('advanced'), ...availableCandidates('olympiad')];
+  const dueReviewCandidates = reviewPool.filter(({ question }) => dueQueue.has(question.id) || isDueForReview(question.id, params.state))
+    .sort((a, b) => (dueQueue.get(a.question.id) ?? Number.MAX_SAFE_INTEGER) - (dueQueue.get(b.question.id) ?? Number.MAX_SAFE_INTEGER));
   const selectionNotes: string[] = [];
   const targetSkillOf = (entry: (typeof foundation)[number]) =>
     (entry.item as any).targetSkillKeys?.[0]
@@ -229,7 +239,8 @@ function buildUnitCoreLesson(params: {
   const entriesBySlot: Record<DailyCoreSlot, ReturnType<typeof availableCandidates>> = {
     // For a first lesson (or when nothing is due), this slot is a retrieval
     // warm-up from the unit foundation pool instead of silently shrinking the lesson.
-    due_review: ordered(dueReviewCandidates.length ? dueReviewCandidates : foundation, 'due_review'),
+    due_review: ordered(dueReviewCandidates.length ? dueReviewCandidates : foundation, 'due_review')
+      .sort((a, b) => (dueQueue.get(a.question.id) ?? Number.MAX_SAFE_INTEGER) - (dueQueue.get(b.question.id) ?? Number.MAX_SAFE_INTEGER)),
     current_concept: pairedSkill ? ordered(pairedFoundation, 'current_concept') : [],
     same_skill_variant: pairedSkill ? ordered(pairedFoundation, 'same_skill_variant') : [],
     application: ordered(availableCandidates('application'), 'application'),
@@ -261,7 +272,7 @@ function buildUnitCoreLesson(params: {
       title: `${CORE_SLOT_TITLE[slot]}${item.tier >= 2 ? ' · 进阶' : ''}`,
       description: question.text,
       questionId: question.id,
-      phases: ['read', 'answer', 'explain'],
+      phases: ['answer', 'explain'],
       currentPhaseIndex: 0,
       status: index === firstSelectedIndex ? 'current' : 'locked',
       requiresAnswer: true,
@@ -342,61 +353,9 @@ export function getDynamicStepDescription(type: LessonStepType, question?: Quest
  * 逻辑排序题不走 build_equation 流程，使用 understand_clues → logic_elimination → ranking_answer。
  */
 export function getDefaultPhasesForStepType(type: LessonStepType, question?: Question): StepPhase[] {
-  if (question?.questionMeaningMode === 'direct') {
-    return getDefaultPhasesForStepType(type, { ...question, questionMeaningMode: 'choice' })
-      .filter(phase => phase !== 'choose_operation');
-  }
-
-  // v2.6.5: 逻辑排序题特殊处理
-  if (question?.problemType === 'logic_ranking' || question?.problemType === 'logic_truth' || question?.problemType === 'logic_ordering') {
-    if (type === 'full_solve') {
-      return ['read', 'understand_clues', 'logic_elimination', 'ranking_answer', 'explain'];
-    }
-    // 如果逻辑题被分配到其他关卡，至少不走 equation 流程
-    return ['read', 'answer'];
-  }
-
-  // v2.8.2: pattern/sequence problem types - no equation, no action words
-  if (question?.problemType === 'pattern' || question?.problemType === 'sequence_arithmetic') {
-    if (type === 'find_numbers') {
-      return ['read', 'find_numbers', 'answer', 'explain'];
-    }
-    if (type === 'full_solve') {
-      return ['read', 'find_numbers', 'understand_clues', 'answer', 'explain'];
-    }
-    return ['read', 'answer', 'explain'];
-  }
-
-
-  // Sub-project B (v2.10.0): Three-question flow for compatible questions
-  if (type === 'full_solve' && question && isThreeQuestionFlowCompatible(question)) {
-    return ['read', 'known_facts', 'target', 'plan', 'answer', 'check', 'explain'];
-  }
-
-  // Sub-project A (v2.10.0): Component-compatible phase names (fallback)
-  switch (type) {
-    case 'find_numbers':
-      return ['read', 'find_numbers', 'answer', 'explain'];
-    case 'find_action_words':
-      return ['read', 'find_keywords', 'choose_operation', 'answer', 'explain'];
-    case 'simulation':
-      return ['read', 'choose_operation', 'answer', 'explain'];
-    case 'remove_noise':
-      return ['read', 'remove_noise', 'answer', 'explain'];
-    case 'full_solve':
-      return ['read', 'find_numbers', 'find_keywords', 'choose_operation', 'build_equation', 'answer', 'explain'];
-    case 'find_compare_numbers':
-      return ['read', 'find_numbers', 'find_compare_numbers', 'choose_operation', 'answer', 'explain'];
-    case 'spot_extra_info':
-      return ['read', 'find_numbers', 'spot_extra_info', 'answer', 'explain'];
-    case 'spot_missing_info':
-      return ['read', 'spot_missing_info', 'answer', 'explain'];
-    case 'answer_only':
-      // v2.11.1: No read phase — answer input must show immediately
-      return ['answer', 'explain'];
-    default:
-      return ['read', 'answer', 'explain'];
-  }
+  void type; void question;
+  // New lessons begin with a real answer attempt. Saved phase arrays remain intact in normalizeStep.
+  return ['answer', 'explain'];
 }
 
 // ========== 步骤标准化 ==========
@@ -404,17 +363,18 @@ export function getDefaultPhasesForStepType(type: LessonStepType, question?: Que
 export function normalizeStep(step: Partial<LessonStep>, question?: Question): LessonStep {
   const type: LessonStepType = step.type || 'answer_only';  // v2.11.0
   const currentQuestion = question || getQuestionById(step.questionId || '');
-  const savedPhases = Array.isArray(step.phases) && step.phases.length > 0 ? step.phases : null;
+  let savedPhases = Array.isArray(step.phases) && step.phases.length > 0 ? step.phases : null;
+  const isUnmigratedCurrentStep = !step.solving && step.status === 'current'
+    && savedPhases?.some(phase => phase !== 'answer' && phase !== 'explain');
+  if (isUnmigratedCurrentStep) savedPhases = null;
   let phases: StepPhase[] = savedPhases
     ? [...savedPhases]
     : getDefaultPhasesForStepType(type, currentQuestion);
 
-  let currentPhaseIndex =
-    typeof step.currentPhaseIndex === 'number' &&
-    step.currentPhaseIndex >= 0 &&
-    step.currentPhaseIndex < (savedPhases?.length ?? phases.length)
-      ? step.currentPhaseIndex
-      : 0;
+  let currentPhaseIndex = savedPhases
+    ? (typeof step.currentPhaseIndex === 'number' && step.currentPhaseIndex >= 0 && step.currentPhaseIndex < savedPhases.length
+      ? step.currentPhaseIndex : 0)
+    : step.awardedAt ? Math.max(0, phases.indexOf('explain')) : 0;
 
   if (currentQuestion?.questionMeaningMode === 'direct' && phases.includes('choose_operation')) {
     const skippedBeforeCurrent = phases.slice(0, currentPhaseIndex).filter(phase => phase === 'choose_operation').length;
@@ -446,6 +406,7 @@ export function normalizeStep(step: Partial<LessonStep>, question?: Question): L
       typeof step.requiresAnswer === 'boolean'
         ? step.requiresAnswer
         : ['simulation', 'remove_noise', 'full_solve', 'find_compare_numbers', 'answer_only'].includes(type),
+    ...(step.solving ? {} : step.status === 'completed' || step.awardedAt ? {} : { solving: createSolvingEvidence() }),
   };
 }
 
@@ -479,6 +440,16 @@ export function normalizeLesson(lesson: TodayLesson | null): TodayLesson | null 
 
 // ========== 合法性校验 + 自动修复 ==========
 
+/** A wrong attempt or requested help is real progress, even in answer phase 0. */
+export function hasLessonStarted(lesson: TodayLesson): boolean {
+  return Array.isArray(lesson.steps) && (lesson.currentStepIndex > 0 || lesson.steps.some((step, index) =>
+    step.status === 'completed' || step.awardedAt != null ||
+    (index === lesson.currentStepIndex && step.currentPhaseIndex > 0) ||
+    (step.solving?.attemptCount ?? 0) > 0 || (step.solving?.hintCount ?? 0) > 0 ||
+    Boolean(step.solving?.fullExplanationViewedBeforeSolve || step.transfer)
+  ));
+}
+
 export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | null {
   // 1. 空数据 → 重新生成
   if (!lesson) return null;
@@ -487,12 +458,7 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
 
   // 2. Keep a genuinely started course across midnight; unstarted stale courses expire.
   if (lesson.date !== today) {
-    const started = lesson.completed !== true && Array.isArray(lesson.steps) && (
-      lesson.currentStepIndex > 0 || lesson.steps.some((step, index) =>
-        step.status === 'completed' || step.awardedAt != null ||
-        (index === lesson.currentStepIndex && step.currentPhaseIndex > 0)
-      )
-    );
+    const started = lesson.completed !== true && hasLessonStarted(lesson);
     if (!started && typeof window !== 'undefined') {
       try { localStorage.removeItem('math-detective-today-lesson'); } catch { /* ignore */ }
     }
@@ -632,7 +598,7 @@ export function safeNormalizeLesson(lesson: TodayLesson | null): TodayLesson | n
                 questionId: replacement.question.id,
                 description: replacement.question.text,
                 title: getDynamicStepTitle(current.type, replacement.question),
-                phases: current.type === 'answer_only' ? ['read', 'answer', 'explain'] : getDefaultPhasesForStepType(current.type, replacement.question),
+                phases: getDefaultPhasesForStepType(current.type, replacement.question),
                 status: 'current',
                 currentPhaseIndex: 0,
                 questionInstanceId: `${lesson.lessonId || lesson.date}:repair:${currentStepIdx}:${replacement.question.id}:${Date.now()}`,
@@ -692,9 +658,9 @@ function getDateStr(): string {
  */
 export function getLearningProfile(): LearningProfile {
   const state = loadState();
-  // v2.6.8: 使用统一的 getAccuracyStats 获取近期正确率
-  const stats = getAccuracyStats(state);
-  const recentAccuracy = stats.totalAttempts > 0 ? stats.overallAccuracy : 100;
+  // This planning signal must not treat copied, assisted, or unknown legacy
+  // completions as independent evidence. Parent first-answer accuracy is separate.
+  const recentAccuracy = Math.round((summarizeSolving(state.learningEvents || []).independentRate ?? 0) * 100);
 
   const skillMistakes = state.skillMistakes || {};
   const weakSkills: CognitiveSkill[] = [];
@@ -836,11 +802,7 @@ export function getTodayLesson(): TodayLesson {
       const persistedSnapshot = loadState();
       const savedLesson: TodayLesson | null = saved ? JSON.parse(saved) : null;
       const snapshotLesson = persistedSnapshot.lastCommittedLesson || null;
-      const snapshotStarted = !!snapshotLesson && snapshotLesson.completed !== true && (
-        snapshotLesson.currentStepIndex > 0 || snapshotLesson.steps.some((step, index) =>
-          step.status === 'completed' || step.awardedAt != null || (index === snapshotLesson.currentStepIndex && step.currentPhaseIndex > 0),
-        )
-      );
+      const snapshotStarted = !!snapshotLesson && snapshotLesson.completed !== true && hasLessonStarted(snapshotLesson);
       const sameLifecycle = !!snapshotLesson && !!savedLesson
         && snapshotLesson.lessonId === savedLesson.lessonId;
       const snapshotWins = !!snapshotLesson && (
@@ -866,13 +828,7 @@ export function getTodayLesson(): TodayLesson {
           schoolHarder: state.parentSettings.schoolHarder,
         });
         const currentSemester = settings.semester;
-        const hasStartedCourse = parsed.completed !== true &&
-          Array.isArray(parsed.steps) &&
-          (parsed.currentStepIndex > 0 || parsed.steps.some((step, index) =>
-            step.status === 'completed' ||
-            step.awardedAt != null ||
-            (index === parsed.currentStepIndex && step.currentPhaseIndex > 0)
-          ));
+        const hasStartedCourse = parsed.completed !== true && hasLessonStarted(parsed);
         const semesterMismatch = Boolean(lessonSemester && currentSemester && lessonSemester !== currentSemester);
         const preserveCurrentCourse = parsed.completed === true || hasStartedCourse;
 

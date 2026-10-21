@@ -3,6 +3,7 @@ import { DEFAULT_GAME_STATE } from '../../lib/types';
 import { getQuestionById } from '../../data/questions';
 import { inferAnswerSchema } from '../../lib/answerSchema';
 import { getPointsBalance } from '../../lib/familyPoints';
+import { buildReasoningTasks } from '../../lib/independentSolving';
 import { createNetworkFaultProxy } from './helpers/network-fault-proxy';
 import { authorizeParentAccess, expectParentAccessLocked } from './helpers/parent-access';
 
@@ -113,11 +114,21 @@ test('backup file round-trips between isolated synthetic browser contexts', asyn
   await sourcePage.getByRole('button', { name: /每日签到/ }).click();
   await expect(sourcePage.getByTestId('points-balance')).toContainText('0.5');
   await sourcePage.goto(new URL('/play', baseURL).href);
-  await sourcePage.getByRole('button', { name: /读完了/ }).click();
+  await expect(sourcePage.getByTestId('submit-answer')).toBeVisible();
   await sourcePage.getByTestId('lesson-answer-input').fill('999999');
   await sourcePage.getByTestId('submit-answer').click();
+  const attemptedLesson = await sourcePage.evaluate(() => JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}'));
+  const sourceStep = attemptedLesson.steps[attemptedLesson.currentStepIndex];
+  expect(sourceStep.solving.firstAttemptCorrect).toBe(false);
+  const sourceQuestion = getQuestionById(sourceStep.questionId)!;
+  const task = buildReasoningTasks(sourceQuestion)[0];
+  await sourcePage.getByTestId('request-help').click();
+  await sourcePage.getByTestId(`help-option-${task.options.find(option => option.id !== task.correctOptionId)!.id}`).click();
+  await sourcePage.getByTestId('submit-help-task').click();
+  await sourcePage.getByTestId('reveal-explanation').click();
+  await expect(sourcePage.getByTestId('full-explanation')).toBeVisible();
   const sourceLesson = await sourcePage.evaluate(() => JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}'));
-  expect(sourceLesson.steps[sourceLesson.currentStepIndex].currentPhaseIndex).toBeGreaterThan(0);
+  expect(sourceLesson.steps[sourceLesson.currentStepIndex].solving.masteryStatus).toBe('needs_reinforcement');
   await sourcePage.goto(new URL('/parent-report', baseURL).href);
   const downloadPromise = sourcePage.waitForEvent('download');
   await sourcePage.getByRole('button', { name: '下载当前数据备份' }).click();
@@ -166,8 +177,11 @@ test('backup file round-trips between isolated synthetic browser contexts', asyn
   expect(restored.state.pointsWallet).toEqual(exportedState.pointsWallet);
   expect(restored.state.stars).toBe(0);
   expect(restored.state.mistakes).toEqual(exportedState.mistakes);
+  expect(restored.state.needsReinforcementQueue).toEqual(exportedState.needsReinforcementQueue);
+  expect(restored.state.needsReinforcementQueue).toHaveLength(1);
   await destinationPage.goto(new URL('/play', baseURL).href);
-  await expect(destinationPage.getByTestId('lesson-answer-input')).toBeVisible();
+  await expect(destinationPage.getByTestId('full-explanation')).toBeVisible();
+  await expect(destinationPage.getByTestId('submit-answer')).toHaveCount(0);
   expect(await destinationPage.evaluate(() => JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}').lessonId)).toBe(sourceLesson.lessonId);
   await source.close();
   await destination.close();
@@ -182,7 +196,7 @@ test('prepared core documents open directly and survive refresh offline', async 
     await page.getByRole('button', { name: /每日签到/ }).click();
     await expect(page.getByTestId('points-balance')).toContainText('0.5');
     await page.goto(`${proxy.origin}/play`);
-    await expect(page.getByRole('button', { name: /读完了/ })).toBeVisible();
+    await expect(page.getByTestId('submit-answer')).toBeVisible();
     const before = await page.evaluate(() => {
       const lesson = JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}');
       return { lessonId: lesson.lessonId, stepId: lesson.steps?.[lesson.currentStepIndex]?.id };
@@ -193,9 +207,9 @@ test('prepared core documents open directly and survive refresh offline', async 
     proxy.setDisconnected(true);
     const response = await page.goto(`${proxy.origin}/play`);
     expect(response?.fromServiceWorker()).toBe(true);
-    await expect(page.getByRole('button', { name: /读完了/ })).toBeVisible();
+    await expect(page.getByTestId('submit-answer')).toBeVisible();
     await expect.poll(() => proxy.status().droppedRequests.some(path => path.includes(' /play'))).toBe(true);
-    await page.getByRole('button', { name: /读完了/ }).click();
+    await expect(page.getByTestId('lesson-question-prompt')).toBeVisible();
     await expect(page.getByTestId('lesson-question-prompt')).toBeVisible();
     await expect(page.getByTestId('lesson-answer-input').first()).toBeVisible();
     const afterContinue = await page.evaluate(() => {
@@ -240,7 +254,7 @@ test('prepared core documents open directly and survive refresh offline', async 
     }));
 
     await page.reload();
-    await expect(page.getByRole('button', { name: /读完了/ })).toBeVisible();
+    await expect(page.getByTestId('submit-answer')).toBeVisible();
     expect(await page.evaluate(() => ({
       lessonId: JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}').lessonId,
       currentStepIndex: JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}').currentStepIndex,
@@ -252,7 +266,7 @@ test('prepared core documents open directly and survive refresh offline', async 
     await page.close();
     const reopened = await context.newPage();
     await reopened.goto(`${proxy.origin}/play`);
-    await expect(reopened.getByRole('button', { name: /读完了/ })).toBeVisible();
+    await expect(reopened.getByTestId('submit-answer')).toBeVisible();
     expect(await reopened.evaluate(() => ({
       lessonId: JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}').lessonId,
       currentStepIndex: JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}').currentStepIndex,
@@ -262,7 +276,7 @@ test('prepared core documents open directly and survive refresh offline', async 
     }))).toEqual(saved);
     proxy.setDisconnected(false);
     await reopened.reload();
-    await expect(reopened.getByRole('button', { name: /读完了/ })).toBeVisible();
+    await expect(reopened.getByTestId('submit-answer')).toBeVisible();
     expect(await reopened.evaluate(() => ({
       lessonId: JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}').lessonId,
       currentStepIndex: JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}').currentStepIndex,

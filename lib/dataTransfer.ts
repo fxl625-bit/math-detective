@@ -3,6 +3,7 @@ import { simpleChecksum, type ExportPayload } from './dataExport';
 import { createLearningEvent, type LearningEventInput } from './learningEvents';
 import { STEP_DEFAULT_PHASES, type LessonStepType } from './types';
 import { isValidPointsWallet } from './familyPoints';
+import { isSolvingEvidence } from './solvingValidation';
 
 export const BACKUP_STORAGE_KEYS = {
   state: 'math-detective-state',
@@ -49,7 +50,7 @@ function assert(condition: unknown, message: string): asserts condition {
 
 function validateLearningEvent(value: unknown): void {
   assert(isRecord(value), '学习事件格式无效');
-  const allowed = ['eventId', 'schemaVersion', 'childProfileId', 'deviceId', 'sessionId', 'lessonId', 'questionInstanceId', 'questionId', 'questionVersion', 'skillIds', 'grade', 'semester', 'unitId', 'role', 'settingSignature', 'eventType', 'actionId', 'attemptId', 'timestamp', 'hintLevel', 'completionMode', 'result', 'durationMs', 'firstAttemptKnown'];
+  const allowed = ['eventId', 'schemaVersion', 'childProfileId', 'deviceId', 'sessionId', 'lessonId', 'questionInstanceId', 'questionId', 'questionVersion', 'skillIds', 'grade', 'semester', 'unitId', 'role', 'settingSignature', 'eventType', 'actionId', 'attemptId', 'timestamp', 'hintLevel', 'completionMode', 'result', 'durationMs', 'firstAttemptKnown', 'solvingEvidence', 'source', 'parentQuestionInstanceId', 'helpTaskSkill'];
   assert(Object.keys(value).every((key) => allowed.includes(key)), '学习事件包含未知字段');
   assert(value.schemaVersion === 1, '学习事件版本无效');
   assert(typeof value.questionVersion === 'string', '学习事件 questionVersion 无效');
@@ -58,6 +59,9 @@ function validateLearningEvent(value: unknown): void {
   assert(value.settingSignature === undefined || typeof value.settingSignature === 'string', '学习事件 settingSignature 无效');
   assert(value.result === undefined || ['correct', 'incorrect', 'completed'].includes(String(value.result)), '学习事件 result 无效');
   assert(value.firstAttemptKnown === undefined || typeof value.firstAttemptKnown === 'boolean', '学习事件 firstAttemptKnown 无效');
+  assert(value.solvingEvidence === undefined || isSolvingEvidence(value.solvingEvidence), '学习事件中的独立答题证据无效');
+  assert(value.source === undefined || ['original', 'transfer'].includes(String(value.source)), '学习事件来源无效');
+  assert(value.parentQuestionInstanceId === undefined || (typeof value.parentQuestionInstanceId === 'string' && value.parentQuestionInstanceId.length > 0), '迁移练习原题关联无效');
   const { schemaVersion: _schemaVersion, ...input } = value;
   assert(createLearningEvent(input as unknown as LearningEventInput) !== null, '学习事件缺少必需字段或包含无效值');
 }
@@ -67,11 +71,19 @@ function validateGameState(value: unknown): asserts value is Record<string, unkn
   const numericFields = ['stars', 'streak', 'completedToday', 'totalCompleted', 'correctCount', 'wrongCount', 'answerAttempts', 'level', 'resumeCards', 'skillLevel'];
   const stringFields = ['lastPlayDate', 'lastCheckinDate', 'lastStreakCheckDate'];
   const requiredArrayFields = ['badges', 'completedQuestions', 'mistakes', 'parentRewards', 'rewardRedemptions'];
-  const optionalArrayFields = ['parentGateAttempts', 'weeklySnapshots', 'decorations', 'unlockedAvatarItemIds', 'collectibleCards', 'attemptRecords', 'learningEvents', 'mentalMathRecords', 'mistakeReviewAttempts'];
+  const optionalArrayFields = ['parentGateAttempts', 'weeklySnapshots', 'decorations', 'unlockedAvatarItemIds', 'collectibleCards', 'attemptRecords', 'learningEvents', 'mentalMathRecords', 'mistakeReviewAttempts', 'needsReinforcementQueue'];
   for (const key of numericFields) assert(Number.isFinite(value[key]) && (value[key] as number) >= 0, `学习状态字段 ${key} 无效`);
   for (const key of stringFields) assert(typeof value[key] === 'string', `学习状态字段 ${key} 无效`);
   for (const key of requiredArrayFields) assert(Array.isArray(value[key]), `学习状态字段 ${key} 无效`);
   for (const key of optionalArrayFields) assert(value[key] === undefined || Array.isArray(value[key]), `学习状态字段 ${key} 无效`);
+  if (value.reviewExplanationViews !== undefined) assert(isRecord(value.reviewExplanationViews)
+    && Object.entries(value.reviewExplanationViews).every(([key, date]) => key.length > 0
+      && typeof date === 'string' && Number.isFinite(Date.parse(date))), '错题讲解记录无效');
+  if (Array.isArray(value.needsReinforcementQueue)) {
+    for (const item of value.needsReinforcementQueue) assert(isRecord(item)
+      && ['questionId', 'questionInstanceId', 'lessonId'].every(key => typeof item[key] === 'string' && item[key].length > 0)
+      && typeof item.dueAt === 'string' && Number.isFinite(Date.parse(item.dueAt)), '待巩固队列无效');
+  }
   if (value.learningEvents !== undefined) {
     assert(Array.isArray(value.learningEvents), '学习状态字段 learningEvents 无效');
     for (const event of value.learningEvents) validateLearningEvent(event);
@@ -139,6 +151,13 @@ function validateLesson(value: unknown): void {
       && typeof step.type === 'string' && Object.hasOwn(STEP_DEFAULT_PHASES, step.type)
       && typeof step.status === 'string', '备份中包含无效课程步骤');
     assert(['locked', 'current', 'completed'].includes(step.status as string), '备份中包含未知课程步骤状态');
+    assert(step.solving === undefined || isSolvingEvidence(step.solving), '备份中的答题证据无效');
+    if (step.transfer !== undefined) {
+      assert(isRecord(step.transfer) && typeof step.transfer.questionId === 'string'
+        && typeof step.transfer.questionInstanceId === 'string' && typeof step.transfer.parentQuestionInstanceId === 'string'
+        && ['pending', 'answering', 'correct', 'deferred'].includes(String(step.transfer.status))
+        && isSolvingEvidence(step.transfer.solving), '备份中的迁移练习无效');
+    }
     const phases = step.phases === undefined
       ? STEP_DEFAULT_PHASES[step.type as LessonStepType]
       : step.phases;

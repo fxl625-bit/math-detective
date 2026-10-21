@@ -61,7 +61,7 @@ async function fillAnswer(page: Page, q: Question, correct: boolean) {
 async function playCoreLesson(page: Page, wrongFirstCount: number) {
   await page.goto('/');
   await page.getByTestId('start-lesson').click();
-  await expect(page.getByRole('button', { name: /读完了/ })).toBeVisible();
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
   const initial = await readLesson(page);
   expect(initial.actualCore).toBe(6);
   for (let index = 0; index < 6; index += 1) {
@@ -69,7 +69,7 @@ async function playCoreLesson(page: Page, wrongFirstCount: number) {
     expect(lesson.currentStepIndex).toBe(index);
     const q = getQuestionById(lesson.steps[index].questionId)!;
     expect(q).toBeDefined();
-    await page.getByRole('button', { name: /读完了/ }).click();
+    await expect(page.getByTestId('submit-answer')).toBeVisible();
     await expect(page.getByTestId('lesson-question-prompt')).toHaveText(q.text);
     if (index < wrongFirstCount) {
       await fillAnswer(page, q, false);

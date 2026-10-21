@@ -55,6 +55,10 @@ jobs:
           npm run test:parent-password
           npm run test:direct-meaning
           npm run test:completion-reward
+          npm run test:independent-content
+          npm run test:independent-runtime
+          npm run test:solving-metrics
+          npm run test:mistake-explanation
 
   playwright:
     name: Release E2E (${{ matrix.shard }}/4)

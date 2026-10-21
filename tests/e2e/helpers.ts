@@ -1,4 +1,6 @@
 import { expect, type Page } from '@playwright/test';
+import { getQuestionById } from '../../data/questions';
+import { inferAnswerSchema } from '../../lib/answerSchema';
 
 type TestState = {
   lesson: {
@@ -119,6 +121,12 @@ export async function playThroughLesson(page: Page, expectedSteps = 6) {
       return state;
     }
 
+    const feedbackDialog = page.getByRole('dialog');
+    if (await feedbackDialog.isVisible().catch(() => false)) {
+      const continueLearning = feedbackDialog.getByRole('button', { name: '继续学习', exact: true });
+      if (await continueLearning.isVisible().catch(() => false)) await continueLearning.click();
+    }
+
     expect(state.currentStepIndex ?? -1).toBeGreaterThanOrEqual(lastStepIndex);
     lastStepIndex = state.currentStepIndex ?? lastStepIndex;
 
@@ -135,15 +143,48 @@ export async function playThroughLesson(page: Page, expectedSteps = 6) {
     if (state.currentPhase === 'answer' || state.currentPhase === 'ranking_answer') {
       submitCountForPhase += 1;
       expect(submitCountForPhase).toBe(1);
-      const submitted = await page.evaluate(() => window.MATH_DETECTIVE_TEST!.submitAnswer());
-      expect(submitted).toBe(true);
+      const question = state.questionId ? getQuestionById(state.questionId) : undefined;
+      expect(question, `question ${state.questionId} is registered`).toBeDefined();
+      const schema = inferAnswerSchema(question!);
+      if (schema.kind === 'multi_field') {
+        for (const field of schema.fields) {
+          const value = question!.subAnswers?.find(item => item.id === field.id)?.answer;
+          expect(value, `${question!.id}:${field.id} has an answer`).toBeDefined();
+          await page.getByTestId(`lesson-answer-input-${field.id}`).fill(String(value).replace(/[%％]$/, ''));
+        }
+      } else if (schema.kind === 'choice') {
+        const option = schema.options.find(item => String(item.value) === String(question!.answer) || item.id === String(question!.answer));
+        expect(option, `choice answer for ${question!.id}`).toBeDefined();
+        await page.getByRole('button', { name: option!.label, exact: true }).click();
+      } else if (schema.kind === 'comparison_symbol') {
+        await page.getByRole('button', { name: String(question!.answer), exact: true }).click();
+      } else if (schema.kind === 'money' && schema.inputMode === 'yuan_jiao') {
+        const amount = typeof question!.answer === 'number' ? Math.round(question!.answer * 10) : Number(String(question!.answer).replace('.', ''));
+        const inputs = page.locator('form input');
+        await inputs.nth(0).fill(String(Math.floor(amount / 10)));
+        await inputs.nth(1).fill(String(amount % 10));
+      } else {
+        await page.getByTestId('lesson-answer-input').fill(String(question!.answer).replace(/[%％]$/, ''));
+      }
+      await page.getByTestId('submit-answer').click();
+      await expect(page.getByTestId('question-review')).toBeVisible();
+      await expect(page.getByTestId('continue-feedback')).toBeVisible();
+      const submittedState = await getTestState(page);
+      expect(submittedState.currentStepIndex).toBe(state.currentStepIndex);
+      expect(submittedState.questionId).toBe(state.questionId);
+      await page.getByTestId('continue-feedback').click();
+      const stepCount = state.lesson?.steps?.length ?? expectedSteps;
+      if ((state.currentStepIndex ?? 0) + 1 < stepCount) {
+        await expect.poll(async () => (await getTestState(page)).currentStepIndex).toBe((state.currentStepIndex ?? 0) + 1);
+      } else {
+        await expect.poll(async () => (await getTestState(page)).completed).toBe(true);
+      }
+      submitCountForPhase = 0;
     } else {
       submitCountForPhase = 0;
-      const advanced = await page.evaluate(() => window.MATH_DETECTIVE_TEST!.goNext());
-      expect(advanced).toBe(true);
+      throw new Error(`Unexpected non-answer phase ${state.currentPhase} in default independent lesson flow`);
     }
-
-    await page.waitForTimeout(450);
+    await page.waitForTimeout(150);
   }
 
   throw new Error('Lesson did not complete within 80 E2E actions');

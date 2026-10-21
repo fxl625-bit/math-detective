@@ -44,7 +44,9 @@
     ".next-parent-password/types/**/*.ts",
     ".next-parent-password/dev/types/**/*.ts",
     ".next-ci-repair/types/**/*.ts",
-    ".next-ci-repair/dev/types/**/*.ts"
+    ".next-ci-repair/dev/types/**/*.ts",
+    ".next-independent/types/**/*.ts",
+    ".next-independent/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

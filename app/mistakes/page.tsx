@@ -8,7 +8,7 @@ import DetectiveMascot from '@/components/DetectiveMascot';
 import AppCard from '@/components/ui/AppCard';
 import PageContainer from '@/components/layout/PageContainer';
 import { inferAnswerSchema } from '@/lib/answerSchema';
-import { getReviewQuestion, getReviewRecordId, submitMistakeReview } from '@/lib/mistakeReview';
+import { getReviewQuestion, getReviewRecordId, hasViewedMistakeExplanation, revealMistakeExplanation, submitMistakeReview } from '@/lib/mistakeReview';
 
 type AnswerValue = string | Record<string, string>;
 
@@ -47,6 +47,11 @@ export default function MistakesPage() {
   const [busy, setBusy] = useState<Record<string, boolean>>({});
   const [showSolution, setShowSolution] = useState<Record<string, boolean>>({});
   useEffect(() => setMounted(true), []);
+  const [, refreshReviewDay] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => refreshReviewDay((value) => value + 1), 60_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const mistakes = useMemo(() => [...(state.mistakes || [])].reverse(), [state.mistakes]);
   if (!mounted) return <div className="min-h-[55vh] flex items-center justify-center"><p className="font-bold text-blue-700">正在加载错题本…</p></div>;
@@ -79,6 +84,26 @@ export default function MistakesPage() {
     setBusy((current) => ({ ...current, [recordId]: false }));
   }
 
+  function toggleExplanation(recordId: string, record: (typeof mistakes)[number]) {
+    const currentState = getState();
+    const visible = showSolution[recordId] ?? hasViewedMistakeExplanation(currentState, recordId);
+    if (visible) {
+      setShowSolution((current) => ({ ...current, [recordId]: false }));
+      return;
+    }
+    if (hasViewedMistakeExplanation(currentState, recordId)) {
+      setShowSolution((current) => ({ ...current, [recordId]: true }));
+      return;
+    }
+    const result = revealMistakeExplanation(currentState, getReviewRecordId(record));
+    if (!result.ok || !commitGameState(result.state)) {
+      setMessages((current) => ({ ...current, [recordId]: result.ok ? '解析尚未保存，请重试后再查看。' : result.message }));
+      return;
+    }
+    setShowSolution((current) => ({ ...current, [recordId]: true }));
+    setMessages((current) => ({ ...current, [recordId]: '今天已查看解析，明天可以重新订正。' }));
+  }
+
   return (
     <PageContainer className="max-w-4xl space-y-4">
       <header className="flex items-center gap-3">
@@ -96,6 +121,8 @@ export default function MistakesPage() {
               const recordId = getReviewRecordId(record);
               const isOpen = expanded === recordId;
               const isCorrected = corrected[recordId] || Boolean(record.retriedCorrect);
+              const explanationViewed = hasViewedMistakeExplanation(state, recordId);
+              const solutionVisible = showSolution[recordId] ?? explanationViewed;
               const schema = q ? inferAnswerSchema(q) : null;
               return <article key={recordId} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                 <button type="button" className="flex min-h-16 w-full items-start gap-3 p-4 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700" aria-expanded={isOpen} onClick={() => setExpanded(isOpen ? null : recordId)}>
@@ -104,8 +131,8 @@ export default function MistakesPage() {
                   {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </button>
                 {isOpen && <div className="space-y-4 border-t border-slate-100 p-4">
-                  {q && <div className="rounded-xl bg-slate-50 p-3"><p className="font-bold text-slate-900">{q.text}</p><p className="mt-1 text-xs text-slate-500">原答案和解析先收起，准备好后再查看。</p><button type="button" className="mt-2 min-h-11 rounded-lg px-3 text-sm font-bold text-blue-800 underline" aria-expanded={Boolean(showSolution[recordId])} onClick={() => setShowSolution((current) => ({ ...current, [recordId]: !current[recordId] }))}>{showSolution[recordId] ? '收起答案与解析' : '查看原答案与解析'}</button>{showSolution[recordId] && <div className="mt-2 border-t border-slate-200 pt-2 text-sm"><p>首次作答：{formatAnswer(record.myAnswer, schema)}</p><p>参考答案：{formatAnswer(record.correctAnswer, schema)}</p><p className="mt-1 text-slate-600">{q.explanation}</p></div>}</div>}
-                  {schema ? <div className="space-y-3"><p className="text-sm font-bold text-slate-800">{isCorrected ? '已订正，也可以继续练习；重复练习不会重复加分。' : '自己再想一遍，再提交订正'}</p><AnswerInputRouter schema={schema} value={answers[recordId] ?? ''} onChange={(value) => setAnswers((current) => ({ ...current, [recordId]: value }))} onSubmit={() => submit(record, recordId)} disabled={Boolean(busy[recordId])} autoFocus={false} /><button type="button" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 font-bold text-white hover:bg-blue-800 disabled:opacity-50" onClick={() => submit(record, recordId)} disabled={Boolean(busy[recordId])}><RotateCcw size={17} />{busy[recordId] ? '正在保存…' : isCorrected ? '继续练习' : '提交订正'}</button>{messages[recordId] && <p role="status" aria-live="polite" className={`text-sm font-semibold ${/还不对|不正确|保存/.test(messages[recordId]) ? 'text-amber-800' : isCorrected ? 'text-green-800' : 'text-amber-800'}`}>{messages[recordId]}</p>}</div> : <p role="status" className="text-sm text-amber-800">当前版本无法恢复这道旧题的完整作答格式。首错记录保留，但暂不能在线判题。</p>}
+                  {q && <div className="rounded-xl bg-slate-50 p-3"><p className="font-bold text-slate-900">{q.text}</p><p className="mt-1 text-xs text-slate-500">原答案和解析先收起，准备好后再查看。</p><button type="button" className="mt-2 min-h-11 rounded-lg px-3 text-sm font-bold text-blue-800 underline" aria-expanded={solutionVisible} onClick={() => toggleExplanation(recordId, record)}>{solutionVisible ? '收起答案与解析' : '查看原答案与解析'}</button>{solutionVisible && <div className="mt-2 border-t border-slate-200 pt-2 text-sm"><p>首次作答：{formatAnswer(record.myAnswer, schema)}</p><p>参考答案：{formatAnswer(record.correctAnswer, schema)}</p><p className="mt-1 text-slate-600">{q.explanation}</p></div>}</div>}
+                  {schema ? <div className="space-y-3"><p className="text-sm font-bold text-slate-800">{explanationViewed ? '今天已查看解析，明天可以重新订正。' : isCorrected ? '已订正，也可以继续练习；重复练习不会重复加分。' : '自己再想一遍，再提交订正'}</p><AnswerInputRouter schema={schema} value={answers[recordId] ?? ''} onChange={(value) => setAnswers((current) => ({ ...current, [recordId]: value }))} onSubmit={() => submit(record, recordId)} disabled={Boolean(busy[recordId]) || explanationViewed} autoFocus={false} /><button type="button" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 font-bold text-white hover:bg-blue-800 disabled:opacity-50" onClick={() => submit(record, recordId)} disabled={Boolean(busy[recordId]) || explanationViewed}><RotateCcw size={17} />{busy[recordId] ? '正在保存…' : explanationViewed ? '明天可重新订正' : isCorrected ? '继续练习' : '提交订正'}</button>{messages[recordId] && <p role="status" aria-live="polite" className={`text-sm font-semibold ${/还不对|不正确|保存/.test(messages[recordId]) ? 'text-amber-800' : isCorrected ? 'text-green-800' : 'text-amber-800'}`}>{messages[recordId]}</p>}</div> : <p role="status" className="text-sm text-amber-800">当前版本无法恢复这道旧题的完整作答格式。首错记录保留，但暂不能在线判题。</p>}
                 </div>}
               </article>;
             })}

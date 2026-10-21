@@ -1,6 +1,6 @@
 {
   "name": "math-detective",
-  "version": "2.13.3",
+  "version": "2.14.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -38,7 +38,12 @@
     "test:e2e:playthrough": "node scripts/run-playwright.js tests/e2e/full-lesson-playthrough.spec.ts",
     "test:parent-password": "tsx tests/unit/parent-password.test.ts",
     "test:direct-meaning": "tsx -r tsconfig-paths/register tests/unit/direct-meaning-validation.test.ts",
-    "test:completion-reward": "tsx -r tsconfig-paths/register tests/unit/completion-reward-transaction.test.ts"
+    "test:completion-reward": "tsx -r tsconfig-paths/register tests/unit/completion-reward-transaction.test.ts",
+    "test:independent-content": "tsx -r tsconfig-paths/register tests/unit/independent-solving-content.test.ts",
+    "test:independent-runtime": "tsx -r tsconfig-paths/register tests/unit/independent-solving-runtime.test.ts",
+    "test:solving-metrics": "tsx -r tsconfig-paths/register tests/unit/solving-metrics.test.ts",
+    "test:mistake-explanation": "tsx -r tsconfig-paths/register tests/unit/mistake-explanation-gate.test.ts",
+    "audit:independent-solving": "tsx -r tsconfig-paths/register scripts/audit-independent-solving.ts"
   },
   "dependencies": {
     "framer-motion": "^12.38.0",

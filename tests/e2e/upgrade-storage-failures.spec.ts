@@ -3,7 +3,7 @@ import { getQuestionById } from '../../data/questions';
 
 test('failed answer save stays pending, retries the same action and survives refresh', async ({ page }) => {
   await page.goto('/play');
-  await page.getByRole('button', { name: /读完了/ }).click();
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
   const before = await page.evaluate(() => ({
     state: JSON.parse(localStorage.getItem('math-detective-state') || '{}'),
     lesson: JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}'),

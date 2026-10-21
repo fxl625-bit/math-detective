@@ -178,6 +178,7 @@ export function loadState(): GameState {
       state.learnerProfile = buildLearnerProfile({
         curriculumProfile: state.curriculumProfile as any,
         attemptRecords: state.attemptRecords || [],
+        learningEvents: state.learningEvents || [],
         totalCompleted: state.totalCompleted || 0,
         consecutiveCheckInDays: state.streak || 0,
       });
@@ -186,6 +187,7 @@ export function loadState(): GameState {
         existingProfile: state.learnerProfile as any,
         curriculumProfile: state.curriculumProfile as any,
         attemptRecords: state.attemptRecords || [],
+        learningEvents: state.learningEvents || [],
         totalCompleted: state.totalCompleted || 0,
         startedAt: state.learnerProfile.startedAt,
         consecutiveCheckInDays: state.streak || 0,
@@ -537,7 +539,7 @@ export function getAccuracyStats(state: GameState): import('./types').AccuracySt
   const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const todayStr = getDateString();
   const orderedAttempts = (state.learningEvents || []).map((event, index) => ({ event, index }))
-    .filter(({ event }) => event.eventType === 'attempt_submitted')
+    .filter(({ event }) => event.eventType === 'attempt_submitted' && event.source !== 'transfer')
     .sort((left, right) => left.event.timestamp.localeCompare(right.event.timestamp) || left.index - right.index)
     .map(({ event }) => event);
   const firstByInstance = new Map<string, NonNullable<GameState['learningEvents']>[number]>();
@@ -566,7 +568,7 @@ export function getAccuracyStats(state: GameState): import('./types').AccuracySt
     ? Math.round((last7DaysCorrectAttempts / last7DaysTotalAttempts) * 100)
     : 0;
   const todayCompleted = new Set((state.learningEvents || []).filter(event => {
-    if (event.eventType !== 'question_completed' || !event.questionInstanceId) return false;
+    if (!['question_completed', 'explanation_viewed'].includes(event.eventType) || event.source === 'transfer' || !event.questionInstanceId) return false;
     const date = new Date(event.timestamp);
     return Number.isFinite(date.getTime()) && getDateString(date) === todayStr;
   }).map(event => event.questionInstanceId)).size;

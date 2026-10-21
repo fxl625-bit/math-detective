@@ -41,113 +41,50 @@ async function setupForQuestion(page: Page, questionId: string) {
   }, questionId);
   await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForFunction(() => !!(window as any).MATH_DETECTIVE_TEST, { timeout: 15000 });
+  await page.evaluate((questionId) => {
+    const api = (window as any).MATH_DETECTIVE_TEST;
+    const now = new Date();
+    const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    api.setLesson({ date, currentStepIndex: 0, completed: false, steps: [{
+      id: `${date}_money_${questionId}`, type: 'answer_only', title: '金额答案输入', description: '',
+      questionId, phases: ['answer', 'explain'], currentPhaseIndex: 0, status: 'current', requiresAnswer: true,
+    }] });
+  }, questionId);
+  await page.waitForFunction((questionId) => {
+    const state = (window as any).MATH_DETECTIVE_TEST?.getState();
+    return state?.questionId === questionId && state?.currentPhase === 'answer';
+  }, questionId);
 }
 
 async function getState(page: Page): Promise<any> {
   return await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.getState());
 }
 
-async function advancePhase(page: Page): Promise<boolean> {
-  return await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.goNext());
-}
-
-async function submitCorrectAnswer(page: Page): Promise<boolean> {
-  return await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.submitAnswer());
-}
-
 test('v2.11.0-money: No 1-4 number stepper on money questions', async ({ page }) => {
   test.setTimeout(90000);
   await setupForQuestion(page, 'g1ll_50');
 
-  // Advance through lesson until we hit a money question or answer phase
-  let foundMoney = false;
-  for (let i = 0; i < 50; i++) {
-    const state = await getState(page);
-    if (state?.completed) break;
-
-    const phase = state?.currentPhase;
-    if (phase === 'answer' || phase === 'build_equation') {
-      // Check the page for input elements
-      const bodyText = await page.locator('body').innerText();
-
-      // Verify NO number stepper with 1/2/3/4
-      const stepperPattern = /^[1234]$/m;
-      const hasStepperLike = /1\s*\n\s*2\s*\n\s*3\s*\n\s*4/.test(bodyText)
-        || /▶.*1.*2.*3.*4/.test(bodyText);
-
-      // Check for yuan/jiao inputs if this is a money question
-      const hasYuanJiao = bodyText.includes('元') && bodyText.includes('角');
-
-      console.log(`Phase: ${phase}, hasYuanJiao: ${hasYuanJiao}, bodyLength: ${bodyText.length}`);
-
-      if (hasYuanJiao) {
-        foundMoney = true;
-        // Should NOT see a number stepper
-        expect(hasStepperLike).toBe(false);
-
-        // Should see yuan input field
-        const yuanInput = page.locator('input').filter({ hasText: '' }).first();
-        expect(await yuanInput.isVisible()).toBe(true);
-        break;
-      }
-    }
-
-    await advancePhase(page);
-    await page.waitForTimeout(300);
-  }
-
-  // At minimum, we should have found content (not blank page)
   const bodyText = await page.locator('body').innerText();
   expect(bodyText.length).toBeGreaterThan(50);
+  expect((await getState(page))?.questionId).toBe('g1ll_50');
+  const hasStepperLike = /1\s*\n\s*2\s*\n\s*3\s*\n\s*4/.test(bodyText) || /▶.*1.*2.*3.*4/.test(bodyText);
+  expect(hasStepperLike).toBe(false);
+  await expect(page.locator('input[inputmode="numeric"]')).toHaveCount(2);
 });
 
 test('v2.11.0-money: Yuan-jiao input accepts money values', async ({ page }) => {
   test.setTimeout(90000);
   await setupForQuestion(page, 'g1ll_50');
 
-  // Advance to answer phase of a money question
-  for (let i = 0; i < 50; i++) {
-    const state = await getState(page);
-    if (state?.completed) break;
-
-    const phase = state?.currentPhase;
-    if (phase === 'answer' || phase === 'build_equation') {
-      const bodyText = await page.locator('body').innerText();
-      if (bodyText.includes('元') && bodyText.includes('角')) {
-        // Found a money answer phase
-        // Look for yuan/jiao input fields
-        const inputs = page.locator('input[inputMode="numeric"], input[inputMode="decimal"]');
-        const count = await inputs.count();
-
-        if (count >= 2) {
-          // Fill yuan and jiao
-          await inputs.nth(0).fill('1');
-          await inputs.nth(1).fill('5');
-
-          // Submit
-          await page.keyboard.press('Enter');
-          await page.waitForTimeout(1000);
-
-          const afterState = await getState(page);
-          console.log('After money submit:', JSON.stringify({
-            phase: afterState?.currentPhase,
-            step: afterState?.currentStepIndex,
-          }));
-
-          // Should advance (correct answer)
-          expect(afterState?.currentPhase !== 'answer' || afterState?.currentStepIndex > 0).toBeTruthy();
-          break;
-        }
-      }
-    }
-
-    if (phase === 'answer' || phase === 'build_equation') {
-      await submitCorrectAnswer(page);
-      await page.waitForTimeout(500);
-    }
-    await advancePhase(page);
-    await page.waitForTimeout(300);
-  }
+  const inputs = page.locator('input[inputmode="numeric"]');
+  await expect(inputs).toHaveCount(2);
+  const attemptsBefore = await page.evaluate(() => JSON.parse(localStorage.getItem('math-detective-state') || '{}').answerAttempts);
+  await inputs.nth(0).fill('1');
+  await inputs.nth(1).fill('5');
+  await page.keyboard.press('Enter');
+  await expect.poll(async () => (await getState(page))?.currentPhase).toBe('explain');
+  const attempts = await page.evaluate(() => JSON.parse(localStorage.getItem('math-detective-state') || '{}').answerAttempts);
+  expect(attempts).toBe(attemptsBefore + 1);
 });
 
 test('v2.11.0-money: Money answers accept equivalent formats', async ({ page }) => {

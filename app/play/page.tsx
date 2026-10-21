@@ -9,7 +9,7 @@ import LogicRankingGuide from '@/components/LogicRankingGuide';
 import SequencePatternGuide from '@/components/lesson/SequencePatternGuide';
 import { useGameState } from '@/hooks/useGameState';
 import { loadState } from '@/lib/storage';
-import { getTodayLesson, normalizeLesson, safeNormalizeLesson, generateSafeFallbackLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson, validateStepQuestionCompatibility } from '@/lib/lessonPlanner';
+import { getTodayLesson, getStoredTodayLesson, normalizeLesson, safeNormalizeLesson, generateSafeFallbackLesson, getCurrentStep, getCurrentPhase, saveTodayLesson, clearTodayLesson, getStepLabel, getCompletionMessage, getQuestionForLesson, getTomorrowLessonPreview, getLearningProfile, getCaseStoryForLesson, validateStepQuestionCompatibility } from '@/lib/lessonPlanner';
 import { getQuestionById } from '@/data/questions';
 import { getStepNarrative } from '@/lib/storySystem';
 import { getVisual } from '@/data/visualItems';
@@ -42,6 +42,7 @@ import { AnswerInputRouter } from '@/components/lesson/AnswerInputRouter';
 import ConceptLab from '@/components/lesson/ConceptLab';
 import { inferAnswerSchema } from '@/lib/answerSchema';
 import { appendUniqueEvent, createEventIdentity } from '@/lib/learningEvents';
+import IndependentQuestion from '@/components/lesson/IndependentQuestion';
 
 declare global {
   interface Window {
@@ -309,23 +310,23 @@ function PlayPageContent() {
     payload: LessonActionPayload,
     source: string
   ) => {
-    const currentLesson = lessonRef.current;
-    if (!currentLesson) return;
-
-    const curStep = getCurrentStep(currentLesson);
+    const persistedGameState = loadState();
+    const currentLesson = getStoredTodayLesson() || persistedGameState.lastCommittedLesson || lessonRef.current;
+    if (!currentLesson) return false;
 
     transitioningRef.current = true;
     setIsAdvancing(true);
     let submitTraceId: string | undefined;
     try {
-      const currentLesson = lessonRef.current;
-      if (!currentLesson) return;
+      const activeGameState = loadState();
+      const activeLesson = getStoredTodayLesson() || activeGameState.lastCommittedLesson || currentLesson;
+      if (!activeLesson) return false;
 
       // v2.7: submit_answer / information_check / identify_extra_info — 使用统一 checker
       const isAnswerAction = action === 'submit_answer' || action === 'information_check' || action === 'identify_extra_info';
       const currentState: LearningState = {
-        lesson: currentLesson,
-        gameState: state, // snapshot from hook (用于 transaction 内部的 completeQuestion 计算)
+        lesson: activeLesson,
+        gameState: activeGameState,
       };
 
       const result = commitLessonTransaction({
@@ -353,22 +354,26 @@ function PlayPageContent() {
         console.error('[P0] answer action did not advance', { action, source, result });
       }
 
-      const completedNow = result.changed && result.nextLesson.completed && !currentLesson.completed;
-      if (result.changed && (isAnswerAction || completedNow)) {
+      const completedNow = result.changed && result.nextLesson.completed && !activeLesson.completed;
+      if (result.changed) {
         const committed = commitGameState({
           ...result.nextState.gameState,
           lastCommittedLesson: result.nextLesson,
-          lessonPersistenceRevision: (state.lessonPersistenceRevision || 0) + 1,
+          lessonPersistenceRevision: (activeGameState.lessonPersistenceRevision || 0) + 1,
         });
         if (!committed) {
           setPendingStorageRetry({ kind: 'action', action, payload, source });
           setFeedback({ show: false, type: 'info', message: '' });
-          return;
+          return false;
         }
         setPendingStorageRetry(null);
       }
       // 持久化 lesson
-      if (!saveTodayLesson(result.nextLesson)) setPendingStorageRetry({ kind: 'lesson', lesson: result.nextLesson });
+      if (!saveTodayLesson(result.nextLesson)) {
+        setPendingStorageRetry({ kind: 'lesson', lesson: result.nextLesson });
+        setFeedback({ show: false, type: 'info', message: '' });
+        return false;
+      }
 
       // 同步 ref 和 state
       lessonRef.current = result.nextLesson;
@@ -376,14 +381,16 @@ function PlayPageContent() {
 
       // v2.6.3: lesson 完成时处理每日奖励
       if (result.nextLesson.completed) {
-        const allAnswersSubmitted = result.nextLesson.steps.every(s => s.awardedAt != null);
+        const allAnswersSubmitted = result.nextLesson.steps.every(s => s.awardedAt != null
+          || (s.solving?.fullExplanationViewedBeforeSolve === true
+            && (s.transfer?.status === 'correct' || s.transfer?.status === 'deferred')));
         if (!allAnswersSubmitted) {
           console.error('[P0_ANSWER_GATE] Lesson completed without all answers submitted');
           const uncompleted = { ...result.nextLesson, completed: false, currentStepIndex: result.nextLesson.steps.length - 1 };
           saveTodayLesson(uncompleted);
           lessonRef.current = uncompleted;
           setLesson(uncompleted);
-          return;
+          return false;
         }
         setShowConfetti(true);
         setFeedback({
@@ -401,6 +408,8 @@ function PlayPageContent() {
         });
       }
 
+      return result.changed;
+
     } finally {
       // v2.10.2: Faster unlock for single-click flow
       setTimeout(() => {
@@ -408,7 +417,7 @@ function PlayPageContent() {
         setIsAdvancing(false);
       }, 300);
     }
-  }, [state, commitGameState]);
+  }, [commitGameState]);
 
   const retryStorageSave = useCallback(() => {
     if (!pendingStorageRetry) return;
@@ -448,7 +457,7 @@ function PlayPageContent() {
     const hintLevel = persistedHints.includes('full') ? 'full'
       : persistedHints.includes('medium') ? 'medium'
       : persistedHints.includes('light') ? 'light' : 'none';
-    runLessonAction('submit_answer', {
+    return runLessonAction('submit_answer', {
       inputAnswer, questionId, actionId, attemptId: actionId,
       sessionId: sessionIdRef.current, timestamp: new Date().toISOString(), hintLevel,
     }, 'AnswerSubmit');
@@ -488,13 +497,16 @@ function PlayPageContent() {
       getState: () => {
         const currentLesson = lessonRef.current;
         const step = currentLesson ? getCurrentStep(currentLesson) : null;
-        const q = currentLesson ? getQuestionForLesson(currentLesson) : null;
+        const transferActive = step?.transfer?.status === 'pending' || step?.transfer?.status === 'answering';
+        const q = step ? getQuestionById(transferActive ? step.transfer!.questionId : step.questionId) : null;
         return {
           lesson: currentLesson,
           currentStepIndex: currentLesson?.currentStepIndex ?? null,
           currentPhaseIndex: step?.currentPhaseIndex ?? null,
           currentPhase: currentLesson ? getCurrentPhase(currentLesson) : null,
-          questionId: step?.questionId ?? null,
+          questionId: q?.id ?? step?.questionId ?? null,
+          originalQuestionId: step?.questionId ?? null,
+          activeQuestionId: q?.id ?? null,
           stepType: step?.type ?? null,
           completed: currentLesson?.completed ?? false,
           rewardClaimed: currentLesson?.rewardClaimed ?? false,
@@ -503,27 +515,45 @@ function PlayPageContent() {
         };
       },
       getCorrectAnswer: () => {
-        const q = lessonRef.current ? getQuestionForLesson(lessonRef.current) : null;
+        const currentLesson = lessonRef.current;
+        const step = currentLesson ? getCurrentStep(currentLesson) : null;
+        const transferActive = step?.transfer?.status === 'pending' || step?.transfer?.status === 'answering';
+        const q = step ? getQuestionById(transferActive ? step.transfer!.questionId : step.questionId) : null;
         return q?.answer ?? null;
       },
       submitAnswer: () => {
         const currentLesson = lessonRef.current;
         const step = currentLesson ? getCurrentStep(currentLesson) : null;
-        const q = currentLesson ? getQuestionForLesson(currentLesson) : null;
-        if (!step || !q) return false;
-        handleSubmitAnswer(String(q.answer), q.id);
-        return true;
+        const transferActive = step?.transfer?.status === 'pending' || step?.transfer?.status === 'answering';
+        const q = step ? getQuestionById(transferActive ? step.transfer!.questionId : step.questionId) : null;
+        if (!currentLesson || !step || !q) return false;
+        if (transferActive && step.transfer) {
+          return runLessonAction('submit_transfer', {
+            questionId: q.id,
+            questionInstanceId: step.transfer.questionInstanceId,
+            inputAnswer: String(q.answer),
+            actionId: `test-transfer-${step.transfer.questionInstanceId}-${Date.now()}`,
+          }, 'TestApiTransferAnswer');
+        } else {
+          if (getCurrentPhase(currentLesson) !== 'answer') return false;
+          return handleSubmitAnswer(String(q.answer), q.id);
+        }
       },
       goNext: () => {
         const currentLesson = lessonRef.current;
+        const step = currentLesson ? getCurrentStep(currentLesson) : null;
         const phase = currentLesson ? getCurrentPhase(currentLesson) : null;
         if (!currentLesson || currentLesson.completed) return false;
-        if (phase === 'explain') {
+        if (phase === 'explain' && step?.awardedAt && (!step.solving || step.solving.phase === 'review')) {
           handleStepComplete(true);
-        } else {
-          handlePhaseAdvance();
+          return true;
         }
-        return true;
+        if (phase === 'explain' && step?.solving?.phase === 'explanation'
+          && (step.transfer?.status === 'correct' || step.transfer?.status === 'deferred')) {
+          handlePhaseAdvance();
+          return true;
+        }
+        return false;
       },
       getValidationStatus: () => {
         const currentLesson = lessonRef.current;
@@ -888,6 +918,8 @@ function PlayPageContent() {
           onPhaseBack={handlePhaseBack}
           onWrongAnswer={handleWrongAnswer}
           onSubmitAnswer={handleSubmitAnswer}
+          onAction={runLessonAction}
+          disabled={isAdvancing || Boolean(pendingStorageRetry)}
         />
       </AnimatePresence>
 
@@ -1000,7 +1032,7 @@ function AutoRebuildPlaceholder() {
 function PhaseAwareStep({
   step, phase, question, visual,
   onPhaseAdvance, onStepComplete, onPhaseBack, onWrongAnswer,
-  onSubmitAnswer,
+  onSubmitAnswer, onAction, disabled,
 }: {
   step: LessonStep;
   phase: StepPhase | null;
@@ -1011,84 +1043,26 @@ function PhaseAwareStep({
   onPhaseBack: () => void;
   onWrongAnswer: (input: string) => void;
   onSubmitAnswer: (inputAnswer: string, questionId: string) => void;
+  onAction: (action: LessonAction, payload: LessonActionPayload, source: string) => boolean;
+  disabled: boolean;
 }) {
   if (!phase) return null;
 
-  // New core lessons use one schema-driven answer surface regardless of legacy
-  // problem-specific routers (including multi-answer and sequence questions).
-  if (step.type === 'answer_only') {
-    return <FullSolvePhased phase={phase} question={question} visual={visual} simpleAnswerOnly coreTitle={step.title} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
-  }
-
-  // v2.6.5: 逻辑排序题使用专用组件
-  const isLogicQuestion = question.problemType === 'logic_ranking'
-    || question.problemType === 'logic_truth'
-    || question.problemType === 'logic_ordering';
-
-  if (isLogicQuestion) {
-    // 运行时防御 P0: 逻辑题不应进入方程构建器
-    if (phase === 'build_equation') {
-      console.error('[P0] Logic question routed to build_equation!', {
-        questionId: question.id,
-        text: question.text.slice(0, 50),
-        problemType: question.problemType,
-        phase,
-      });
-    }
-    return (
-      <LogicRankingGuide
-        question={question}
-        phase={phase}
-        onPhaseAdvance={onPhaseAdvance}
-        onPhaseBack={onPhaseBack}
-        onSubmitAnswer={onSubmitAnswer}
-      />
-    );
-  }
-
-  // v2.7: 等差数列/规律题使用 SequencePatternGuide
-  const isSequenceQuestion = question.problemType === 'pattern'
-    || question.problemType === 'sequence_arithmetic'
-    || (question.answerType === 'multi_answer' && question.subAnswers?.length);
-
-  if (isSequenceQuestion) {
-    // 运行时防御：数列题不应进入方程构建器
-    if (phase === 'build_equation') {
-      console.warn('[P0] Sequence question routed to build_equation, redirecting to choose_operation');
-    }
-    const gradeBand = question.gradeBand || 'G1';
-    return (
-      <SequencePatternGuide
-        question={question}
-        phase={phase}
-        gradeBand={gradeBand}
-        onPhaseAdvance={onPhaseAdvance}
-        onPhaseBack={onPhaseBack}
-        onSubmitAnswer={onSubmitAnswer}
-      />
-    );
-  }
-
-  switch (step.type) {
-    case 'find_numbers':
-      return <FindNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
-    case 'find_action_words':
-      return <FindActionWordsPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
-    case 'simulation':
-      return <SimulationPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
-    case 'remove_noise':
-      return <RemoveNoisePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
-    case 'full_solve':
-      return <FullSolvePhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
-    case 'find_compare_numbers':
-      return <CompareNumbersPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
-    case 'spot_extra_info':
-      return <SpotExtraInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
-    case 'spot_missing_info':
-      return <SpotMissingInfoPhased phase={phase} question={question} visual={visual} onPhaseAdvance={onPhaseAdvance} onStepComplete={onStepComplete} onPhaseBack={onPhaseBack} onWrongAnswer={onWrongAnswer} onSubmitAnswer={onSubmitAnswer} />;
-    default:
-      return null;
-  }
+  // Every lesson question now starts with its real AnswerSchema input. Legacy
+  // clue and three-question screens remain available to historical components,
+  // but no longer gate the independent answer path.
+  return (
+    <IndependentQuestion
+      question={question}
+      step={step}
+      onAction={onAction}
+      onSubmitAnswer={onSubmitAnswer}
+      onContinue={() => step.solving?.phase === 'explanation'
+        ? onPhaseAdvance()
+        : onStepComplete(true)}
+      disabled={disabled}
+    />
+  );
 }
 
 // ========== Shared: Grade-Aware Equation Display ==========

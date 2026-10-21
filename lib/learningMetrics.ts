@@ -61,6 +61,7 @@ export function reduceLearningMetrics(events: readonly LearningEvent[]): Record<
   };
 
   for (const rows of byInstance.values()) {
+    if (rows.some(event => event.source === 'transfer')) continue;
     const submissions = rows.filter(event => event.eventType === 'attempt_submitted' && event.result);
     const firstSubmission = submissions[0];
     const completion = rows.find(event => event.eventType === 'question_completed');
@@ -75,9 +76,9 @@ export function reduceLearningMetrics(events: readonly LearningEvent[]): Record<
       if (completion) {
         metric.completedQuestionInstances += 1;
         const fullHint = rows.some(event => event.eventType === 'hint_used' && event.hintLevel === 'full');
-        const usedLearningSupport = rows.some(event => event.eventType === 'support_used');
+        const usedLearningSupport = rows.some(event => ['support_used', 'hint_used', 'help_task_submitted'].includes(event.eventType));
         if (fullHint || usedLearningSupport || completion.completionMode === 'assisted') metric.assistedCompletions += 1;
-        else if (completion.completionMode === 'independent') metric.independentCompletions += 1;
+        else if (completion.solvingEvidence?.independentCorrect && firstSubmission?.result === 'correct') metric.independentCompletions += 1;
         if (fullHint || completion.hintLevel === 'full') metric.fullHintCompletions += 1;
       }
     }
@@ -104,7 +105,7 @@ export function decideDifficultyIncrease(params: {
   const consumed = new Set(params.consumedEventIds || []);
   const firstByInstance = new Map<string, LearningEvent>();
   for (const event of ordered(params.events)) {
-    if (event.eventType !== 'attempt_submitted' || !event.result || !event.skillIds.includes(params.skillId)
+    if (event.eventType !== 'attempt_submitted' || event.source === 'transfer' || !event.result || !event.skillIds.includes(params.skillId)
       || event.firstAttemptKnown === false
       || (params.grade !== undefined && event.grade !== params.grade)
       || (params.unitId !== undefined && (event.unitId ?? null) !== params.unitId)
@@ -130,11 +131,18 @@ export function decideDifficultyIncrease(params: {
     return (submitted && usedFullHint) || completed;
   }).length;
   const fullHintRate = fullHintCount / window.length;
-  if (sessionCount < 2 || variantCount < 2 || accuracy < 0.8 || fullHintRate > 0.2) return null;
+  const independentAccuracy = window.filter(event => {
+    if (event.result !== 'correct' || event.completionMode !== 'independent' || event.hintLevel !== 'none') return false;
+    const evidence = event.solvingEvidence;
+    if (evidence?.independentCorrect !== true) return false;
+    return !params.events.some(row => row.questionInstanceId === event.questionInstanceId
+      && ['hint_used', 'support_used', 'help_task_submitted', 'explanation_viewed'].includes(row.eventType));
+  }).length / window.length;
+  if (sessionCount < 2 || variantCount < 2 || accuracy < 0.8 || independentAccuracy < 0.8 || fullHintRate > 0.2) return null;
   return {
     ruleVersion: 'skill-evidence-v1', skillId: params.skillId, evidenceWindowId: windowId,
     from: params.currentDifficulty, to: params.currentDifficulty + 1,
-    reason: '8 valid first answers across at least 2 sessions, multiple versions, >=80% correct, <=20% full hints',
+    reason: '8 valid first answers across at least 2 sessions and multiple questions; >=80% independently correct without help',
     firstTryAccuracy: accuracy, fullHintRate, sessionCount, variantCount,
     consumedEventIds: window.map(event => event.eventId),
   };

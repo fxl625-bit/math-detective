@@ -166,13 +166,11 @@ async function dismissProgressToast(page: Page) {
   await page.waitForTimeout(300);
 }
 
-// Generic helper: read phase → click "读完了" button
+// Legacy fixture phases normalize to immediate independent answering.
 async function clickReadPhaseButton(page: Page) {
-  const readBtn = page.locator('button:has-text("读完了"), button:has-text("读懂了")').first();
-  if (await readBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await readBtn.click();
-    await page.waitForTimeout(300);
-  }
+  await expect(page.getByTestId('lesson-question-prompt')).toBeVisible();
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
+  expect((await getState(page))?.currentPhase).toBe('answer');
 }
 
 // Generic helper: find_numbers phase — click number buttons
@@ -189,11 +187,8 @@ async function clickFindNumbersPhase(page: Page, numbers: number[]) {
 
 // Generic helper: click phase advance button
 async function clickPhaseAdvance(page: Page) {
-  const btn = page.locator('button:has-text("下一步"), button:has-text("去算答案"), button:has-text("去列算式"), button:has-text("开始找规律"), button:has-text("规律找到了"), button:has-text("推理完成"), button:has-text("判断完毕"), button:has-text("开始破案"), button:has-text("算式确认")').first();
-  if (await btn.isVisible({ timeout: 1000 }).catch(() => false)) {
-    await btn.click();
-    await page.waitForTimeout(300);
-  }
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
+  expect((await getState(page))?.currentPhase).toBe('answer');
 }
 
 // Submit answer helper
@@ -210,7 +205,7 @@ async function submitAnswer(page: Page, expectedAnswer: string) {
 
 // Click continue/finish button after correct answer
 async function clickContinueButton(page: Page) {
-  const btn = page.locator('button:has-text("完成"), button:has-text("继续破案"), button:has-text("学会了")').first();
+  const btn = page.getByTestId('continue-feedback');
   if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
     await btn.click();
     await page.waitForTimeout(1500);

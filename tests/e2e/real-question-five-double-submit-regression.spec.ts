@@ -121,78 +121,15 @@ async function dismissOverlay(page: Page) {
 }
 
 async function fastForwardQ1toQ4(page: Page) {
-  // Q1: find_numbers g1ll_02 answer=6
-  await page.locator('button:has-text("读完了")').first().click();
-  await page.waitForTimeout(200);
-  for (const n of [13, 7]) {
-    const btn = page.locator(`button:has-text("${n}")`).first();
-    if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) { await btn.click(); await page.waitForTimeout(100); }
+  for (const [index, answer] of ['6', '7', '23', '8'].entries()) {
+    await expect(page.getByTestId('submit-answer')).toBeVisible();
+    expect((await getState(page))?.currentStepIndex).toBe(index);
+    await page.getByTestId('lesson-answer-input').fill(answer);
+    await page.getByTestId('submit-answer').click();
+    await expect(page.getByTestId('continue-feedback')).toBeVisible();
+    await page.getByTestId('continue-feedback').click();
+    await dismissOverlay(page);
   }
-  await page.locator('button:has-text("数字找齐了"), button:has-text("去列算式")').first().click();
-  await page.waitForTimeout(200);
-  const q1inp = page.locator('input[name="answer"]').first();
-  await q1inp.fill('6');
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForTimeout(1000);
-  await page.locator('button:has-text("下一关"), button:has-text("完成")').first().click();
-  await page.waitForTimeout(1000);
-  await dismissOverlay(page);
-
-  // Q2: find_action_words g1ll_03 answer=7
-  await page.locator('button:has-text("读完了")').first().click();
-  await page.waitForTimeout(200);
-  for (const kw of ['送给', '还剩']) {
-    const btn = page.locator(`button:has-text("${kw}")`).first();
-    if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) { await btn.click(); await page.waitForTimeout(100); }
-  }
-  await page.locator('button:has-text("关键词找到了")').first().click();
-  await page.waitForTimeout(200);
-  const subBtn = page.locator('button:has-text("变少了"), button:has-text("用减法")').first();
-  if (await subBtn.isVisible({ timeout: 2000 }).catch(() => false)) { await subBtn.click(); await page.waitForTimeout(100); }
-  await page.locator('button:has-text("判断完毕"), button:has-text("去算答案")').first().click();
-  await page.waitForTimeout(300);
-  const q2inp = page.locator('input[name="answer"]').first();
-  await q2inp.fill('7');
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForTimeout(1000);
-  await page.locator('button:has-text("下一关"), button:has-text("完成")').first().click();
-  await page.waitForTimeout(1000);
-  await dismissOverlay(page);
-
-  // Q3: simulation g1ll_29 answer=23
-  await page.locator('button:has-text("读完了")').first().click();
-  await page.waitForTimeout(200);
-  const addBtn = page.locator('button:has-text("变多了")').first();
-  if (await addBtn.isVisible({ timeout: 2000 }).catch(() => false)) { await addBtn.click(); await page.waitForTimeout(100); }
-  await page.locator('button:has-text("判断完毕"), button:has-text("去算答案")').first().click();
-  await page.waitForTimeout(200);
-  const q3inp = page.locator('input[name="answer"]').first();
-  await q3inp.fill('23');
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForTimeout(1000);
-  await page.locator('button:has-text("下一关"), button:has-text("完成")').first().click();
-  await page.waitForTimeout(1000);
-  await dismissOverlay(page);
-
-  // Q4: remove_noise g1ll_07 answer=8
-  await page.locator('button:has-text("读完了")').first().click();
-  await page.waitForTimeout(200);
-  const noiseSpans = page.locator('span:has-text("星期天"), span:has-text("妈妈带小明去公园玩")');
-  const nCount = await noiseSpans.count();
-  for (let i = 0; i < nCount; i++) {
-    if (await noiseSpans.nth(i).isVisible({ timeout: 1000 }).catch(() => false)) {
-      await noiseSpans.nth(i).click(); await page.waitForTimeout(100);
-    }
-  }
-  await page.locator('button:has-text("废话擦干净了"), button:has-text("去算答案")').first().click();
-  await page.waitForTimeout(200);
-  const q4inp = page.locator('input[name="answer"]').first();
-  await q4inp.fill('8');
-  await page.locator('button[type="submit"]').first().click();
-  await page.waitForTimeout(1000);
-  await page.locator('button:has-text("下一关"), button:has-text("完成")').first().click();
-  await page.waitForTimeout(1000);
-  await dismissOverlay(page);
 }
 
 // ================================================================

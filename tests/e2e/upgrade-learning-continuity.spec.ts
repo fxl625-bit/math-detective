@@ -5,7 +5,7 @@ import { authorizeParentAccess, expectParentAccessLocked } from './helpers/paren
 test('a begun grade-one course keeps its identity across grade changes and midnight', async ({ page }) => {
   await page.clock.setFixedTime(new Date('2026-09-28T10:00:00+08:00'));
   await page.goto('/play');
-  await page.getByRole('button', { name: /读完了/ }).click();
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
   await page.getByTestId('lesson-answer-input').fill('999999');
   await page.getByTestId('submit-answer').click();
   const initial = await page.evaluate(() => JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}'));
@@ -34,22 +34,37 @@ test('a begun grade-one course keeps its identity across grade changes and midni
 });
 
 test('full hints do not submit an answer and remain assisted after refresh', async ({ page }) => {
+  // The old full-hint confirmation is replaced by the terminal explanation transaction.
   await page.goto('/play');
-  await page.getByRole('button', { name: /读完了/ }).click();
+  await expect(page.getByTestId('submit-answer')).toBeVisible();
   const initial = await page.evaluate(() => JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}'));
   const question = getQuestionById(initial.steps[0].questionId)!;
-  await page.getByTestId('lesson-answer-input').fill(String(question.answer));
-  await page.getByRole('button', { name: '📝 看完整推理', exact: true }).click();
-  await page.getByRole('button', { name: '确定，我要看完整推理', exact: true }).click();
+  await page.getByTestId('reveal-explanation').click();
+  await expect(page.getByTestId('full-explanation')).toContainText(String(question.answer));
   const hinted = await page.evaluate(() => JSON.parse(localStorage.getItem('math-detective-state') || '{}'));
   expect((hinted.learningEvents || []).filter((event: any) => event.eventType === 'attempt_submitted')).toHaveLength(0);
-  expect(hinted.learningEvents.some((event: any) => event.eventType === 'hint_used' && event.hintLevel === 'full')).toBe(true);
+  const explanationEvent = hinted.learningEvents.find((event: any) => event.eventType === 'explanation_viewed' && event.questionId === question.id);
+  expect(explanationEvent).toBeTruthy();
+  expect(explanationEvent.solvingEvidence).toMatchObject({
+    phase: 'explanation',
+    fullExplanationViewedBeforeSolve: true,
+    finalCorrect: false,
+    masteryStatus: 'needs_reinforcement',
+  });
+  expect(hinted.learningEvents.some((event: any) => event.eventType === 'question_completed' && event.questionId === question.id)).toBe(false);
+  const explanationStep = await page.evaluate(() => JSON.parse(localStorage.getItem('math-detective-today-lesson') || '{}').steps[0]);
+  expect(explanationStep.solving).toMatchObject({ phase: 'explanation', fullExplanationViewedBeforeSolve: true, finalCorrect: false, masteryStatus: 'needs_reinforcement' });
+  expect(hinted.needsReinforcementQueue?.some((item: any) => item.questionId === question.id)).toBe(true);
   await page.reload();
-  await page.getByTestId('lesson-answer-input').fill(String(question.answer));
-  await page.getByTestId('submit-answer').click();
-  await page.getByRole('button', { name: /完成，进入下一关/ }).click();
+  await expect(page.getByTestId('full-explanation')).toContainText(String(question.answer));
+  await expect(page.getByTestId('submit-answer')).toHaveCount(0);
+  await page.getByTestId('start-transfer').click();
+  const deferTransfer = page.getByTestId('defer-transfer');
+  if (await deferTransfer.isVisible().catch(() => false)) await deferTransfer.click();
+  await expect(page.getByRole('button', { name: '完成，进入下一关 →' })).toBeVisible();
+  await page.getByRole('button', { name: '完成，进入下一关 →' }).click();
   const completed = await page.evaluate(() => JSON.parse(localStorage.getItem('math-detective-state') || '{}'));
-  const event = completed.learningEvents.find((row: any) => row.eventType === 'question_completed');
-  expect(event).toMatchObject({ hintLevel: 'full', completionMode: 'assisted' });
-  expect(completed.learningEvents.filter((row: any) => row.eventType === 'attempt_submitted')).toHaveLength(1);
+  expect(completed.learningEvents.some((row: any) => row.eventType === 'question_completed' && row.questionId === question.id)).toBe(false);
+  expect(completed.learningEvents.filter((row: any) => row.eventType === 'attempt_submitted')).toHaveLength(0);
+  expect(completed.needsReinforcementQueue?.some((item: any) => item.questionId === question.id)).toBe(true);
 });

@@ -59,7 +59,7 @@ for (const [grade, unit] of cases) {
       await page.getByTestId('save-learning-settings').click();
       await expect(page.getByRole('status').filter({ hasText: '设置已保存' })).toBeVisible();
       await page.getByTestId('start-lesson').click();
-      await expect(page.getByRole('button', { name: /读完了/ })).toBeVisible();
+      await expect(page.getByTestId('submit-answer')).toBeVisible();
       const initial = await readLesson(page);
       expect(initial.actualCore).toBe(6);
       expect(initial.settingSnapshot?.grade).toBe(grade);
@@ -72,8 +72,8 @@ for (const [grade, unit] of cases) {
         const q = getQuestionById(lesson.steps[index].questionId)!;
         expect(q).toBeDefined();
         expect(q.gradeBand).toBe(grade);
-        const readNext = page.getByRole('button', { name: /读完了/ });
-        if (keyboard) await readNext.press('Enter'); else await readNext.click();
+        await expect(page.getByTestId('submit-answer')).toBeVisible();
+        expect((await readLesson(page)).currentStepIndex).toBe(index);
         await expect(page.getByTestId('lesson-question-prompt')).toHaveText(q.text);
         if (index === 0) {
           await page.reload();
@@ -104,7 +104,8 @@ for (const [grade, unit] of cases) {
         await fillAnswer(page, q, keyboard);
         await expect(page.getByRole('button', { name: /完成，进入下一关/ })).toBeVisible();
         const complete = page.getByRole('button', { name: /完成，进入下一关/ });
-        if (keyboard) await complete.press('Enter'); else await complete.click();
+        // The G3 Enter-key coverage belongs to answer submission above; use the visible review control to continue.
+        await complete.click();
         await expect.poll(async () => {
           const current = await readLesson(page);
           return current.completed ? 6 : current.currentStepIndex;

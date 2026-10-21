@@ -4,13 +4,13 @@
  * HintSystem — 统一分层提示组件 (v2.6.7 新增)
  *
  * 设计原则：
- * - 答题前只展示 light hint（不泄露答案）
+ * - 答题前不自动展示提示；课程帮助由独立互动任务驱动
  * - medium 需要点击"再给一点提示"
- * - fullSteps 需要点击"看完整推理"
+ * - 完整讲解必须由终结回调处理并先持久化，不在此组件内直接展开
  * - explain 阶段可展示完整推导
  */
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { StepPhase } from '@/lib/types';
 import type { SolutionStepDetailed } from '@/lib/types';
 import { renderSafePreAnswerText } from '@/lib/hintSafety';
@@ -43,20 +43,14 @@ export default function HintSystem({
   lightHint,
   mediumHint,
   fullSteps,
-  allowFullHint = false,
-  wrongAttempts = 0,
   onFullHintRequested,
-  onHintLevelUsed,
   className = '',
 }: HintSystemProps) {
   const [showMedium, setShowMedium] = useState(false);
-  const [showFull, setShowFull] = useState(false);
-  const [fullHintConfirm, setFullHintConfirm] = useState(false);
-  const mediumRecordedRef = useRef(false);
 
   // explain 阶段直接显示完整推理
   const isExplain = phase === 'explain';
-  const canShowFull = isExplain || allowFullHint || showFull;
+  const canShowFull = isExplain;
 
   // 安全渲染 light hint
   const safeLight = renderSafePreAnswerText(lightHint, question, isExplain);
@@ -66,40 +60,17 @@ export default function HintSystem({
     ? renderSafePreAnswerText(mediumHint, question, isExplain)
     : null;
 
-  const handleFullHintClick = useCallback(() => {
-    if (!fullHintConfirm) {
-      setFullHintConfirm(true);
-      return;
-    }
-    setShowFull(true);
-    onHintLevelUsed?.('full');
-    onFullHintRequested?.();
-  }, [fullHintConfirm, onFullHintRequested, onHintLevelUsed]);
+  const handleFullHintClick = useCallback(() => onFullHintRequested?.(), [onFullHintRequested]);
 
   // 根据错误次数决定是否主动显示 medium
-  const shouldShowMedium = showMedium || wrongAttempts >= 2;
-
-  useEffect(() => {
-    mediumRecordedRef.current = false;
-    setShowMedium(false);
-    setShowFull(false);
-    setFullHintConfirm(false);
-  }, [question.id]);
-
-  useEffect(() => {
-    if (shouldShowMedium && !mediumRecordedRef.current) {
-      mediumRecordedRef.current = true;
-      onHintLevelUsed?.('medium');
-    }
-  }, [shouldShowMedium, onHintLevelUsed]);
 
   // 判断是否有完整步骤
   const hasFullSteps = fullSteps && fullSteps.length > 0;
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* Light Hint — 始终显示（除 explain 外不在答题前显示完整答案） */}
-      {safeLight && (
+      {/* 答题前的提示由互动求助流程提供。 */}
+      {isExplain && safeLight && (
         <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
           <div className="flex items-start gap-2">
             <span className="text-base flex-shrink-0 mt-0.5">💡</span>
@@ -112,9 +83,9 @@ export default function HintSystem({
       )}
 
       {/* Medium Hint — 需要点击或答错2次以上 */}
-      {safeMedium && (
+      {isExplain && safeMedium && (
         <>
-          {!shouldShowMedium ? (
+          {!showMedium ? (
             <button
               data-testid="hint-next"
               type="button"
@@ -138,30 +109,15 @@ export default function HintSystem({
       )}
 
       {/* Full Steps — 需要点击"看完整推理"或 explain 阶段 */}
-      {hasFullSteps && !canShowFull && !isExplain && (
+      {hasFullSteps && !canShowFull && !isExplain && onFullHintRequested && (
         <div className="text-center">
-          {!fullHintConfirm ? (
-            <button
-              type="button"
-              onClick={handleFullHintClick}
-              className="min-h-11 text-sm text-amber-700 font-bold py-2 px-4 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200"
-            >
-              📝 看完整推理
-            </button>
-          ) : (
-            <div className="p-3 bg-amber-50 rounded-xl border border-amber-300">
-              <p className="text-sm text-amber-800 mb-2">
-                ⚠️ 看完整推理后会看到答案思路哦，确定要继续吗？
-              </p>
-              <button
-                type="button"
-                onClick={handleFullHintClick}
-                className="min-h-11 text-sm bg-amber-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors"
-              >
-                确定，我要看完整推理
-              </button>
-            </div>
-          )}
+          <button
+            type="button"
+            onClick={handleFullHintClick}
+            className="min-h-11 text-sm text-amber-700 font-bold py-2 px-4 hover:bg-amber-50 rounded-lg transition-colors border border-amber-200"
+          >
+            📝 这题我不会，查看完整讲解
+          </button>
         </div>
       )}
 

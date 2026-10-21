@@ -15,7 +15,8 @@ import type {
   UsageStageInfo,
   Semester,
 } from '@/lib/curriculum/types';
-import type { AttemptRecord } from '@/lib/types';
+import type { AttemptRecord, LearningEvent } from '@/lib/types';
+import { summarizeSolving } from './solvingMetrics';
 import { buildCurriculumProfile } from '@/lib/curriculum/semesterDetector';
 
 // ========== Default SkillMastery ==========
@@ -222,21 +223,30 @@ export function buildLearnerProfile(params: {
   startedAt?: string;
   consecutiveCheckInDays?: number;
   preserveDifficulty?: boolean;
+  learningEvents?: readonly LearningEvent[];
 }): LearnerProfile {
   const { existingProfile, curriculumProfile, attemptRecords, totalCompleted, startedAt, consecutiveCheckInDays, preserveDifficulty = false } = params;
 
   // Compute recent accuracy (last 30 attempts)
   const recentRecords = attemptRecords.slice(-30);
-  const recentCorrect = recentRecords.filter(r => r.isCorrect).length;
-  const recentTotal = recentRecords.length;
-  const recentAccuracy = recentTotal > 0 ? Math.round((recentCorrect / recentTotal) * 100) : 100;
+  const originalEvents = (params.learningEvents || []).filter(event => event.source !== 'transfer');
+  const resolvedInstances = [...new Set([...originalEvents]
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
+    .filter(event => event.eventType === 'question_completed' || event.eventType === 'explanation_viewed')
+    .map(event => event.questionInstanceId))].slice(0, 30);
+  const recentInstanceIds = new Set(resolvedInstances);
+  const recentEvidence = summarizeSolving(originalEvents.filter(event => recentInstanceIds.has(event.questionInstanceId)));
+  const knownSolved = recentEvidence.resolved - recentEvidence.unknown;
+  // This profile drives difficulty. Ability requires independent evidence;
+  // final correctness remains separately available in the family report.
+  const recentAccuracy = recentEvidence.independentRate !== null
+    ? Math.round(recentEvidence.independentRate * 100)
+    : 0;
 
   // First-try accuracy (last 30 attempts where type is 'final_answer')
-  const recentFinalAttempts = recentRecords.filter(r => r.attemptType === 'final_answer');
-  const recentFirstTryCorrect = recentFinalAttempts.filter(r => r.isCorrect).length;
-  const recentFirstTryAccuracy = recentFinalAttempts.length > 0
-    ? Math.round((recentFirstTryCorrect / recentFinalAttempts.length) * 100)
-    : 100;
+  const recentFirstTryAccuracy = recentEvidence.firstAttempts
+    ? Math.round(recentEvidence.firstCorrect / recentEvidence.firstAttempts * 100)
+    : 0;
 
   // Average attempts per question
   const averageAttempts = totalCompleted > 0
@@ -258,19 +268,19 @@ export function buildLearnerProfile(params: {
   const stageInfo = detectUsageStage(
     daysSinceStart,
     totalCompleted,
-    { recentAccuracy, fullHintRate: 0, masteredSkillRatio: 0 },
+    { recentAccuracy, fullHintRate: recentEvidence.helpDependenceRate ?? existingProfile?.fullHintRate ?? 0, masteredSkillRatio: 0 },
   );
 
   if (!preserveDifficulty) {
-    if (stageInfo.stage >= 4 && currentDifficultyLevel < 4) {
+    if (knownSolved >= 20 && recentAccuracy >= 85 && stageInfo.stage >= 4 && currentDifficultyLevel < 4) {
       currentDifficultyLevel = 4;
-    } else if (stageInfo.stage >= 3 && currentDifficultyLevel < 3) {
+    } else if (knownSolved >= 20 && recentAccuracy >= 85 && stageInfo.stage >= 3 && currentDifficultyLevel < 3) {
       currentDifficultyLevel = 3;
     }
 
     // Auto-upgrade: if accuracy >= 85% over 20+ recent questions
-    const autoUpgrade = recentTotal >= 20 && recentAccuracy >= 85 && currentDifficultyLevel < 5;
-    const autoDowngrade = recentTotal >= 15 && recentAccuracy < 50 && currentDifficultyLevel > 1;
+    const autoUpgrade = knownSolved >= 20 && recentAccuracy >= 85 && currentDifficultyLevel < 5;
+    const autoDowngrade = knownSolved >= 15 && recentAccuracy < 50 && currentDifficultyLevel > 1;
 
     if (autoUpgrade) currentDifficultyLevel += 1;
     if (autoDowngrade) currentDifficultyLevel -= 1;
@@ -287,7 +297,7 @@ export function buildLearnerProfile(params: {
     recentAccuracy,
     recentFirstTryAccuracy,
     averageAttempts,
-    fullHintRate: existingProfile?.fullHintRate || 0,
+    fullHintRate: recentEvidence.helpDependenceRate ?? existingProfile?.fullHintRate ?? 0,
     difficultyBias: existingProfile?.difficultyBias || 0,
     consecutiveCheckInDays: consecutiveCheckInDays || existingProfile?.consecutiveCheckInDays,
   };

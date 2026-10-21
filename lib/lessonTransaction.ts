@@ -20,6 +20,10 @@ import { appendUniqueEvent, createEventIdentity } from './learningEvents';
 import { decideDifficultyIncrease } from './learningMetrics';
 import { grantPerfectLessonPoints } from './familyPoints';
 import { grantDailyRewardOnce, markDailyRewardShown } from './rewardSystem';
+import { isSolvingEvidence } from './solvingValidation';
+import { summarizeSolving } from './solvingMetrics';
+import { allQuestions } from '@/data/questions';
+import { createSolvingEvidence, buildReasoningTasks, evaluateReasoningTask, selectTransferQuestion, type SolvingEvidence } from './independentSolving';
 
 // ========== v2.6.6: Ranking 答案校验 ==========
 
@@ -82,7 +86,13 @@ export type LessonAction =
   | 'identify_extra_info'
   | 'go_next'
   | 'go_back'
-  | 'go_prev_level';
+  | 'go_prev_level'
+  | 'request_help'
+  | 'submit_help_task'
+  | 'reveal_explanation'
+  | 'start_transfer'
+  | 'submit_transfer'
+  | 'defer_transfer';
 
 export interface LessonTransactionResult {
   nextState: LearningState;
@@ -96,6 +106,7 @@ export interface LessonTransactionResult {
   fromPhase?: StepPhase;
   toPhase?: StepPhase;
   reason?: string;
+  helpFeedback?: { taskId: string; feedback: string; scaffold?: string; correct: boolean };
 }
 
 export interface LearningState {
@@ -108,6 +119,9 @@ export interface LessonActionPayload {
   inputAnswer?: string;
   sourceComponent?: string;
   stepType?: LessonStepType;
+  actionId?: string;
+  taskId?: string;
+  value?: string;
   [key: string]: unknown;
 }
 
@@ -169,6 +183,14 @@ export function commitLessonTransaction(params: {
 
   let transaction: LessonTransactionResult;
   switch (action) {
+    case 'request_help':
+    case 'submit_help_task':
+    case 'reveal_explanation':
+    case 'start_transfer':
+    case 'submit_transfer':
+    case 'defer_transfer':
+      transaction = handleSolvingAction(normalized, gameState, currentStep, action, payload, source);
+      break;
     case 'submit_answer':
     case 'information_check':
     case 'identify_extra_info':
@@ -239,7 +261,9 @@ function finalizeLessonCompletion(
     attemptId: actionId,
     timestamp: at,
     hintLevel: 'none',
-    completionMode: 'independent',
+    completionMode: lesson.steps.some(step => step.solving?.masteryStatus === 'needs_reinforcement')
+      ? 'needs_reinforcement'
+      : lesson.steps.some(step => step.solving?.masteryStatus === 'assisted') ? 'assisted' : 'independent',
     result: 'completed',
   });
   const eventState = completed.accepted
@@ -261,6 +285,161 @@ function finalizeLessonCompletion(
 
 // ========== 动作处理器 ==========
 
+export function getActiveQuestion(step: LessonStep): Question | undefined {
+  return getQuestionById(step.transfer && ['pending', 'answering'].includes(step.transfer.status) ? step.transfer.questionId : step.questionId);
+}
+
+export function getActiveSolving(step: LessonStep): SolvingEvidence {
+  return step.transfer && ['pending', 'answering'].includes(step.transfer.status) ? step.transfer.solving : step.solving || createSolvingEvidence();
+}
+
+function handleSolvingAction(lesson: TodayLesson, gameState: GameState, step: LessonStep,
+  action: LessonAction, payload: LessonActionPayload, source: string): LessonTransactionResult {
+  if (payload.actionId && (gameState.learningEvents || []).some(event => event.actionId === payload.actionId))
+    return noChangeResult(lesson, gameState, 'duplicate action ignored', source);
+  const expectedQuestionId = action === 'submit_transfer' || action === 'defer_transfer'
+    ? step.transfer?.questionId : step.questionId;
+  if (!expectedQuestionId || payload.questionId !== expectedQuestionId) return noChangeResult(lesson, gameState, 'question instance mismatch', source);
+  const originalInstance = step.questionInstanceId || `${lesson.lessonId || lesson.date}:${lesson.currentStepIndex}:${step.questionId}`;
+  if (action === 'request_help') {
+    if (step.solving?.phase === 'explanation' || step.solving?.phase === 'complete' || step.solving?.finalCorrect)
+      return noChangeResult(lesson, gameState, 'help unavailable after solving', source);
+    const q = getQuestionById(step.questionId);
+    const tasks = q ? buildReasoningTasks(q) : [];
+    if (!tasks.length || (step.solving?.helpTaskIndex || 0) >= tasks.length) return noChangeResult(lesson, gameState, 'no interactive help available', source);
+    const priorEvidence = step.solving || createSolvingEvidence();
+    if (priorEvidence.hintCount > priorEvidence.helpTaskIndex) {
+      if (priorEvidence.phase === 'help') return noChangeResult(lesson, gameState, 'current help task is already available', source);
+      return updateSolvingState(lesson, gameState, step, { solving: { ...priorEvidence, phase: 'help' } },
+        'support_used', action, payload, source, originalInstance);
+    }
+    if (priorEvidence.hintCount < priorEvidence.helpTaskIndex) return noChangeResult(lesson, gameState, 'help task state is inconsistent', source);
+    const evidence = { ...(step.solving || createSolvingEvidence()), phase: 'help' as const,
+      hintCount: priorEvidence.hintCount + 1, maxHintLevel: Math.min(3, priorEvidence.maxHintLevel + 1) as 1|2|3 };
+    return updateSolvingState(lesson, gameState, step, { solving: evidence }, 'support_used', action, payload, source, originalInstance);
+  }
+  if (action === 'submit_help_task') {
+    const q = getQuestionById(step.questionId); const tasks = q ? buildReasoningTasks(q) : [];
+    const evidence = step.solving || createSolvingEvidence();
+    if (evidence.phase !== 'help' || evidence.hintCount <= evidence.helpTaskIndex) return noChangeResult(lesson, gameState, 'request help before submitting a help task', source);
+    const task = tasks[evidence.helpTaskIndex];
+    if (!task || payload.taskId !== task.id) return noChangeResult(lesson, gameState, 'stale or invalid help task', source);
+    const evaluated = evaluateReasoningTask(task, String(payload.value || ''));
+    const nextEvidence: SolvingEvidence = evaluated.correct
+      ? { ...evidence, phase: 'help', helpTaskIndex: evidence.helpTaskIndex + 1,
+        completedTaskIds: [...evidence.completedTaskIds, task.id],
+        guidedSolutionUsed: tasks.length >= 2 && evidence.helpTaskIndex + 1 >= tasks.length
+          && tasks.slice(0, evidence.helpTaskIndex + 1).some(item => item.skill === 'relation' || item.skill === 'intermediate') }
+      : { ...evidence, helpWrongCount: evidence.helpWrongCount + 1 };
+    const feedback = { taskId: task.id, feedback: evaluated.feedback, scaffold: evaluated.scaffold, correct: evaluated.correct };
+    const result = updateSolvingState(lesson, gameState, step, { solving: nextEvidence, helpFeedback: feedback },
+      'help_task_submitted', action, payload, source, originalInstance, evaluated.correct ? 'correct' : 'incorrect');
+    result.helpFeedback = feedback;
+    return result;
+  }
+  if (action === 'reveal_explanation') {
+    if (step.solving?.finalCorrect) return noChangeResult(lesson, gameState, 'original question already solved', source);
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(0, 0, 0, 0);
+    const evidence: SolvingEvidence = { ...(step.solving || createSolvingEvidence()), phase: 'explanation',
+      finalCorrect: false, independentCorrect: false, fullExplanationViewedBeforeSolve: true,
+      masteryStatus: 'needs_reinforcement', outcome: 'explanation', guidedSolutionUsed: true };
+    const steps = [...lesson.steps];
+    steps[lesson.currentStepIndex] = { ...step, solving: evidence, resolvedAt: new Date().toISOString(), nextReviewAt: tomorrow.toISOString(),
+      transfer: undefined, currentPhaseIndex: Math.max(0, step.phases.indexOf('explain')) };
+    const result = updateSolvingState(lesson, gameState, step, { solving: evidence, resolvedAt: steps[lesson.currentStepIndex].resolvedAt,
+      nextReviewAt: steps[lesson.currentStepIndex].nextReviewAt,
+      transfer: undefined, currentPhaseIndex: steps[lesson.currentStepIndex].currentPhaseIndex }, 'explanation_viewed', action, payload, source, originalInstance);
+    result.nextLesson = { ...lesson, steps }; result.nextState = { lesson: result.nextLesson, gameState: result.nextState.gameState };
+    const queue = result.nextState.gameState.needsReinforcementQueue || [];
+    const dueAt = steps[lesson.currentStepIndex].nextReviewAt!;
+    result.nextState.gameState = { ...result.nextState.gameState, needsReinforcementQueue: [
+      ...queue.filter(item => item.questionInstanceId !== originalInstance),
+      { questionId: step.questionId, questionInstanceId: originalInstance, lessonId: lesson.lessonId || lesson.date, dueAt },
+    ] };
+    return result;
+  }
+  if (action === 'start_transfer') {
+    if (step.solving?.phase !== 'explanation' || !step.solving.fullExplanationViewedBeforeSolve) return noChangeResult(lesson, gameState, 'explanation must be viewed first', source);
+    if (step.transfer) return noChangeResult(lesson, gameState, 'transfer already selected', source);
+    const original = getQuestionById(step.questionId); if (!original) return noChangeResult(lesson, gameState, 'original question missing', source);
+    const selection = selectTransferQuestion(original, allQuestions);
+    const transfer = selection.kind === 'matched' ? { questionId: selection.questionId,
+      questionInstanceId: `${originalInstance}:transfer:${selection.questionId}`, parentQuestionInstanceId: originalInstance,
+      status: 'pending' as const, solving: createSolvingEvidence() } : { questionId: step.questionId,
+      questionInstanceId: `${originalInstance}:transfer-unavailable`, parentQuestionInstanceId: originalInstance,
+      status: 'deferred' as const, solving: createSolvingEvidence(), unavailableReason: selection.reason };
+    const steps = [...lesson.steps]; steps[lesson.currentStepIndex] = { ...step, transfer };
+    const eventState = appendSolvingEvent(gameState, lesson, step, action, payload, step.questionId, originalInstance,
+      'support_used', undefined, step.solving, 'original');
+    if (!eventState) return noChangeResult(lesson, gameState, 'duplicate or invalid transfer selection event', source);
+    const result = buildResult(lesson, gameState, { ...lesson, steps }, false, source, eventState);
+    result.changed = true; result.reason = selection.reason;
+    return result;
+  }
+  if (action === 'defer_transfer') {
+    if (!step.transfer || step.transfer.status !== 'pending' && step.transfer.status !== 'answering') return noChangeResult(lesson, gameState, 'no pending transfer', source);
+    if (payload.questionInstanceId !== step.transfer.questionInstanceId) return noChangeResult(lesson, gameState, 'transfer instance mismatch', source);
+    const steps = [...lesson.steps]; steps[lesson.currentStepIndex] = { ...step, transfer: { ...step.transfer, status: 'deferred' } };
+    const eventState = appendSolvingEvent(gameState, lesson, step, action, payload, step.transfer.questionId,
+      step.transfer.questionInstanceId, 'support_used', undefined, step.transfer.solving, 'transfer', originalInstance);
+    if (!eventState) return noChangeResult(lesson, gameState, 'duplicate or invalid transfer deferral event', source);
+    const result = buildResult(lesson, gameState, { ...lesson, steps }, false, source, eventState); result.changed = true; return result;
+  }
+  if (action === 'submit_transfer') {
+    if (!step.transfer || !['pending', 'answering'].includes(step.transfer.status) || !step.transfer.questionId
+      || payload.questionInstanceId !== step.transfer.questionInstanceId) return noChangeResult(lesson, gameState, 'transfer instance mismatch', source);
+    const transferQuestion = getQuestionById(step.transfer.questionId); if (!transferQuestion) return noChangeResult(lesson, gameState, 'transfer question unavailable', source);
+    const correct = checkAnswer(String(payload.inputAnswer || ''), transferQuestion).correct;
+    const transferEvidence = { ...step.transfer.solving, phase: correct ? 'complete' as const : 'transfer' as const,
+      attemptCount: step.transfer.solving.attemptCount + 1, finalCorrect: correct,
+      firstAttemptCorrect: step.transfer.solving.firstAttemptCorrect ?? (step.transfer.solving.attemptCount === 0 ? correct : null),
+      independentCorrect: correct && step.transfer.solving.attemptCount === 0,
+      masteryStatus: correct ? (step.transfer.solving.attemptCount === 0 ? 'independent' as const : 'assisted' as const) : 'needs_reinforcement' as const,
+      outcome: correct ? (step.transfer.solving.attemptCount === 0 ? 'first_independent' as const : 'retry_correct' as const) : 'unresolved' as const };
+    const transfer = { ...step.transfer, status: correct ? 'correct' as const : 'answering' as const, solving: transferEvidence };
+    const steps = [...lesson.steps]; steps[lesson.currentStepIndex] = { ...step, transfer };
+    let eventResult = appendSolvingEvent(gameState, lesson, step, action, payload, transferQuestion.id, step.transfer.questionInstanceId,
+      'attempt_submitted', correct ? 'correct' : 'incorrect', transferEvidence, 'transfer', originalInstance);
+    if (eventResult && correct) eventResult = appendSolvingEvent(eventResult, lesson, step, action, { ...payload, actionId: `${String(payload.actionId || action)}:completed` },
+      transferQuestion.id, step.transfer.questionInstanceId, 'transfer_completed', 'completed', transferEvidence, 'transfer', originalInstance);
+    if (!eventResult) return noChangeResult(lesson, gameState, 'duplicate or invalid transfer event', source);
+    const result = buildResult(lesson, gameState, { ...lesson, steps }, false, source, eventResult);
+    result.changed = true; result.reason = correct ? 'transfer correct' : 'transfer incorrect'; return result;
+  }
+  return noChangeResult(lesson, gameState, 'unsupported solving action', source);
+}
+
+function appendSolvingEvent(state: GameState, lesson: TodayLesson, step: LessonStep, action: LessonAction,
+  payload: LessonActionPayload, questionId: string, instanceId: string, eventType: import('./types').LearningEventType,
+  eventResult: 'correct'|'incorrect'|'completed'|undefined, evidence: SolvingEvidence,
+  eventSource: 'original'|'transfer', parentQuestionInstanceId?: string): GameState | null {
+  const identity = createEventIdentity(); const actionId = String(payload.actionId || `${action}:${instanceId}:${evidence.attemptCount}:${evidence.hintCount}:${evidence.helpTaskIndex}`);
+  const helpQuestion = eventType === 'help_task_submitted' ? getQuestionById(questionId) : null;
+  const helpTaskSkill = helpQuestion ? buildReasoningTasks(helpQuestion).find(task => task.id === payload.taskId)?.skill : undefined;
+  const appended = appendUniqueEvent(state.learningEvents || [], { childProfileId: state.childProfileId || identity.childProfileId,
+    deviceId: state.deviceId || identity.deviceId, sessionId: `session:${lesson.lessonId || lesson.date}`, lessonId: lesson.lessonId || lesson.date,
+    questionInstanceId: instanceId, questionId, questionVersion: 'unknown', skillIds: step.skill ? [step.skill] : [],
+    grade: lesson.settingSnapshot?.grade || 'unknown', semester: lesson.settingSnapshot?.semester || 'unknown',
+    unitId: lesson.settingSnapshot?.unitId ?? null, role: step.role || 'unknown', settingSignature: lesson.lessonSignature,
+    eventType, actionId, attemptId: actionId, timestamp: new Date().toISOString(), hintLevel: evidence.maxHintLevel === 0 ? 'none' : evidence.maxHintLevel === 1 ? 'light' : evidence.maxHintLevel === 2 ? 'medium' : 'full',
+    completionMode: evidence.masteryStatus === 'needs_reinforcement' ? 'needs_reinforcement' : evidence.masteryStatus,
+    result: eventResult, firstAttemptKnown: eventType === 'attempt_submitted' && evidence.attemptCount <= 1,
+    solvingEvidence: evidence, source: eventSource, parentQuestionInstanceId, helpTaskSkill });
+  return appended.accepted ? { ...state, childProfileId: state.childProfileId || identity.childProfileId,
+    deviceId: state.deviceId || identity.deviceId, learningEvents: appended.events } : null;
+}
+
+function updateSolvingState(lesson: TodayLesson, gameState: GameState, step: LessonStep, changes: Partial<LessonStep>,
+  eventType: import('./types').LearningEventType, action: LessonAction, payload: LessonActionPayload, source: string,
+  instanceId: string, eventResult?: 'correct'|'incorrect'): LessonTransactionResult {
+  const evidence = changes.solving || step.solving || createSolvingEvidence();
+  const nextGame = appendSolvingEvent(gameState, lesson, step, action, payload, step.questionId, instanceId, eventType,
+    eventResult, evidence, 'original');
+  if (!nextGame) return noChangeResult(lesson, gameState, 'duplicate or invalid solving event', source);
+  const steps = [...lesson.steps]; steps[lesson.currentStepIndex] = { ...step, ...changes };
+  const result = buildResult(lesson, gameState, { ...lesson, steps }, false, source, nextGame); result.changed = true; return result;
+}
+
 function handleSubmitAnswer(
   lesson: TodayLesson,
   gameState: GameState,
@@ -268,7 +447,10 @@ function handleSubmitAnswer(
   payload: LessonActionPayload,
   source: string
 ): LessonTransactionResult {
-  const questionId = payload.questionId || currentStep.questionId;
+  const questionId = currentStep.questionId;
+  if (payload.questionId !== questionId || getCurrentPhase(lesson) !== 'answer') {
+    return noChangeResult(lesson, gameState, 'original question is not accepting an answer', source);
+  }
   const inputAnswer = payload.inputAnswer || '';
   const question = getQuestionById(questionId);
 
@@ -313,14 +495,43 @@ function handleSubmitAnswer(
     role: resolvedRole, settingSignature: lesson.lessonSignature,
     actionId, attemptId, timestamp: String(payload.timestamp || new Date().toISOString()),
     hintLevel: (['light', 'medium', 'full'].includes(String(payload.hintLevel)) ? payload.hintLevel : 'none') as 'none' | 'light' | 'medium' | 'full',
-    completionMode: payload.hintLevel === 'full'
-      || (gameState.learningEvents || []).some(event => event.eventType === 'support_used' && event.questionInstanceId === (currentStep.questionInstanceId || `${lesson.lessonId || lesson.date}:${lesson.currentStepIndex}:${questionId}`))
+    completionMode: currentStep.solving?.hintCount || currentStep.solving?.guidedSolutionUsed
+      || (gameState.learningEvents || []).some(event => event.questionInstanceId === (currentStep.questionInstanceId || `${lesson.lessonId || lesson.date}:${lesson.currentStepIndex}:${questionId}`)
+        && ['support_used', 'hint_used'].includes(event.eventType) && event.source !== 'transfer')
       ? 'assisted' as const : 'independent' as const,
     firstAttemptKnown: true,
   };
+  const eventInstanceId = currentStep.questionInstanceId || `${lesson.lessonId || lesson.date}:${lesson.currentStepIndex}:${questionId}`;
+  const historicalEvents = (gameState.learningEvents || []).filter(event => event.questionInstanceId === eventInstanceId
+    && event.eventType === 'attempt_submitted' && event.source !== 'transfer')
+    .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
+  const hasHistoricalHelp = (gameState.learningEvents || []).some(event => event.questionInstanceId === eventInstanceId
+    && ['support_used', 'hint_used'].includes(event.eventType) && event.source !== 'transfer');
+  const storedEvidence = currentStep.solving || createSolvingEvidence();
+  const priorEvidence: SolvingEvidence = {
+    ...storedEvidence,
+    attemptCount: Math.max(storedEvidence.attemptCount, historicalEvents.length),
+    firstAttemptCorrect: storedEvidence.firstAttemptCorrect ?? (historicalEvents[0]?.firstAttemptKnown !== false
+      ? (historicalEvents[0] ? historicalEvents[0].result === 'correct' : null) : null),
+    hintCount: Math.max(storedEvidence.hintCount, hasHistoricalHelp ? 1 : 0),
+    maxHintLevel: Math.max(storedEvidence.maxHintLevel, hasHistoricalHelp ? 1 : 0) as 0|1|2|3,
+  };
+  const attemptCount = priorEvidence.attemptCount + 1;
+  const outcome = isCorrect
+    ? priorEvidence.hintCount > 0 ? priorEvidence.guidedSolutionUsed ? 'guided_correct' as const : 'hint_correct' as const
+    : attemptCount > 1 ? 'retry_correct' as const : 'first_independent' as const
+    : 'unresolved' as const;
+  const evidence: SolvingEvidence = { ...priorEvidence,
+    phase: isCorrect ? 'review' : priorEvidence.hintCount > priorEvidence.helpTaskIndex ? 'help' : 'attempt', attemptCount,
+    firstAttemptCorrect: priorEvidence.firstAttemptCorrect ?? (attemptCount === 1 ? isCorrect : null),
+    independentCorrect: isCorrect && priorEvidence.hintCount === 0 && attemptCount === 1,
+    finalCorrect: isCorrect, masteryStatus: isCorrect ? (priorEvidence.hintCount || attemptCount > 1 ? 'assisted' : 'independent') : 'needs_reinforcement',
+    outcome };
   const submitted = appendUniqueEvent(gameState.learningEvents || [], {
     ...eventBase, eventId: `${actionId}:attempt_submitted`, eventType: 'attempt_submitted',
     result: isCorrect ? 'correct' : 'incorrect',
+    completionMode: isCorrect ? evidence.masteryStatus : eventBase.completionMode,
+    solvingEvidence: evidence, source: 'original',
     durationMs: typeof payload.durationMs === 'number' ? payload.durationMs : undefined,
   });
   if (!submitted.accepted) return noChangeResult(lesson, gameState, submitted.reason, source);
@@ -345,10 +556,14 @@ function handleSubmitAnswer(
     stars: 0,
     badges: checkBadges(nextGameState),
     childProfileId, deviceId, learningEvents: submitted.events,
+    ...(isCorrect && nextGameState.needsReinforcementQueue
+      ? { needsReinforcementQueue: nextGameState.needsReinforcementQueue.filter(item => item.questionId !== questionId) }
+      : {}),
   };
   if (isCorrect) {
     const completed = appendUniqueEvent(nextGameState.learningEvents || [], {
       ...eventBase, eventId: `${actionId}:question_completed`, eventType: 'question_completed', result: 'completed',
+      completionMode: evidence.masteryStatus, solvingEvidence: evidence, source: 'original',
     });
     if (completed.accepted) nextGameState = { ...nextGameState, learningEvents: completed.events };
   }
@@ -389,7 +604,9 @@ function handleSubmitAnswer(
 
   if (!isCorrect) {
     // 错误答案记录在同一游戏状态快照中，不推进课程。
-    const result = buildResult(lesson, gameState, lesson, false, source, nextGameState);
+    const steps = [...lesson.steps]; steps[lesson.currentStepIndex] = { ...currentStep, solving: evidence };
+    const updatedLesson = { ...lesson, steps };
+    const result = buildResult(lesson, gameState, updatedLesson, false, source, nextGameState);
     result.changed = true;
     result.reason = 'wrong answer';
     return result;
@@ -409,6 +626,7 @@ function handleSubmitAnswer(
     // v2.8.4: 写入幂等 awardedAt，防止重复加分
     const step = {
       ...steps[stepIdx],
+      solving: evidence,
       phases,
       currentPhaseIndex: currentPhaseIdx + 1,
       awardedAt: steps[stepIdx].awardedAt || new Date().toISOString(),
@@ -443,7 +661,10 @@ function handleSubmitAnswer(
   }
 
   // 当前是最后 phase → 完成当前 step
-  const afterStep = completeCurrentStep(lesson);
+  const completedSteps = [...lesson.steps];
+  completedSteps[lesson.currentStepIndex] = { ...currentStep, solving: evidence,
+    resolvedAt: new Date().toISOString(), awardedAt: currentStep.awardedAt || new Date().toISOString() };
+  const afterStep = completeCurrentStep({ ...lesson, steps: completedSteps });
 
   console.log(
     `[Transaction] submit_answer correct: step completed, step=${lesson.currentStepIndex}, q=${questionId}`
@@ -473,8 +694,16 @@ function handleCompleteStep(
 ): LessonTransactionResult {
   const question = getQuestionById(currentStep.questionId);
 
+  if (currentStep.requiresAnswer !== false && !currentStep.awardedAt && !currentStep.resolvedAt) {
+    return noChangeResult(lesson, gameState, 'answer or explicit explanation is required before completing this step', source);
+  }
+  if (getCurrentPhase(lesson) === 'explain' && currentStep.solving?.phase === 'explanation'
+    && (!currentStep.transfer || !['correct', 'deferred'].includes(currentStep.transfer.status))) {
+    return noChangeResult(lesson, gameState, 'complete transfer or defer it before completing the step', source);
+  }
+
   // v2.11.0: Answer gate — step must have answer submitted before completing
-  if (currentStep.requiresAnswer !== false && !currentStep.awardedAt) {
+  if (currentStep.requiresAnswer !== false && !currentStep.awardedAt && !currentStep.resolvedAt) {
     console.error('[P0_ANSWER_GATE] handleCompleteStep blocked: no answer awarded', {
       stepId: currentStep.id,
       questionId: currentStep.questionId,
@@ -510,6 +739,13 @@ function handleCompletePhase(
   payload: LessonActionPayload,
   source: string
 ): LessonTransactionResult {
+  if (getCurrentPhase(lesson) === 'answer' && currentStep.requiresAnswer !== false && !currentStep.awardedAt && !currentStep.resolvedAt) {
+    return noChangeResult(lesson, gameState, 'submit an answer or request the full explanation first', source);
+  }
+  if (getCurrentPhase(lesson) === 'explain' && currentStep.solving?.phase === 'explanation'
+    && (!currentStep.transfer || !['correct', 'deferred'].includes(currentStep.transfer.status))) {
+    return noChangeResult(lesson, gameState, 'complete transfer or defer it before continuing', source);
+  }
   const afterAdvance = advancePhase(lesson);
 
   const advanced =
@@ -761,7 +997,7 @@ function handleRepairStepQuestion(
   const profile = {
     gradeBand: (payload.gradeBand as import('./types').GradeBand) || gameState.parentSettings.gradeBand || freshState.parentSettings.gradeBand || 'G1',
     streakDays: gameState.streak || 0,
-    recentAccuracy: 100,
+    recentAccuracy: Math.round((summarizeSolving(gameState.learningEvents || []).independentRate ?? 0) * 100),
     weakSkills: [] as import('./types').CognitiveSkill[],
     dailyQuestionCount: gameState.completedToday || 0,
     skillLevel: gameState.skillLevel || 1,
@@ -1143,7 +1379,7 @@ export function assertFeedbackWithoutCorrectAnswer(
 ) {
   const nextPhase = result.toPhase;
   const nextStep = result.nextLesson.steps[result.toStepIndex];
-  if (nextPhase === 'explain' && !nextStep?.awardedAt) {
+  if (nextPhase === 'explain' && !nextStep?.awardedAt && !nextStep?.resolvedAt) {
     console.error('[P0_FEEDBACK_WITHOUT_CORRECT_ANSWER] explain phase entered without awardedAt', {
       action,
       source,
@@ -1163,7 +1399,7 @@ export function assertQuestionAdvancedWithoutAnswerGate(
 ) {
   if (result.toStepIndex > result.fromStepIndex && result.fromStepIndex >= 0) {
     const fromStep = result.nextLesson.steps[result.fromStepIndex];
-    if (fromStep && fromStep.requiresAnswer !== false && !fromStep.awardedAt) {
+    if (fromStep && fromStep.requiresAnswer !== false && !fromStep.awardedAt && !fromStep.resolvedAt) {
       console.error('[P0_QUESTION_ADVANCED_WITHOUT_ANSWER_GATE] step advanced without answer', {
         action,
         source,

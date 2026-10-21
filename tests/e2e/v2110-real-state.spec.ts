@@ -59,11 +59,21 @@ async function getState(page: Page): Promise<any> {
 }
 
 async function advancePhase(page: Page): Promise<boolean> {
+  const state = await getState(page);
+  if (state?.currentPhase === 'explain') {
+    const continuation = page.getByTestId('continue-feedback');
+    await expect(continuation).toBeVisible();
+    await continuation.click();
+    return true;
+  }
   return await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.goNext());
 }
 
 async function submitCorrectAnswer(page: Page): Promise<boolean> {
-  return await page.evaluate(() => (window as any).MATH_DETECTIVE_TEST?.submitAnswer());
+  const state = await getState(page);
+  if (state?.currentPhase !== 'answer' && state?.currentPhase !== 'build_equation') return false;
+  await submitCurrentAnswerThroughUi(page);
+  return true;
 }
 
 test('v2.11.0-real: answer_only steps render (not blank page)', async ({ page }) => {

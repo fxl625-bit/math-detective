@@ -1,5 +1,7 @@
 'use client';
 
+import { summarizeSolving } from '@/lib/solvingMetrics';
+
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart3, Target, TrendingUp, Lightbulb, Settings, Brain, GraduationCap, Bug, Download, Copy, FileText, AlertCircle, CheckCircle2, Calculator } from 'lucide-react';
@@ -97,7 +99,7 @@ export default function ParentReportPage() {
   // Only the first actual submission for each question instance counts. Old
   // attemptRecords may retain a retry while losing the original first answer.
   const uniqueEvents = [...new Map((state.learningEvents || []).map(event => [event.eventId, event])).values()]
-    .filter(event => event.eventType === 'attempt_submitted' && event.result && event.firstAttemptKnown !== false)
+    .filter(event => event.eventType === 'attempt_submitted' && event.source !== 'transfer' && event.result && event.firstAttemptKnown !== false)
     .sort((a, b) => a.timestamp.localeCompare(b.timestamp));
   const firstByInstance = new Map<string, (typeof uniqueEvents)[number]>();
   uniqueEvents.forEach(event => { if (!firstByInstance.has(event.questionInstanceId)) firstByInstance.set(event.questionInstanceId, event); });
@@ -129,6 +131,11 @@ export default function ParentReportPage() {
       || reportLesson.settingSnapshot.dailyGoal !== settings.dailyGoal
       || JSON.stringify(reportLesson.settingSnapshot.learnedTableRange) !== JSON.stringify(settings.learnedTableRange)))));
   const eventMetrics = Object.values(reduceLearningMetrics(state.learningEvents || []));
+  const solvingSummary = summarizeSolving(state.learningEvents || []);
+  const helpSkillLabels = { target: '找准问题', condition: '分清条件', relation: '理解数量关系', intermediate: '中间步骤' };
+  const helpMistakes = (state.learningEvents || []).filter(event => event.eventType === 'help_task_submitted' && event.result === 'incorrect');
+  const helpSkillErrors = Object.entries(helpSkillLabels).map(([skill, label]) => ({ label, count: helpMistakes.filter(event => event.helpTaskSkill === skill).length })).filter(row => row.count > 0);
+  const rate = (value: number | null) => value === null ? '—' : `${Math.round(value * 100)}%`;
   const metricGroups = groupLearningMetrics(eventMetrics);
   const lessonEvents = (state.learningEvents || []).filter(event => event.lessonId === reportLesson?.lessonId);
   const completedInstances = new Set(lessonEvents.filter(event => event.eventType === 'question_completed').map(event => event.questionInstanceId));
@@ -171,6 +178,22 @@ export default function ParentReportPage() {
       </div>
 
       {showSettings && <LearningSettingsPanel settings={settings} courseStatus={courseStatus} onSave={saveParentSettings} onClose={() => setShowSettings(false)} />}
+
+      <AppCard variant="blue">
+        <h2 className="font-extrabold text-blue-950">孩子是怎样做出来的</h2>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[
+            ['independent-mastery-rate', '独立掌握率（新记录）', rate(solvingSummary.independentRate)],
+            ['final-correct-rate', '最终正确率', rate(solvingSummary.finalCorrectRate)],
+            ['help-dependence-rate', '帮助依赖率', rate(solvingSummary.helpDependenceRate)],
+            ['transfer-mastery-rate', '迁移掌握率', rate(solvingSummary.transferMasteryRate)],
+          ].map(([id, label, value]) => <div key={id} className="rounded-xl bg-white/80 p-3 text-center"><p data-testid={id} className="text-2xl font-extrabold text-blue-900">{value}</p><p className="mt-1 text-xs text-slate-600">{label}</p></div>)}
+        </div>
+        <p data-testid="solving-outcomes" className="mt-3 text-sm text-slate-700">独立完成 {solvingSummary.independent} · 辅助完成 {solvingSummary.assisted} · 讲解后待巩固 {solvingSummary.needsReinforcement} · 学习后独立完成变式 {solvingSummary.transferIndependent}/{solvingSummary.transferInstances}</p>
+        {helpSkillErrors.length > 0 && <p data-testid="reading-skill-support" className="mt-2 text-sm text-amber-900">互动判断中需要帮助：{helpSkillErrors.map(row => `${row.label} ${row.count} 次`).join(' · ')}。这类判断不记作原题答错。</p>}
+        {(state.needsReinforcementQueue?.length ?? 0) > 0 && <p data-testid="reinforcement-queue" className="mt-2 text-sm text-slate-700">待复练 {state.needsReinforcementQueue!.length} 题。到期后优先安排当前年级、当前单元的原题；其他单元记录保留，切回相应单元后复练。</p>}
+        <p data-testid="mastery-evidence-denominator" className="mt-2 text-xs leading-5 text-slate-600">前三项比例按本次升级后有完整帮助证据的 {solvingSummary.resolved - solvingSummary.unknown} 道已结束原题计算，包含看过完整讲解的题。旧版缺少帮助证据的 {solvingSummary.unknown} 题单列为未知，不进入这些比例，也不当作答错。独立掌握要求首次答对且未求助；求助和重试后答对记为辅助完成。变式表现单独统计。求助不会扣除已有积分。</p>
+      </AppCard>
 
       {/* Current grade info */}
       <AppCard variant="purple">
